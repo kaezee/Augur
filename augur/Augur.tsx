@@ -5,6 +5,7 @@ import { canShow, recordShown, recordAnswered, recordIgnored } from "./caps";
 import { mergeConfig, responseTypeOf, type AugurConfig, type TriggerDef } from "./config";
 import type { AugurStore } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
+import { AugurMark } from "./mark";
 
 // The mount (AUGUR-HANDOFF §4/§9, Patch 2). One instance, high in the host tree.
 // It listens on the emit bus, gates through the local cap engine, logs through the
@@ -118,13 +119,14 @@ function PersistentButton({ position, onClick }: { position: "bottom-right" | "b
   const side = position === "bottom-left" ? { left: 24 } : { right: 24 };
   const style: React.CSSProperties = {
     position: "fixed", bottom: 24, ...side, zIndex: 2147482000,
-    cursor: "pointer", padding: "8px 13px", borderRadius: 999,
+    cursor: "pointer", padding: "8px 14px", borderRadius: 999,
     border: "1px solid var(--k-border-strong, #D3CCB9)", background: "var(--k-bg-raised, #ffffff)",
     color: "var(--k-text-secondary, #5C5647)", boxShadow: "0 4px 16px rgba(0,0,0,.12)",
     font: "600 12.5px/1 var(--k-font-sans, ui-sans-serif, system-ui, sans-serif)",
+    display: "inline-flex", alignItems: "center", gap: 7,
   };
   return createPortal(
-    <button style={style} onClick={onClick} aria-label="Give feedback" title="Give feedback">Feedback</button>,
+    <button style={style} onClick={onClick} aria-label="Give feedback" title="Give feedback"><AugurMark size={15} /> Feedback</button>,
     document.body,
   );
 }

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { mergeConfig, responseTypeOf, type AugurConfig, type TriggerDef } from "./config";
 import type { AdminNote, AugurStore, DateRange, Summary, TriggerStat, Unconfigured } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
-import { AugurMark, AUGUR_REPO_URL } from "./mark";
+import { AugurWordmark, AUGUR_REPO_URL } from "./mark";
 
 // The Augur admin surface (AUGUR-HANDOFF §7, replaced by Patch 2 §6). A section, not
 // a route: the host mounts it behind its own guard. Two tabs — Results (read, the
@@ -68,7 +68,7 @@ export function AugurAdminSection({ store, hostConfig, selfUserId }: {
     <section style={{ font: "500 14px/1.5 var(--k-font-sans, ui-sans-serif, system-ui, sans-serif)", color: "var(--k-text-primary, #1F1C15)" }}>
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 4 }}>
         <div>
-          <h1 style={{ margin: 0, fontSize: 20, display: "inline-flex", alignItems: "center", gap: 8 }}><AugurMark size={20} /> Augur</h1>
+          <h1 style={{ margin: 0, display: "inline-flex", alignItems: "center" }}><AugurWordmark size={26} /></h1>
           <p style={{ ...muted, margin: "2px 0 0" }}>{declared} triggers declared, {enabled} enabled · adding or removing a trigger needs a code change.</p>
         </div>
         <select value={preset} onChange={(e) => setPreset(e.target.value as Preset)} style={{ ...btn, cursor: "pointer" }}>

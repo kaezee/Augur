@@ -23,4 +23,4 @@ export { HttpStore } from "./stores/http";
 // Admin surface — optional, host-mounted behind the host's own route + guard.
 export { AugurAdminSection, useAugurSummary, useAugurNotes } from "./admin";
 export { AugurConsole } from "./console";
-export { AugurMark, AugurByline } from "./mark";
+export { AugurMark, AugurWordmark, AugurByline } from "./mark";

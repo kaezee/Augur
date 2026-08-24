@@ -134,3 +134,48 @@ grant execute on function augur_admin_trigger_stats(timestamptz, timestamptz) to
 grant execute on function augur_admin_unconfigured()                          to authenticated;
 grant execute on function augur_admin_notes(boolean)                          to authenticated;
 grant execute on function augur_admin_mark_note_read(uuid)                    to authenticated;
+
+-- ── collection writes (SECURITY DEFINER; derive the user from the JWT) ────────
+-- Required: events/notes have no SELECT policy, so direct client writes fail under
+-- RLS (the notes ownership check can't see the event). The SupabaseStore calls these.
+create or replace function public.augur_log_shown(p_trigger_id text, p_trigger_ver int)
+returns uuid language plpgsql security definer set search_path = public as $$
+declare v_id uuid;
+begin
+  if auth.uid() is null then raise exception 'auth required'; end if;
+  insert into augur_events (user_id, trigger_id, trigger_ver, outcome)
+    values (auth.uid(), p_trigger_id, p_trigger_ver, 'shown')
+  returning id into v_id;
+  return v_id;
+end $$;
+
+create or replace function public.augur_log_outcome(p_event_id uuid, p_outcome text, p_answer text default null)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  update augur_events set
+    outcome     = p_outcome,
+    answer      = case when p_outcome = 'answered' then p_answer else answer end,
+    answered_at = case when p_outcome = 'answered' then now() else answered_at end
+  where id = p_event_id and user_id = auth.uid();
+end $$;
+
+create or replace function public.augur_log_note(p_event_id uuid, p_body text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not exists (select 1 from augur_events where id = p_event_id and user_id = auth.uid()) then
+    raise exception 'not your event';
+  end if;
+  insert into augur_notes (event_id, body) values (p_event_id, p_body);
+end $$;
+
+create or replace function public.augur_log_unconfigured(p_trigger_id text)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then return; end if;
+  insert into augur_unconfigured (trigger_id, user_id) values (p_trigger_id, auth.uid());
+end $$;
+
+grant execute on function public.augur_log_shown(text, int)          to authenticated;
+grant execute on function public.augur_log_outcome(uuid, text, text) to authenticated;
+grant execute on function public.augur_log_note(uuid, text)          to authenticated;
+grant execute on function public.augur_log_unconfigured(text)        to authenticated;

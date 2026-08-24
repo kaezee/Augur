@@ -24,31 +24,27 @@ export interface SupabaseLike {
 export class SupabaseStore implements AugurStore {
   constructor(private readonly sb: SupabaseLike) {}
 
-  // The client mints the row id so it can update its own row later (events has no
-  // SELECT policy — insert cannot return the generated id).
+  // All collection writes go through SECURITY DEFINER RPCs that derive the user from
+  // the JWT — the events/notes tables have no SELECT policy, so direct client writes
+  // (and the notes-insert ownership check) silently failed under RLS.
   async logShown(e: { userId: string; triggerId: string; triggerVer: number }): Promise<string> {
-    const id = crypto.randomUUID();
-    const { error } = await this.sb.from("augur_events").insert({
-      id, user_id: e.userId, trigger_id: e.triggerId, trigger_ver: e.triggerVer, outcome: "shown",
-    });
+    const { data, error } = await this.sb.rpc("augur_log_shown", { p_trigger_id: e.triggerId, p_trigger_ver: e.triggerVer });
     if (error) throw error;
-    return id;
+    return data as unknown as string;
   }
 
   async logOutcome(eventId: string, outcome: "ignored" | "answered", answer?: string): Promise<void> {
-    const patch: Record<string, unknown> = { outcome };
-    if (outcome === "answered") { patch.answer = answer ?? null; patch.answered_at = new Date().toISOString(); }
-    const { error } = await this.sb.from("augur_events").update(patch).eq("id", eventId);
+    const { error } = await this.sb.rpc("augur_log_outcome", { p_event_id: eventId, p_outcome: outcome, p_answer: answer ?? null });
     if (error) throw error;
   }
 
   async logNote(eventId: string, body: string): Promise<void> {
-    const { error } = await this.sb.from("augur_notes").insert({ event_id: eventId, body });
+    const { error } = await this.sb.rpc("augur_log_note", { p_event_id: eventId, p_body: body });
     if (error) throw error;
   }
 
-  async logUnconfigured(triggerId: string, userId: string): Promise<void> {
-    const { error } = await this.sb.from("augur_unconfigured").insert({ trigger_id: triggerId, user_id: userId });
+  async logUnconfigured(triggerId: string): Promise<void> {
+    const { error } = await this.sb.rpc("augur_log_unconfigured", { p_trigger_id: triggerId });
     if (error) throw error;
   }
 

@@ -34,16 +34,20 @@ export function AugurPrompt({ spec, onAnswer, onNote, onIgnore, onDone }: {
   const [text, setText] = useState("");
   const closed = useRef(false);
 
+  const [sent, setSent] = useState(false);
+
   const ignore = () => { if (closed.current) return; closed.current = true; onIgnore(); };
   const done = () => { if (closed.current) return; closed.current = true; onDone(); };
+  // A short thank-you so a Send visibly lands, then close (the write already happened).
+  const finish = () => { if (closed.current || sent) return; setSent(true); window.setTimeout(done, 1500); };
 
   // 20s no-interaction auto-dismiss — only while still on the first step. Silence
   // is a real signal (§6.3): it always resolves the row to 'ignored'.
   useEffect(() => {
-    if (step !== "q") return;
+    if (step !== "q" || sent) return;
     const t = window.setTimeout(ignore, AUTO_DISMISS_MS);
     return () => window.clearTimeout(t);
-  }, [step]);
+  }, [step, sent]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") { e.stopPropagation(); step === "q" ? ignore() : done(); } };
@@ -53,7 +57,7 @@ export function AugurPrompt({ spec, onAnswer, onNote, onIgnore, onDone }: {
 
   const side = spec.position === "bottom-left" ? { left: 24 } : { right: 24 };
   const wrap: React.CSSProperties = {
-    position: "fixed", bottom: 24, ...side, zIndex: 2147483000, width: "min(360px, calc(100vw - 32px))",
+    position: "fixed", bottom: 24, ...side, zIndex: 2147483000, width: isText ? "min(460px, calc(100vw - 32px))" : "min(360px, calc(100vw - 32px))",
     background: "var(--k-bg-raised, #ffffff)", color: "var(--k-text-primary, #1F1C15)",
     border: "1px solid var(--k-border, #E7E2D3)", borderRadius: "var(--k-radius-container, 10px)",
     boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "14px 16px",
@@ -81,17 +85,21 @@ export function AugurPrompt({ spec, onAnswer, onNote, onIgnore, onDone }: {
 
   return createPortal(
     <div style={wrap} role="dialog" aria-label="Feedback">
-      <button style={close} aria-label="Dismiss" onClick={() => (step === "q" ? ignore() : done())}>×</button>
+      <button style={close} aria-label="Dismiss" onClick={() => (sent ? done() : step === "q" ? ignore() : done())}>×</button>
 
-      {isText ? (
+      {sent ? (
+        <p style={{ margin: "2px 0", display: "flex", alignItems: "center", gap: 8, fontWeight: 600 }}>
+          <span style={{ color: "var(--k-action-fill, #394293)" }}>✓</span> Thanks — that’s logged.
+        </p>
+      ) : isText ? (
         // User-initiated: free text, no rating (§7).
         <>
           <p style={qStyle}>{spec.question}</p>
-          <textarea autoFocus value={text} onChange={(e) => setText(e.target.value)} rows={3}
-            placeholder="…" style={{ ...inputStyle, width: "100%", resize: "vertical", marginBottom: 8 }} />
+          <textarea autoFocus value={text} onChange={(e) => setText(e.target.value)} rows={5}
+            placeholder="Type your feedback…" style={{ ...inputStyle, width: "100%", minHeight: 108, resize: "vertical", marginBottom: 10 }} />
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
             <button style={{ ...btn, border: "none", background: "none" }} onClick={ignore}>Cancel</button>
-            <button style={primary} disabled={!text.trim()} onClick={() => { onAnswer(); onNote(text.trim()); done(); }}>Send</button>
+            <button style={primary} disabled={!text.trim()} onClick={() => { onAnswer(); onNote(text.trim()); finish(); }}>Send</button>
           </div>
         </>
       ) : step === "q" ? (
@@ -109,9 +117,9 @@ export function AugurPrompt({ spec, onAnswer, onNote, onIgnore, onDone }: {
           <p style={qStyle}>{spec.followup}</p>
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <input autoFocus value={text} onChange={(e) => setText(e.target.value)}
-              onKeyDown={(e) => { if (e.key === "Enter" && text.trim()) { onNote(text.trim()); done(); } }}
+              onKeyDown={(e) => { if (e.key === "Enter" && text.trim()) { onNote(text.trim()); finish(); } }}
               placeholder="one line, optional" style={inputStyle} />
-            <button style={primary} onClick={() => { if (text.trim()) onNote(text.trim()); done(); }}>Send</button>
+            <button style={primary} onClick={() => { if (text.trim()) onNote(text.trim()); finish(); }}>Send</button>
             <button style={{ ...btn, border: "none", background: "none", padding: "6px 4px" }} onClick={done}>Skip</button>
           </div>
         </>

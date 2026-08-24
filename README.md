@@ -78,13 +78,18 @@ admin check, and the 404 are yours — Augur ships the section, not the page.
 
 Skip the admin import entirely and collection still works, with a smaller bundle.
 
-## Branding
+## Branding & attribution
 
-The eye-in-triangle mark and "by Augur" byline are a self-contained inline SVG in
-[`augur/mark.tsx`](./augur/mark.tsx). Drop your own logo in [`branding/`](./branding)
-and edit that one file — see [`branding/README.md`](./branding/README.md). The
-attribution byline is on by default and turns off with `attribution: false` (for
-client work).
+Augur is free, and stays free, on one condition: the small **"by Augur"** byline at
+the foot of every prompt — and its link to this repo — **must stay visible**. It is
+not a config toggle; it always shows. Removing, hiding, or altering it requires a
+commercial license (see [LICENSE](./LICENSE)).
+
+What you *do* own is your **feedback entry point** — the floating "Feedback" button
+and its icon. Restyle or replace that freely. If you want to swap the placeholder
+Augur mark used elsewhere for your own artwork, drop it in [`branding/`](./branding)
+and edit [`augur/mark.tsx`](./augur/mark.tsx) — but leave the byline lockup and its
+link intact. See [`branding/README.md`](./branding/README.md).
 
 ## Remove it
 
@@ -105,4 +110,6 @@ the tables. Nothing else references it.
 
 ## License
 
-MIT © 2026 Krishnachandran Ramachandran ([kaezee](https://github.com/kaezee)).
+Free to use, including commercially, **provided the "by Augur" attribution stays
+visible** (see Branding above). Source-available, not OSI open-source. Full terms in
+[LICENSE](./LICENSE). © 2026 Krishnachandran Ramachandran ([kaezee](https://github.com/kaezee)).

@@ -19,7 +19,6 @@ export interface PromptSpec {
   responseType: ResponseType;
   answers: AnswerOption[];                     // choice3
   options?: { key: string; label: string }[]; // choice
-  attribution: boolean;
   position: Presentation["position"];
 }
 
@@ -118,9 +117,8 @@ export function AugurPrompt({ spec, onAnswer, onNote, onIgnore, onDone }: {
         </>
       )}
 
-      {spec.attribution && (
-        <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><AugurByline /></div>
-      )}
+      {/* Required attribution (Augur License §1) — always shown, links to the repo. */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><AugurByline /></div>
     </div>,
     document.body,
   );

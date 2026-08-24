@@ -25,3 +25,7 @@ analytics stay exact. Adding/removing a trigger is a code change, not an admin a
 **Admin (optional):** mount `<AugurAdminSection store hostConfig />` behind your own
 route + guard. Skip the import and collection still works. **Remove Augur:** delete
 the folder, the one `<Augur/>`, your `emit` calls, and drop the tables.
+
+**Attribution:** the "by Augur" byline at the foot of each prompt must stay visible
+(free-license requirement — removing it needs a commercial license). Your own
+"Feedback" button and its icon are yours to restyle. See the repo's LICENSE.

@@ -1,20 +1,23 @@
 # Branding
 
-Drop the Augur logo here as **`augur.svg`** (and optionally `augur-mark.svg` for
-the icon-only eye-in-triangle).
+These are the Augur brand assets — `augur.svg` (the wordmark) and `augur-mark.svg`
+(the icon-only eye-in-triangle). They're inlined into
+[`../augur/mark.tsx`](../augur/mark.tsx) as `currentColor` SVGs so they tint with the
+surrounding text and work in dark mode, with no asset dependency.
 
-The module ships a self-contained inline-SVG placeholder in
-[`../augur/mark.tsx`](../augur/mark.tsx) so it renders with no asset dependency.
-To use the real logo, edit that one file:
+## What you may change
 
-- **`AugurMark`** — the icon (rail, byline). Replace the `<path>` data with your
-  `augur-mark.svg` paths. Keep `fill="currentColor"` so it tints with the text
-  colour and works in dark mode.
-- **`AugurByline`** — the "by Augur" wordmark at the foot of each prompt. Swap in
-  your `augur.svg` wordmark here.
+- **Your feedback button.** The floating "Feedback" control and whatever icon sits
+  on it are *yours* — restyle or replace them however you like (edit the persistent
+  button in `../augur/Augur.tsx`).
 
-Every place that shows the mark imports from `mark.tsx`, so editing it updates the
-rail, the admin header, and the prompt byline at once.
+## What you must keep (Augur License §2)
 
-Keep the mark monochrome (single colour, `currentColor`) — the prompt renders on
-whatever surface the host provides, light or dark.
+- **The "by Augur" byline and its link** at the foot of every prompt
+  (`AugurByline` in `mark.tsx`) must stay visible and functional. Don't remove,
+  hide, shrink to illegibility, or re-point it. Removing it needs a commercial
+  license — see [`../LICENSE`](../LICENSE).
+
+If you have a commercial/white-label license, that's when you'd edit `AugurByline`
+(and swap `AugurMark`) for your own artwork; keep everything monochrome
+(`currentColor`) so it reads on any surface, light or dark.

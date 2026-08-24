@@ -29,7 +29,6 @@ export interface AugurConfig {
   enabled: boolean;
   persistentButton: boolean;                       // beta-only manual button
   manualQuestion: string;                          // the persistent button's prompt
-  attribution: boolean;                            // "by Augur" byline (§8)
   caps: { perSession: number; perUserDays: number; suppressAfterAnswerDays: number };
   answers: AnswerOption[];                          // the choice3 answers, forever
   followup: string;                                // "Thanks. Anything you'd change?"
@@ -43,7 +42,6 @@ export const AUGUR_BASE_DEFAULTS: Omit<AugurConfig, "triggers"> = {
   enabled: true,
   persistentButton: true,
   manualQuestion: "What would make this better?",
-  attribution: true,
   caps: { perSession: 1, perUserDays: 21, suppressAfterAnswerDays: 21 },
   answers: [
     { key: "yes", label: "Yes" },

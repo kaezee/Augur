@@ -28,9 +28,10 @@ export function AugurWordmark({ size = 15 }: { size?: number }) {
   );
 }
 
-// "by Augur" — the small attribution at the foot of every prompt. Becomes a link to
-// the repo once REPO_URL is set (deferred until the public repo exists).
-export const AUGUR_REPO_URL = ""; // e.g. "https://github.com/kaezee/Augur"
+// "by Augur" — the required attribution at the foot of every prompt (Augur License
+// §1). Always shown, always links to the project. Do not remove or alter it without
+// a commercial license.
+export const AUGUR_REPO_URL = "https://github.com/kaezee/Augur";
 
 export function AugurByline({ style }: { style?: React.CSSProperties }) {
   const inner = (

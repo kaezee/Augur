@@ -203,7 +203,7 @@ function Settings({ store, draft, setDraft, loadedRef, selfUserId }: {
   const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(loadedRef.current), [draft, loadedRef]);
   const pending = useMemo(() => {
     const base = loadedRef.current; if (!base) return 0; let n = 0;
-    if (base.enabled !== draft.enabled) n++; if (base.persistentButton !== draft.persistentButton) n++; if (base.attribution !== draft.attribution) n++;
+    if (base.enabled !== draft.enabled) n++; if (base.persistentButton !== draft.persistentButton) n++;
     if (JSON.stringify(base.caps) !== JSON.stringify(draft.caps)) n++;
     for (const id of Object.keys(draft.triggers)) if (JSON.stringify(base.triggers[id]) !== JSON.stringify(draft.triggers[id])) n++;
     return n;
@@ -218,7 +218,7 @@ function Settings({ store, draft, setDraft, loadedRef, selfUserId }: {
       const version = base && t.question !== base.triggers[id]?.question ? t.version + 1 : t.version;
       return [id, { ...t, version }];
     }));
-    const overrides: Partial<AugurConfig> = { enabled: draft.enabled, persistentButton: draft.persistentButton, attribution: draft.attribution, caps: draft.caps, triggers };
+    const overrides: Partial<AugurConfig> = { enabled: draft.enabled, persistentButton: draft.persistentButton, caps: draft.caps, triggers };
     try { await store.writeConfig?.(overrides); const next = { ...draft, triggers } as AugurConfig; setDraft(next); loadedRef.current = next; }
     finally { setSaving(false); }
   }
@@ -236,7 +236,7 @@ function Settings({ store, draft, setDraft, loadedRef, selfUserId }: {
         <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Master</h2>
         <Toggle checked={draft.enabled} onChange={(v) => setDraft({ ...draft, enabled: v })} title="Augur enabled" hint="Off means no prompt ever surfaces, for anyone." />
         <Toggle checked={draft.persistentButton} onChange={(v) => setDraft({ ...draft, persistentButton: v })} title="Persistent feedback button" hint="The always-available button (beta). Off hides it; timed triggers still fire." />
-        <Toggle checked={draft.attribution} onChange={(v) => setDraft({ ...draft, attribution: v })} title="“by Augur” attribution" hint="The byline at the foot of every prompt. Turn off for client work." />
+        <p style={{ ...muted, margin: "6px 0 0" }}>The “by Augur” byline is part of the free license and always shows.</p>
       </div>
 
       <div style={card}>
@@ -295,7 +295,7 @@ function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft, store, selfUser
 }) {
   const [preview, setPreview] = useState<{ eventId: string } | null>(null);
   const type = responseTypeOf(t);
-  const spec: PromptSpec = { question: t.question, followup: t.followup ?? draft.followup, responseType: type, answers: draft.answers, options: t.options, attribution: draft.attribution, position: draft.presentation.position };
+  const spec: PromptSpec = { question: t.question, followup: t.followup ?? draft.followup, responseType: type, answers: draft.answers, options: t.options, position: draft.presentation.position };
 
   async function sendToMe() {
     if (!selfUserId) return;

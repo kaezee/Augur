@@ -49,7 +49,6 @@ export function Augur({ userId, store, config }: {
     responseType: responseTypeOf(def),
     answers: c.answers,
     options: def.options,
-    attribution: c.attribution,
     position: c.presentation.position,
   });
 
@@ -87,7 +86,7 @@ export function Augur({ userId, store, config }: {
       const eventId = await store.logShown({ userId, triggerId: MANUAL, triggerVer: 0 });
       setActive({
         triggerId: MANUAL, eventId, manual: true,
-        spec: { question: c.manualQuestion, followup: c.followup, responseType: "text", answers: c.answers, attribution: c.attribution, position: c.presentation.position },
+        spec: { question: c.manualQuestion, followup: c.followup, responseType: "text", answers: c.answers, position: c.presentation.position },
       });
     } catch { /* ignore */ }
   };

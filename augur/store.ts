@@ -51,5 +51,7 @@ export interface AugurStore {
   readUnconfigured?(): Promise<Unconfigured[]>;
   readNotes?(opts?: { unreadOnly?: boolean }): Promise<AdminNote[]>;
   markNoteRead?(noteId: string): Promise<void>;
+  deleteNote?(noteId: string): Promise<void>;
+  purgeData?(beforeDays: number | null): Promise<number>;   // null = everything; returns events removed
   writeConfig?(overrides: Partial<AugurConfig>): Promise<void>;
 }

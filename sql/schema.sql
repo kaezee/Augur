@@ -179,3 +179,29 @@ grant execute on function public.augur_log_shown(text, int)          to authenti
 grant execute on function public.augur_log_outcome(uuid, text, text) to authenticated;
 grant execute on function public.augur_log_note(uuid, text)          to authenticated;
 grant execute on function public.augur_log_unconfigured(text)        to authenticated;
+
+-- ── admin maintenance (delete a note; purge old data) ────────────────────────
+create or replace function public.augur_admin_delete_note(p_note_id uuid)
+returns void language plpgsql security definer set search_path = public as $$
+begin
+  if not augur_is_admin() then raise exception 'not authorized'; end if;
+  delete from augur_notes where id = p_note_id;
+end $$;
+
+create or replace function public.augur_admin_purge(p_before_days int default null)
+returns integer language plpgsql security definer set search_path = public as $$
+declare n int;
+begin
+  if not augur_is_admin() then raise exception 'not authorized'; end if;
+  with del as (
+    delete from augur_events
+    where p_before_days is null or shown_at < now() - make_interval(days => p_before_days)
+    returning 1
+  ) select count(*) into n from del;
+  delete from augur_unconfigured
+    where p_before_days is null or seen_at < now() - make_interval(days => p_before_days);
+  return coalesce(n, 0);
+end $$;
+
+grant execute on function public.augur_admin_delete_note(uuid) to authenticated;
+grant execute on function public.augur_admin_purge(int)       to authenticated;

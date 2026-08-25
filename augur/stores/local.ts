@@ -107,6 +107,23 @@ export class LocalStore implements AugurStore {
     if (n && !n.readAt) { n.readAt = Date.now(); save(b); }
   }
 
+  async deleteNote(noteId: string): Promise<void> {
+    const b = load(); b.notes = b.notes.filter((n) => n.id !== noteId); save(b);
+  }
+
+  async purgeData(beforeDays: number | null): Promise<number> {
+    const b = load();
+    const cutoff = beforeDays == null ? Infinity : Date.now() - beforeDays * 86_400_000;
+    const keep = beforeDays == null ? [] : b.events.filter((e) => e.shownAt >= cutoff);
+    const removedIds = new Set(b.events.filter((e) => beforeDays == null || e.shownAt < cutoff).map((e) => e.id));
+    const removed = removedIds.size;
+    b.events = keep;
+    b.notes = b.notes.filter((n) => !removedIds.has(n.eventId));
+    b.unconfigured = beforeDays == null ? [] : b.unconfigured.filter((u) => u.seenAt >= cutoff);
+    save(b);
+    return removed;
+  }
+
   async writeConfig(overrides: Partial<AugurConfig>): Promise<void> {
     const b = load(); b.overrides = overrides; save(b);
   }

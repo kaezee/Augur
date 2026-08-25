@@ -42,11 +42,17 @@ export function useAugurNotes(store: AugurStore, unreadOnly = false) {
   return { notes, reload, markRead };
 }
 
-export function AugurAdminSection({ store, hostConfig, selfUserId }: {
+// A host may inject a nicer confirm dialog; otherwise the portable module uses
+// window.confirm so destructive actions still prompt anywhere.
+export type Confirm = (message: string) => Promise<boolean>;
+
+export function AugurAdminSection({ store, hostConfig, selfUserId, confirm }: {
   store: AugurStore;
   hostConfig: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> };
   selfUserId?: string;   // the admin's own id — enables "Send it to me now"
+  confirm?: Confirm;
 }) {
+  const ask: Confirm = confirm ?? (async (m) => (typeof window !== "undefined" ? window.confirm(m) : false));
   const [tab, setTab] = useState<"results" | "settings">("results");
   const [preset, setPreset] = useState<Preset>("30d");
   const range = useMemo(() => rangeFor(preset), [preset]);
@@ -83,18 +89,23 @@ export function AugurAdminSection({ store, hostConfig, selfUserId }: {
       </div>
 
       {!draft ? <p style={muted}>Loading…</p>
-        : tab === "results" ? <Results store={store} draft={draft} range={range} />
-        : <Settings store={store} draft={draft} setDraft={setDraft} loadedRef={loadedRef} selfUserId={selfUserId} />}
+        : tab === "results" ? <Results store={store} draft={draft} range={range} ask={ask} />
+        : <Settings store={store} draft={draft} setDraft={setDraft} loadedRef={loadedRef} selfUserId={selfUserId} ask={ask} />}
     </section>
   );
 }
 
 // ── RESULTS ───────────────────────────────────────────────────────────────────
-function Results({ store, draft, range }: { store: AugurStore; draft: AugurConfig; range: DateRange }) {
+function Results({ store, draft, range, ask }: { store: AugurStore; draft: AugurConfig; range: DateRange; ask: Confirm }) {
   const [statsRange, setStatsRange] = useState<TriggerStat[]>([]);
   const [statsAll, setStatsAll] = useState<TriggerStat[]>([]);
-  const { notes, markRead } = useAugurNotes(store, false);
+  const { notes, markRead, reload: reloadNotes } = useAugurNotes(store, false);
   const [unreadOnly, setUnreadOnly] = useState(false);
+
+  const deleteNote = async (id: string) => {
+    if (!(await ask("Delete this note permanently?"))) return;
+    await store.deleteNote?.(id); reloadNotes();
+  };
 
   useEffect(() => { store.readTriggerStats?.(range).then(setStatsRange).catch(() => setStatsRange([])); }, [store, range]);
   useEffect(() => { store.readTriggerStats?.(rangeFor("all")).then(setStatsAll).catch(() => setStatsAll([])); }, [store]);
@@ -175,7 +186,10 @@ function Results({ store, draft, range }: { store: AugurStore; draft: AugurConfi
                   <span style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{n.triggerId}</span>
                   {n.answer && <span>· {n.answer}</span>}
                   <span>· {new Date(n.createdAt).toLocaleDateString()}</span>
-                  {!n.read && <button onClick={() => markRead(n.id)} style={{ marginLeft: "auto", cursor: "pointer", font: "inherit", fontSize: 12, background: "none", border: "none", color: "var(--k-action-fill, #394293)", padding: 0 }}>mark read</button>}
+                  <span style={{ marginLeft: "auto", display: "inline-flex", gap: 12 }}>
+                    {!n.read && <button onClick={() => markRead(n.id)} style={{ cursor: "pointer", font: "inherit", fontSize: 12, background: "none", border: "none", color: "var(--k-action-fill, #394293)", padding: 0 }}>mark read</button>}
+                    <button onClick={() => deleteNote(n.id)} style={{ cursor: "pointer", font: "inherit", fontSize: 12, background: "none", border: "none", color: "var(--k-danger, #B4453B)", padding: 0 }}>delete</button>
+                  </span>
                 </div>
               </li>
             ))}
@@ -191,14 +205,26 @@ function Num({ v }: { v: number | string }) {
 }
 
 // ── SETTINGS ────────────────────────────────────────────────────────────────
-function Settings({ store, draft, setDraft, loadedRef, selfUserId }: {
+function Settings({ store, draft, setDraft, loadedRef, selfUserId, ask }: {
   store: AugurStore; draft: AugurConfig; setDraft: (c: AugurConfig) => void;
-  loadedRef: React.MutableRefObject<AugurConfig | null>; selfUserId?: string;
+  loadedRef: React.MutableRefObject<AugurConfig | null>; selfUserId?: string; ask: Confirm;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [unconf, setUnconf] = useState<Unconfigured[]>([]);
+  const [purgeDays, setPurgeDays] = useState(90);
+  const [purging, setPurging] = useState(false);
+  const [purgeMsg, setPurgeMsg] = useState<string | null>(null);
   useEffect(() => { store.readUnconfigured?.().then(setUnconf).catch(() => setUnconf([])); }, [store]);
+
+  async function purge(beforeDays: number | null) {
+    const label = beforeDays == null ? "ALL feedback and insights" : `feedback older than ${beforeDays} days`;
+    if (!(await ask(`Permanently delete ${label}? Events, notes, and unconfigured records are removed; your settings are kept. This can’t be undone.`))) return;
+    setPurging(true); setPurgeMsg(null);
+    try { const n = await store.purgeData?.(beforeDays); setPurgeMsg(`Removed ${n ?? 0} event${n === 1 ? "" : "s"}.`); }
+    catch (e) { setPurgeMsg(String((e as Error)?.message ?? e)); }
+    finally { setPurging(false); }
+  }
 
   const dirty = useMemo(() => JSON.stringify(draft) !== JSON.stringify(loadedRef.current), [draft, loadedRef]);
   const pending = useMemo(() => {
@@ -271,6 +297,20 @@ function Settings({ store, draft, setDraft, loadedRef, selfUserId }: {
           ))}
         </div>
       )}
+
+      <div style={card}>
+        <h2 style={{ margin: "0 0 2px", fontSize: 16 }}>Maintenance</h2>
+        <p style={{ ...muted, margin: "0 0 12px" }}>Feedback and insights accumulate. Clear out old data to keep this fast — your triggers and settings are never touched.</p>
+        <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
+          <span style={{ fontSize: 13.5 }}>Delete feedback older than</span>
+          <select value={purgeDays} onChange={(e) => setPurgeDays(Number(e.target.value))} style={{ ...btn, cursor: "pointer" }}>
+            {[30, 90, 180, 365].map((d) => <option key={d} value={d}>{d} days</option>)}
+          </select>
+          <button style={btn} onClick={() => purge(purgeDays)} disabled={purging}>{purging ? "Working…" : "Clear old"}</button>
+          <button style={{ ...btn, color: "var(--k-danger, #B4453B)", borderColor: "var(--k-danger, #B4453B)" }} onClick={() => purge(null)} disabled={purging}>Delete all feedback</button>
+          {purgeMsg && <span style={muted}>{purgeMsg}</span>}
+        </div>
+      </div>
 
       <div style={card}>
         <h2 style={{ margin: "0 0 4px", fontSize: 16 }}>About</h2>

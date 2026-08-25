@@ -89,6 +89,17 @@ export class SupabaseStore implements AugurStore {
     await this.sb.rpc("augur_admin_mark_note_read", { p_note_id: noteId });
   }
 
+  async deleteNote(noteId: string): Promise<void> {
+    const { error } = await this.sb.rpc("augur_admin_delete_note", { p_note_id: noteId });
+    if (error) throw error;
+  }
+
+  async purgeData(beforeDays: number | null): Promise<number> {
+    const { data, error } = await this.sb.rpc("augur_admin_purge", { p_before_days: beforeDays });
+    if (error) throw error;
+    return Number(data ?? 0);
+  }
+
   async writeConfig(overrides: Partial<AugurConfig>): Promise<void> {
     const { error } = await this.sb.from("augur_config")
       .update({ overrides, updated_at: new Date().toISOString() }).eq("id", 1);

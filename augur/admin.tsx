@@ -229,6 +229,7 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
   const [purgeDays, setPurgeDays] = useState(90);
   const [purging, setPurging] = useState(false);
   const [purgeMsg, setPurgeMsg] = useState<string | null>(null);
+  const [modeSaving, setModeSaving] = useState(false);
   useEffect(() => { store.readUnconfigured?.().then(setUnconf).catch(() => setUnconf([])); }, [store]);
 
   async function purge(beforeDays: number | null) {
@@ -265,6 +266,19 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
     finally { setSaving(false); }
   }
 
+  // Environment is an operational switch, not a staged edit: persist it the instant
+  // it's flipped so it survives a reload, without pulling in other unsaved draft
+  // edits. Writes the last-saved override set with only `mode` changed.
+  async function commitMode(testing: boolean) {
+    const mode: AugurConfig["mode"] = testing ? "testing" : "live";
+    setDraft({ ...draft, mode });
+    const base = loadedRef.current; if (!base) return;
+    setModeSaving(true);
+    const overrides: Partial<AugurConfig> = { enabled: base.enabled, mode, persistentButton: base.persistentButton, answers: base.answers, caps: base.caps, triggers: base.triggers };
+    try { await store.writeConfig?.(overrides); loadedRef.current = { ...base, mode }; }
+    finally { setModeSaving(false); }
+  }
+
   function configure(id: string) {
     // §5 — scaffold a config override for a trigger seen in the wild. The emit already
     // exists (that's why it fired); adding the entry makes it a real, tunable trigger.
@@ -276,9 +290,10 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
     <div style={{ paddingBottom: dirty ? 72 : 0 }}>
       <div style={{ ...card, borderColor: draft.mode === "testing" ? "var(--k-warning, #B5852A)" : (card.border as string) }}>
         <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Environment</h2>
-        <Toggle checked={draft.mode === "testing"} onChange={(v) => setDraft({ ...draft, mode: v ? "testing" : "live" })}
+        <Toggle checked={draft.mode === "testing"} onChange={commitMode}
           title="Testing mode"
           hint="Prompts still appear so you can try the flow — but nothing is recorded: no events, no counts, and clicks on the feedback button aren’t captured either. Turn this off to go live." />
+        <p style={{ ...muted, margin: "6px 0 0" }}>{modeSaving ? "Saving…" : "Applies immediately and survives a reload — no need to Save."}</p>
       </div>
 
       <div style={card}>

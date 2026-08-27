@@ -53,18 +53,18 @@ function AugurProjectLink() {
   const [hover, setHover] = useState(false);
   return (
     <a href={AUGUR_REPO_URL} target="_blank" rel="noreferrer noopener"
-       title="Augur — an open feedback module. View the project."
+       title="Add Augur to your product — a portable, drop-in feedback module. It's free."
        onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
        style={{
          display: "inline-flex", alignItems: "center", gap: 3,
          fontSize: 10.5, fontWeight: 700, lineHeight: 1, letterSpacing: 0.2,
-         padding: "3px 8px", borderRadius: 999, textDecoration: "none",
-         border: "1px solid var(--k-border-strong, #D3CCB9)",
-         color: hover ? "var(--k-action-fill, #394293)" : "var(--k-text-secondary, #5C5647)",
-         background: hover ? "var(--k-bg-sunken, #F7F6F1)" : "transparent",
-         cursor: "pointer", transition: "color .12s ease, background .12s ease",
+         padding: "3px 9px", borderRadius: 999, textDecoration: "none",
+         border: hover ? "1px solid var(--k-action-fill, #394293)" : "1px solid var(--k-border-strong, #D3CCB9)",
+         color: hover ? "var(--k-on-action-fill, #fff)" : "var(--k-text-secondary, #5C5647)",
+         background: hover ? "var(--k-action-fill, #394293)" : "transparent",
+         cursor: "pointer", transition: "color .12s ease, background .12s ease, border-color .12s ease",
        }}>
-      View project <span aria-hidden>↗</span>
+      Add to your product <span aria-hidden>↗</span>
     </a>
   );
 }

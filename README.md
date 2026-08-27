@@ -72,8 +72,9 @@ See [`example/usage.tsx`](./example/usage.tsx) for a complete file.
 
 Mount `<AugurAdminSection store={store} hostConfig={MY_TRIGGERS} />` behind your own
 route and guard. Two tabs: **Results** (a plain-sentence summary, a per-trigger
-table, and the notes) and **Settings** (reword questions, tune caps and timing,
-"send it to me now" to preview at real width, and a master switch). The route, the
+table, and the notes) and **Settings** (reword questions and answer labels, tune caps
+and timing, **Show preview** to see a prompt at real width — previews are never
+counted — and a master switch). The route, the
 admin check, and the 404 are yours — Augur ships the section, not the page.
 
 Skip the admin import entirely and collection still works, with a smaller bundle.

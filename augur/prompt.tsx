@@ -125,8 +125,9 @@ export function AugurPrompt({ spec, onAnswer, onNote, onIgnore, onDone }: {
         </>
       )}
 
-      {/* Required attribution (Augur License §1) — always shown, links to the repo. */}
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: 10 }}><AugurByline /></div>
+      {/* Required attribution (Augur License §1) — always shown, links to the repo.
+          Kept on the opposite side from the action buttons so it never sits under them. */}
+      <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 10 }}><AugurByline /></div>
     </div>,
     document.body,
   );

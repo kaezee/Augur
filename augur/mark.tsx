@@ -1,3 +1,5 @@
+import { useState } from "react";
+
 // The Augur brand, inline so the module carries it with no asset dependency. These
 // are the real vectors from branding/ (augur-mark.svg, augur.svg), set to
 // currentColor so they tint with the surrounding text and work in dark mode.
@@ -34,12 +36,18 @@ export function AugurWordmark({ size = 15 }: { size?: number }) {
 export const AUGUR_REPO_URL = "https://github.com/kaezee/Augur";
 
 export function AugurByline({ style }: { style?: React.CSSProperties }) {
+  const [hover, setHover] = useState(false);
+  // Reads as attribution at rest; on hover it lifts and underlines so it's clearly
+  // a link people can follow back to the project — not dead text.
   const inner = (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, opacity: 0.55, fontSize: 11, fontWeight: 600, ...style }}>
-      <span>by</span> <AugurWordmark size={13} />
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, opacity: hover ? 0.95 : 0.6, fontSize: 11, fontWeight: 600, transition: "opacity .12s ease", ...style }}>
+      <span style={{ textDecoration: hover ? "underline" : "none" }}>by</span> <AugurWordmark size={13} />
     </span>
   );
   return AUGUR_REPO_URL
-    ? <a href={AUGUR_REPO_URL} target="_blank" rel="noreferrer noopener" style={{ textDecoration: "none", color: "inherit" }}>{inner}</a>
+    ? <a href={AUGUR_REPO_URL} target="_blank" rel="noreferrer noopener"
+         title="Made with Augur — an open feedback module. View the project."
+         onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+         style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>{inner}</a>
     : inner;
 }

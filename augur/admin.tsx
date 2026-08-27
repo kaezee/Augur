@@ -16,6 +16,13 @@ const input: React.CSSProperties = { font: "inherit", padding: "7px 10px", borde
 const btn: React.CSSProperties = { font: "inherit", fontWeight: 600, cursor: "pointer", padding: "7px 12px", borderRadius: "var(--k-radius-control, 6px)", border: "1px solid var(--k-border-strong, #D3CCB9)", background: "var(--k-bg-surface, #fff)", color: "var(--k-text-secondary, #5C5647)" };
 const primary: React.CSSProperties = { ...btn, border: "1px solid transparent", background: "var(--k-action-fill, #394293)", color: "var(--k-on-action-fill, #fff)" };
 const DASH = "—";
+// How each response type reads to a human (the raw ids — choice3/choice/text —
+// are jargon; "choice3" was being misread as "trigger 3").
+const RESPONSE_LABEL: Record<"choice3" | "choice" | "text", string> = {
+  choice3: "Yes / Not really / Not sure",
+  choice: "Multiple choice",
+  text: "Free text",
+};
 
 // ── range presets ──
 type Preset = "7d" | "30d" | "90d" | "all";
@@ -149,7 +156,7 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
               if (!everFired.has(id)) return (
                 <tr key={id} style={{ borderTop: "1px solid var(--k-border, #E7E2D3)" }}>
                   <td style={{ padding: "9px 12px" }}>{name}</td>
-                  <td colSpan={6} style={{ padding: "9px 12px", ...muted }}>never fired — is the emit in place?</td>
+                  <td colSpan={6} style={{ padding: "9px 12px", ...muted }}>No prompts shown yet</td>
                 </tr>
               );
               if (!s) return (
@@ -351,11 +358,15 @@ function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft, store, selfUser
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, padding: "12px 0", cursor: "pointer" }} onClick={onToggleOpen}>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
           <code style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)", fontSize: 13 }}>{id}</code>
-          <span style={{ ...muted, border: "1px solid var(--k-border, #E7E2D3)", borderRadius: 4, padding: "1px 6px" }}>{type}</span>
+          <span style={{ ...muted, border: "1px solid var(--k-border, #E7E2D3)", borderRadius: 4, padding: "1px 6px" }} title="How people answer this prompt">{RESPONSE_LABEL[type]}</span>
         </span>
-        <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }} onClick={(e) => e.stopPropagation()}>
-          <Toggle checked={t.enabled} onChange={(v) => patch({ enabled: v })} title="" hint="" compact />
-          <span style={muted}>{isOpen ? "▲" : "▼"}</span>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 12 }}>
+          {/* stopPropagation only on the toggle, so it doesn't also expand the row;
+              the chevron stays part of the header's open/close click. */}
+          <span onClick={(e) => e.stopPropagation()} style={{ display: "inline-flex" }}>
+            <Toggle checked={t.enabled} onChange={(v) => patch({ enabled: v })} title="" hint="" compact />
+          </span>
+          <span style={muted} aria-hidden>{isOpen ? "▲" : "▼"}</span>
         </span>
       </div>
       {isOpen && (

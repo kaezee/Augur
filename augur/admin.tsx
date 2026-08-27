@@ -53,10 +53,10 @@ export function useAugurNotes(store: AugurStore, unreadOnly = false) {
 // window.confirm so destructive actions still prompt anywhere.
 export type Confirm = (message: string) => Promise<boolean>;
 
-export function AugurAdminSection({ store, hostConfig, selfUserId, confirm }: {
+export function AugurAdminSection({ store, hostConfig, confirm }: {
   store: AugurStore;
   hostConfig: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> };
-  selfUserId?: string;   // the admin's own id — enables "Send it to me now"
+  selfUserId?: string;   // accepted for host compatibility; previews need no user
   confirm?: Confirm;
 }) {
   const ask: Confirm = confirm ?? (async (m) => (typeof window !== "undefined" ? window.confirm(m) : false));
@@ -97,7 +97,7 @@ export function AugurAdminSection({ store, hostConfig, selfUserId, confirm }: {
 
       {!draft ? <p style={muted}>Loading…</p>
         : tab === "results" ? <Results store={store} draft={draft} range={range} ask={ask} />
-        : <Settings store={store} draft={draft} setDraft={setDraft} loadedRef={loadedRef} selfUserId={selfUserId} ask={ask} />}
+        : <Settings store={store} draft={draft} setDraft={setDraft} loadedRef={loadedRef} ask={ask} />}
     </section>
   );
 }
@@ -212,9 +212,9 @@ function Num({ v }: { v: number | string }) {
 }
 
 // ── SETTINGS ────────────────────────────────────────────────────────────────
-function Settings({ store, draft, setDraft, loadedRef, selfUserId, ask }: {
+function Settings({ store, draft, setDraft, loadedRef, ask }: {
   store: AugurStore; draft: AugurConfig; setDraft: (c: AugurConfig) => void;
-  loadedRef: React.MutableRefObject<AugurConfig | null>; selfUserId?: string; ask: Confirm;
+  loadedRef: React.MutableRefObject<AugurConfig | null>; ask: Confirm;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -282,12 +282,27 @@ function Settings({ store, draft, setDraft, loadedRef, selfUserId, ask }: {
       </div>
 
       <div style={card}>
+        <h2 style={{ margin: "0 0 2px", fontSize: 16 }}>Answers</h2>
+        <p style={{ ...muted, margin: "0 0 12px" }}>The three replies shown for every “Yes / Not really / Not sure” prompt. Reword the labels to fit your voice — the meaning and how they aggregate stay the same.</p>
+        <div style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+          {draft.answers.map((a, i) => (
+            <label key={a.key} style={{ ...lbl, display: "flex", flexDirection: "column", gap: 4, fontWeight: 600 }}>
+              {["Affirmative", "Negative", "Unsure"][i] ?? a.key}
+              <input value={a.label}
+                onChange={(e) => setDraft({ ...draft, answers: draft.answers.map((x, j) => j === i ? { ...x, label: e.target.value } : x) })}
+                style={{ ...input, width: 170, fontWeight: 400 }} />
+            </label>
+          ))}
+        </div>
+      </div>
+
+      <div style={card}>
         <h2 style={{ margin: "0 0 2px", fontSize: 16 }}>Triggers</h2>
         <p style={{ ...muted, margin: "0 0 12px" }}>Reword and tune here. Adding or removing a trigger is a code change, not a setting.</p>
         <div style={{ display: "flex", flexDirection: "column" }}>
           {Object.entries(draft.triggers).map(([id, t]) => (
             <TriggerRow key={id} id={id} t={t} isOpen={open === id} onToggleOpen={() => setOpen(open === id ? null : id)}
-              patch={(p) => patchTrigger(id, p)} draft={draft} store={store} selfUserId={selfUserId} />
+              patch={(p) => patchTrigger(id, p)} draft={draft} />
           ))}
         </div>
       </div>
@@ -336,22 +351,15 @@ function Settings({ store, draft, setDraft, loadedRef, selfUserId, ask }: {
   );
 }
 
-function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft, store, selfUserId }: {
+function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft }: {
   id: string; t: TriggerDef; isOpen: boolean; onToggleOpen: () => void; patch: (p: Partial<TriggerDef>) => void;
-  draft: AugurConfig; store: AugurStore; selfUserId?: string;
+  draft: AugurConfig;
 }) {
-  const [preview, setPreview] = useState<{ eventId: string } | null>(null);
+  // A pure preview — it renders the real prompt but logs NOTHING, so previews
+  // never show up in the counts.
+  const [preview, setPreview] = useState(false);
   const type = responseTypeOf(t);
   const spec: PromptSpec = { question: t.question, followup: t.followup ?? draft.followup, responseType: type, answers: draft.answers, options: t.options, position: draft.presentation.position };
-
-  async function sendToMe() {
-    if (!selfUserId) return;
-    try { const eventId = await store.logShown({ userId: selfUserId, triggerId: id, triggerVer: t.version }); setPreview({ eventId }); } catch { /* ignore */ }
-  }
-  const close = (outcome: "ignored" | "answered", answer?: string) => {
-    if (preview) store.logOutcome(preview.eventId, outcome, answer).catch(() => {});
-    setPreview(null);
-  };
 
   return (
     <div style={{ borderTop: "1px solid var(--k-border, #E7E2D3)" }}>
@@ -378,10 +386,11 @@ function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft, store, selfUser
             <Field label="Max asks (lifetime)" v={t.maxAsks} onChange={(n) => patch({ maxAsks: n })} />
             <Field label="Dies after N ignores" v={t.dismissKill} onChange={(n) => patch({ dismissKill: n })} />
           </div>
-          {selfUserId && <button style={btn} onClick={sendToMe}>Send it to me now — the real prompt, at real width</button>}
+          <button style={btn} onClick={() => setPreview(true)}>Show preview</button>
         </div>
       )}
-      {preview && <AugurPrompt spec={spec} onAnswer={(a) => { store.logOutcome(preview.eventId, "answered", a).catch(() => {}); }} onNote={(b) => store.logNote(preview.eventId, b).catch(() => {})} onIgnore={() => close("ignored")} onDone={() => setPreview(null)} />}
+      {/* Preview only — no logShown/logOutcome/logNote, so it isn't counted. */}
+      {preview && <AugurPrompt spec={spec} onAnswer={() => {}} onNote={() => {}} onIgnore={() => setPreview(false)} onDone={() => setPreview(false)} />}
     </div>
   );
 }

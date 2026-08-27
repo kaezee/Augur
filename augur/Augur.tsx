@@ -22,10 +22,13 @@ interface Active {
   manual: boolean;
 }
 
-export function Augur({ userId, store, config }: {
+export function Augur({ userId, store, config, autoTriggers = true }: {
   userId: string;
   store: AugurStore;
   config: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> };
+  // When false, timed/event-driven prompts are suppressed but the manual
+  // feedback button still shows — e.g. over a demo/sample the writer didn't make.
+  autoTriggers?: boolean;
 }) {
   const [overrides, setOverrides] = useState<Partial<AugurConfig>>({});
   const cfg = useMemo(() => mergeConfig(config, overrides), [config, overrides]);
@@ -53,6 +56,7 @@ export function Augur({ userId, store, config }: {
   });
 
   useEffect(() => {
+    if (!autoTriggers) return;   // demo/sample: keep the manual button, drop timed prompts
     const timers = new Set<number>();
     const off = augur.subscribe((triggerId) => {
       if (activeRef.current) return;
@@ -75,7 +79,7 @@ export function Augur({ userId, store, config }: {
     });
     return () => { off(); timers.forEach((t) => window.clearTimeout(t)); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, store]);
+  }, [userId, store, autoTriggers]);
 
   // The persistent button (beta only): user-initiated free text (§7). Bypasses every
   // cap and never touches the cap ledger — it must not consume a real-trigger budget.

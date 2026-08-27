@@ -127,11 +127,19 @@ See [`example/usage.tsx`](./example/usage.tsx) for a full reference file.
 
 ### Optional flags worth knowing
 
+- **Testing mode.** Admin → Settings → Environment has a **Testing mode** switch. While
+  it's on, prompts still appear so you can walk the flow, but nothing is recorded — no
+  events, no counts, and clicks on the manual Feedback button aren't captured either.
+  Tell the developer to wire the triggers, verify them in testing mode, then flip to
+  **live** before real users arrive — so your QA clicks never pollute their analytics.
 - `autoTriggers={false}` on `<Augur/>` keeps the manual Feedback button but suppresses
   all timed/event prompts — use it over demos or sample content the user didn't create.
+  (Different from testing mode: this is per-mount and about *which* prompts fire;
+  testing mode is global and about *whether anything is recorded*.)
 - The admin panel (`<AugurAdminSection store={store} hostConfig={MY_TRIGGERS} />`,
-  behind the host's own route + guard) lets the developer reword questions, tune caps,
-  and hit **Show preview** to see a prompt at real width. Previews are never counted.
+  behind the host's own route + guard) lets the developer reword questions and the three
+  answer labels, tune caps, and hit **Show preview** to see a prompt at real width.
+  Previews are never counted.
 
 ---
 

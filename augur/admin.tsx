@@ -95,6 +95,13 @@ export function AugurAdminSection({ store, hostConfig, confirm }: {
         ))}
       </div>
 
+      {draft?.mode === "testing" && (
+        <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16, padding: "10px 14px", borderRadius: "var(--k-radius-container, 10px)", border: "1px solid var(--k-warning, #B5852A)", background: "var(--k-warning-wash, rgba(181,133,42,.10))", color: "var(--k-text-primary, #1F1C15)", fontSize: 13.5 }}>
+          <strong>Testing mode</strong>
+          <span style={muted}>· prompts still appear, but nothing is captured. Turn it off in Settings → Environment to go live.</span>
+        </div>
+      )}
+
       {!draft ? <p style={muted}>Loading…</p>
         : tab === "results" ? <Results store={store} draft={draft} range={range} ask={ask} />
         : <Settings store={store} draft={draft} setDraft={setDraft} loadedRef={loadedRef} ask={ask} />}
@@ -237,6 +244,8 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
   const pending = useMemo(() => {
     const base = loadedRef.current; if (!base) return 0; let n = 0;
     if (base.enabled !== draft.enabled) n++; if (base.persistentButton !== draft.persistentButton) n++;
+    if (base.mode !== draft.mode) n++;
+    if (JSON.stringify(base.answers) !== JSON.stringify(draft.answers)) n++;
     if (JSON.stringify(base.caps) !== JSON.stringify(draft.caps)) n++;
     for (const id of Object.keys(draft.triggers)) if (JSON.stringify(base.triggers[id]) !== JSON.stringify(draft.triggers[id])) n++;
     return n;
@@ -251,7 +260,7 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
       const version = base && t.question !== base.triggers[id]?.question ? t.version + 1 : t.version;
       return [id, { ...t, version }];
     }));
-    const overrides: Partial<AugurConfig> = { enabled: draft.enabled, persistentButton: draft.persistentButton, caps: draft.caps, triggers };
+    const overrides: Partial<AugurConfig> = { enabled: draft.enabled, mode: draft.mode, persistentButton: draft.persistentButton, answers: draft.answers, caps: draft.caps, triggers };
     try { await store.writeConfig?.(overrides); const next = { ...draft, triggers } as AugurConfig; setDraft(next); loadedRef.current = next; }
     finally { setSaving(false); }
   }
@@ -265,6 +274,13 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
 
   return (
     <div style={{ paddingBottom: dirty ? 72 : 0 }}>
+      <div style={{ ...card, borderColor: draft.mode === "testing" ? "var(--k-warning, #B5852A)" : (card.border as string) }}>
+        <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Environment</h2>
+        <Toggle checked={draft.mode === "testing"} onChange={(v) => setDraft({ ...draft, mode: v ? "testing" : "live" })}
+          title="Testing mode"
+          hint="Prompts still appear so you can try the flow — but nothing is recorded: no events, no counts, and clicks on the feedback button aren’t captured either. Turn this off to go live." />
+      </div>
+
       <div style={card}>
         <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Master</h2>
         <Toggle checked={draft.enabled} onChange={(v) => setDraft({ ...draft, enabled: v })} title="Augur enabled" hint="Off means no prompt ever surfaces, for anyone." />

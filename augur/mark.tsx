@@ -30,24 +30,41 @@ export function AugurWordmark({ size = 15 }: { size?: number }) {
   );
 }
 
-// "by Augur" — the required attribution at the foot of every prompt (Augur License
-// §1). Always shown, always links to the project. Do not remove or alter it without
-// a commercial license.
+// The required attribution at the foot of every prompt (Augur License §1): the
+// "by Augur" brand lockup, plus its link to the project. Always shown — do not
+// remove or alter it without a commercial license. Point the constant at your own
+// product instead of the repo if you'd rather send people there.
 export const AUGUR_REPO_URL = "https://github.com/kaezee/Augur";
 
+// "by Augur" as branding, and a distinct pill that reads as a real link — kept
+// separate so the credit stands on its own and the call-to-action is unmistakable.
 export function AugurByline({ style }: { style?: React.CSSProperties }) {
-  const [hover, setHover] = useState(false);
-  // Reads as attribution at rest; on hover it lifts and underlines so it's clearly
-  // a link people can follow back to the project — not dead text.
-  const inner = (
-    <span style={{ display: "inline-flex", alignItems: "center", gap: 5, opacity: hover ? 0.95 : 0.6, fontSize: 11, fontWeight: 600, transition: "opacity .12s ease", ...style }}>
-      <span style={{ textDecoration: hover ? "underline" : "none" }}>by</span> <AugurWordmark size={13} />
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 10, ...style }}>
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, opacity: 0.85, fontSize: 11.5, fontWeight: 700 }}>
+        <span style={{ opacity: 0.65 }}>by</span> <AugurWordmark size={14} />
+      </span>
+      {AUGUR_REPO_URL && <AugurProjectLink />}
     </span>
   );
-  return AUGUR_REPO_URL
-    ? <a href={AUGUR_REPO_URL} target="_blank" rel="noreferrer noopener"
-         title="Made with Augur — an open feedback module. View the project."
-         onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
-         style={{ textDecoration: "none", color: "inherit", cursor: "pointer" }}>{inner}</a>
-    : inner;
+}
+
+function AugurProjectLink() {
+  const [hover, setHover] = useState(false);
+  return (
+    <a href={AUGUR_REPO_URL} target="_blank" rel="noreferrer noopener"
+       title="Augur — an open feedback module. View the project."
+       onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+       style={{
+         display: "inline-flex", alignItems: "center", gap: 3,
+         fontSize: 10.5, fontWeight: 700, lineHeight: 1, letterSpacing: 0.2,
+         padding: "3px 8px", borderRadius: 999, textDecoration: "none",
+         border: "1px solid var(--k-border-strong, #D3CCB9)",
+         color: hover ? "var(--k-action-fill, #394293)" : "var(--k-text-secondary, #5C5647)",
+         background: hover ? "var(--k-bg-sunken, #F7F6F1)" : "transparent",
+         cursor: "pointer", transition: "color .12s ease, background .12s ease",
+       }}>
+      View project <span aria-hidden>↗</span>
+    </a>
+  );
 }

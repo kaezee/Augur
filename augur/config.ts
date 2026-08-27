@@ -27,6 +27,10 @@ export interface AnswerOption { key: Answer; label: string; aria?: string }
 
 export interface AugurConfig {
   enabled: boolean;
+  // "testing" keeps every prompt visible so you can try the flow, but records
+  // nothing — no events, no cap ledger, no manual-button clicks. Flip to "live"
+  // when you're ready for real data. Off by default is "live".
+  mode: "live" | "testing";
   persistentButton: boolean;                       // beta-only manual button
   manualQuestion: string;                          // the persistent button's prompt
   caps: { perSession: number; perUserDays: number; suppressAfterAnswerDays: number };
@@ -40,6 +44,7 @@ export interface AugurConfig {
 // A host merges its `triggers` (and any overrides) over this.
 export const AUGUR_BASE_DEFAULTS: Omit<AugurConfig, "triggers"> = {
   enabled: true,
+  mode: "live",
   persistentButton: true,
   manualQuestion: "What would make this better?",
   caps: { perSession: 1, perUserDays: 21, suppressAfterAnswerDays: 21 },

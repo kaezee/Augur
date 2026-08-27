@@ -62,6 +62,9 @@ See [`example/usage.tsx`](./example/usage.tsx) for a complete file.
   for N days after any answer, plus per-trigger lifetime and dies-after-N-ignores.
   Per-device and best-effort by design (no user history is ever read back); the
   analytics stay exact.
+- **Testing mode** — a switch in admin that keeps every prompt visible so you can try
+  the flow, while recording nothing: no events, no counts, no manual-button clicks. QA
+  in testing, flip to live when you're ready, and your own clicks never skew the data.
 - **Unconfigured emits are caught** — an `emit()` with no config entry is logged and
   surfaced in admin instead of vanishing silently, the most common integration slip.
 - **Theme-aware, self-contained** — the snackbar reads your `--k-*` CSS variables

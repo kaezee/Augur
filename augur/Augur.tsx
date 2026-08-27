@@ -39,6 +39,11 @@ export function Augur({ userId, store, config, autoTriggers = true }: {
   const activeRef = useRef(false);
   activeRef.current = active !== null;
 
+  // Testing mode (config.mode): show prompts as normal, but write nothing — no
+  // events, no cap ledger, no notes. Read live so an admin toggle takes effect
+  // without a remount.
+  const isTesting = () => cfgRef.current.mode === "testing";
+
   useEffect(() => {
     let live = true;
     store.readConfig().then((o) => { if (live && o) setOverrides(o); }).catch(() => {});
@@ -63,15 +68,16 @@ export function Augur({ userId, store, config, autoTriggers = true }: {
       const c = cfgRef.current;
       const def = c.triggers[triggerId];
       // §5 — an emit with no config entry: show nothing, but record it so admin can see it.
-      if (!def) { store.logUnconfigured(triggerId, userId).catch(() => {}); return; }
+      if (!def) { if (!isTesting()) store.logUnconfigured(triggerId, userId).catch(() => {}); return; }
       if (!canShow(userId, triggerId, c)) return;
       const t = window.setTimeout(async () => {
         timers.delete(t);
         if (activeRef.current) return;
         if (!canShow(userId, triggerId, cfgRef.current)) return;
         try {
-          const eventId = await store.logShown({ userId, triggerId, triggerVer: def.version });
-          recordShown(userId, triggerId);
+          // Testing: skip the write and the cap ledger; still show the prompt.
+          const eventId = isTesting() ? "test" : await store.logShown({ userId, triggerId, triggerVer: def.version });
+          if (!isTesting()) recordShown(userId, triggerId);
           setActive({ triggerId, eventId, spec: specFor(def, cfgRef.current), manual: false });
         } catch { /* logging failed — say nothing rather than a broken prompt */ }
       }, def.delayMs);
@@ -87,7 +93,8 @@ export function Augur({ userId, store, config, autoTriggers = true }: {
     if (activeRef.current) return;
     const c = cfgRef.current;
     try {
-      const eventId = await store.logShown({ userId, triggerId: MANUAL, triggerVer: 0 });
+      // Testing: the manual click shows the prompt but is never captured.
+      const eventId = isTesting() ? "test" : await store.logShown({ userId, triggerId: MANUAL, triggerVer: 0 });
       setActive({
         triggerId: MANUAL, eventId, manual: true,
         spec: { question: c.manualQuestion, followup: c.followup, responseType: "text", answers: c.answers, position: c.presentation.position },
@@ -96,15 +103,17 @@ export function Augur({ userId, store, config, autoTriggers = true }: {
   };
 
   const onAnswer = (answer?: string) => {
-    if (!active) return;
+    if (!active || isTesting()) return;
     store.logOutcome(active.eventId, "answered", answer).catch(() => {});
     if (!active.manual) recordAnswered(userId);
   };
-  const onNote = (body: string) => { if (active) store.logNote(active.eventId, body).catch(() => {}); };
+  const onNote = (body: string) => { if (active && !isTesting()) store.logNote(active.eventId, body).catch(() => {}); };
   const onIgnore = () => {
     if (!active) return;
-    store.logOutcome(active.eventId, "ignored").catch(() => {});
-    if (!active.manual) recordIgnored(userId, active.triggerId);
+    if (!isTesting()) {
+      store.logOutcome(active.eventId, "ignored").catch(() => {});
+      if (!active.manual) recordIgnored(userId, active.triggerId);
+    }
     setActive(null);
   };
   const onDone = () => setActive(null);

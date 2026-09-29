@@ -26,6 +26,6 @@ analytics stay exact. Adding/removing a trigger is a code change, not an admin a
 route + guard. Skip the import and collection still works. **Remove Augur:** delete
 the folder, the one `<Augur/>`, your `emit` calls, and drop the tables.
 
-**Attribution:** the "by Augur" byline at the foot of each prompt must stay visible
-(free-license requirement — removing it needs a commercial license). Your own
-"Feedback" button and its icon are yours to restyle. See the repo's LICENSE.
+**Attribution:** a small "by Augur" byline sits at the foot of each prompt, on by
+default. Hide it with `<Augur byline={false} />`. Your own "Feedback" button and its
+icon are yours to restyle. License: MIT (repo root). Name and mark: TRADEMARKS.md.

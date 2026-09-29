@@ -1,36 +1,21 @@
-Augur License
+MIT License
+
 Copyright (c) 2026 Krishnachandran Ramachandran (kaezee)
 
-Augur is free to use, including in commercial products, subject to the attribution
-requirement below. It is source-available, not an OSI-approved open-source license.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-1. GRANT. Permission is granted, free of charge, to any person or organization
-   obtaining a copy of this software and its documentation (the "Software"), to use,
-   copy, modify, merge, and distribute the Software, subject to the conditions below.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-2. ATTRIBUTION (required). Any product or service that includes the Software must
-   keep the "by Augur" attribution and its link to https://github.com/kaezee/Augur
-   visible and functional wherever an Augur feedback prompt is shown, as provided in
-   `augur/mark.tsx`. You may NOT remove, hide, obscure, shrink to illegibility, or
-   otherwise alter this attribution or its link.
-
-   For clarity: restyling or replacing YOUR OWN feedback entry point — the floating
-   "Feedback" button and its icon — is permitted and expected. The "by Augur" byline
-   inside the prompt is not part of that and must remain as shipped.
-
-3. NOTICE. The copyright notice above and this license shall be included in all
-   copies or substantial portions of the Software.
-
-4. COMMERCIAL / WHITE-LABEL. Removing, replacing, or altering the attribution in
-   section 2 requires a separate written license from the copyright holder. Contact
-   the holder via https://github.com/kaezee to arrange one.
-
-5. NO OTHER RESTRICTIONS. Apart from section 2, you are free to build on and ship
-   the Software as you see fit.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF
-CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE
-OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

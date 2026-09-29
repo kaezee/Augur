@@ -30,10 +30,9 @@ export function AugurWordmark({ size = 15 }: { size?: number }) {
   );
 }
 
-// The required attribution at the foot of every prompt (Augur License §1): the
-// "by Augur" brand lockup, plus its link to the project. Always shown — do not
-// remove or alter it without a commercial license. Point the constant at your own
-// product instead of the repo if you'd rather send people there.
+// The "by Augur" credit at the foot of every prompt: the brand lockup plus its link
+// to the project. Shown by default; the host can hide it with <Augur byline={false} />.
+// The name and mark are covered by TRADEMARKS.md, not the MIT license.
 export const AUGUR_REPO_URL = "https://github.com/kaezee/Augur";
 
 // "by Augur" as branding, and a distinct pill that reads as a real link — kept

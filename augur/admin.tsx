@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { mergeConfig, responseTypeOf, type AugurConfig, type TriggerDef } from "./config";
+import { lockedInCode, mergeConfig, responseTypeOf, type AugurConfig, type TriggerDef } from "./config";
 import type { AdminNote, AugurStore, DateRange, Summary, TriggerStat, Unconfigured } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
 import { AugurWordmark, AUGUR_REPO_URL } from "./mark";
@@ -67,10 +67,13 @@ export function AugurAdminSection({ store, hostConfig, confirm }: {
   // effective config (base ← host ← live overrides), the editable draft for Settings.
   const [draft, setDraft] = useState<AugurConfig | null>(null);
   const loadedRef = useRef<AugurConfig | null>(null);
+  // The raw stored overrides, so a save never writes back a switch code has locked.
+  const storedRef = useRef<Partial<AugurConfig>>({});
+  const locks = useMemo(() => lockedInCode(hostConfig), [hostConfig]);
   useEffect(() => {
     let live = true;
-    store.readConfig().then((o) => { if (!live) return; const c = mergeConfig(hostConfig, o); setDraft(c); loadedRef.current = c; })
-      .catch(() => { if (!live) return; const c = mergeConfig(hostConfig, {}); setDraft(c); loadedRef.current = c; });
+    store.readConfig().then((o) => { if (!live) return; storedRef.current = o ?? {}; const c = mergeConfig(hostConfig, o ?? {}); setDraft(c); loadedRef.current = c; })
+      .catch(() => { if (!live) return; storedRef.current = {}; const c = mergeConfig(hostConfig, {}); setDraft(c); loadedRef.current = c; });
     return () => { live = false; };
   }, [store, hostConfig]);
 
@@ -104,7 +107,7 @@ export function AugurAdminSection({ store, hostConfig, confirm }: {
 
       {!draft ? <p style={muted}>Loading…</p>
         : tab === "results" ? <Results store={store} draft={draft} range={range} ask={ask} />
-        : <Settings store={store} draft={draft} setDraft={setDraft} loadedRef={loadedRef} ask={ask} />}
+        : <Settings store={store} draft={draft} setDraft={setDraft} loadedRef={loadedRef} storedRef={storedRef} locks={locks} ask={ask} />}
     </section>
   );
 }
@@ -219,9 +222,11 @@ function Num({ v }: { v: number | string }) {
 }
 
 // ── SETTINGS ────────────────────────────────────────────────────────────────
-function Settings({ store, draft, setDraft, loadedRef, ask }: {
+function Settings({ store, draft, setDraft, loadedRef, storedRef, locks, ask }: {
   store: AugurStore; draft: AugurConfig; setDraft: (c: AugurConfig) => void;
-  loadedRef: React.MutableRefObject<AugurConfig | null>; ask: Confirm;
+  loadedRef: React.MutableRefObject<AugurConfig | null>;
+  storedRef: React.MutableRefObject<Partial<AugurConfig>>;
+  locks: ReturnType<typeof lockedInCode>; ask: Confirm;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
@@ -254,6 +259,25 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
 
   const patchTrigger = (id: string, p: Partial<TriggerDef>) => setDraft({ ...draft, triggers: { ...draft.triggers, [id]: { ...draft.triggers[id], ...p } } });
 
+  // A code-locked switch reads as off/testing in the merged draft. Writing that back
+  // would keep restraining it after code turns it on again, so keep the stored value.
+  function unlockedOnly(o: Partial<AugurConfig>): Partial<AugurConfig> {
+    const stored = storedRef.current;
+    const triggers = Object.fromEntries(Object.entries(o.triggers ?? {}).map(([id, t]) => {
+      if (!locks.triggers[id]) return [id, t];
+      const { enabled: _drop, ...rest } = t;
+      const keep = stored.triggers?.[id]?.enabled;
+      return [id, keep === undefined ? rest : { ...rest, enabled: keep }];
+    })) as Record<string, TriggerDef>;
+    return {
+      ...o,
+      enabled: locks.enabled ? stored.enabled : o.enabled,
+      persistentButton: locks.persistentButton ? stored.persistentButton : o.persistentButton,
+      mode: locks.mode ? stored.mode : o.mode,
+      triggers,
+    };
+  }
+
   async function save() {
     setSaving(true);
     const base = loadedRef.current;
@@ -261,8 +285,8 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
       const version = base && t.question !== base.triggers[id]?.question ? t.version + 1 : t.version;
       return [id, { ...t, version }];
     }));
-    const overrides: Partial<AugurConfig> = { enabled: draft.enabled, mode: draft.mode, persistentButton: draft.persistentButton, answers: draft.answers, caps: draft.caps, triggers };
-    try { await store.writeConfig?.(overrides); const next = { ...draft, triggers } as AugurConfig; setDraft(next); loadedRef.current = next; }
+    const overrides = unlockedOnly({ enabled: draft.enabled, mode: draft.mode, persistentButton: draft.persistentButton, answers: draft.answers, caps: draft.caps, triggers });
+    try { await store.writeConfig?.(overrides); storedRef.current = overrides; const next = { ...draft, triggers } as AugurConfig; setDraft(next); loadedRef.current = next; }
     finally { setSaving(false); }
   }
 
@@ -274,8 +298,8 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
     setDraft({ ...draft, mode });
     const base = loadedRef.current; if (!base) return;
     setModeSaving(true);
-    const overrides: Partial<AugurConfig> = { enabled: base.enabled, mode, persistentButton: base.persistentButton, answers: base.answers, caps: base.caps, triggers: base.triggers };
-    try { await store.writeConfig?.(overrides); loadedRef.current = { ...base, mode }; }
+    const overrides = unlockedOnly({ enabled: base.enabled, mode, persistentButton: base.persistentButton, answers: base.answers, caps: base.caps, triggers: base.triggers });
+    try { await store.writeConfig?.(overrides); storedRef.current = overrides; loadedRef.current = { ...base, mode }; }
     finally { setModeSaving(false); }
   }
 
@@ -290,17 +314,19 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
     <div style={{ paddingBottom: dirty ? 72 : 0 }}>
       <div style={{ ...card, borderColor: draft.mode === "testing" ? "var(--k-warning, #B5852A)" : (card.border as string) }}>
         <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Environment</h2>
-        <Toggle checked={draft.mode === "testing"} onChange={commitMode}
+        <Toggle checked={draft.mode === "testing"} onChange={commitMode} disabled={locks.mode}
           title="Testing mode"
-          hint="Prompts still appear so you can try the flow — but nothing is recorded: no events, no counts, and clicks on the feedback button aren’t captured either. Turn this off to go live." />
+          hint={locks.mode ? "Set to testing in code. Change `mode` in your Augur config to go live." : "Prompts still appear so you can try the flow — but nothing is recorded: no events, no counts, and clicks on the feedback button aren’t captured either. Turn this off to go live."} />
         <p style={{ ...muted, margin: "6px 0 0" }}>{modeSaving ? "Saving…" : "Applies immediately and survives a reload — no need to Save."}</p>
       </div>
 
       <div style={card}>
         <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Master</h2>
-        <Toggle checked={draft.enabled} onChange={(v) => setDraft({ ...draft, enabled: v })} title="Augur enabled" hint="Off means no prompt ever surfaces, for anyone." />
-        <Toggle checked={draft.persistentButton} onChange={(v) => setDraft({ ...draft, persistentButton: v })} title="Persistent feedback button" hint="The always-available button (beta). Off hides it; timed triggers still fire." />
-        <p style={{ ...muted, margin: "6px 0 0" }}>The “by Augur” byline is part of the free license and always shows.</p>
+        <Toggle checked={draft.enabled} onChange={(v) => setDraft({ ...draft, enabled: v })} disabled={locks.enabled} title="Augur enabled"
+          hint={locks.enabled ? "Turned off in code. Change `enabled` in your Augur config to turn it back on." : "Off means no prompt and no Feedback button, for anyone."} />
+        <Toggle checked={draft.persistentButton} onChange={(v) => setDraft({ ...draft, persistentButton: v })} disabled={locks.persistentButton} title="Persistent feedback button"
+          hint={locks.persistentButton ? "Hidden in code. Change `persistentButton` in your Augur config to show it." : "The always-available button (beta). Off hides it; timed triggers still fire."} />
+        <p style={{ ...muted, margin: "6px 0 0" }}>The “by Augur” byline shows by default; hide it in code with <code>{"<Augur byline={false} />"}</code>.</p>
       </div>
 
       <div style={card}>
@@ -333,7 +359,7 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
         <div style={{ display: "flex", flexDirection: "column" }}>
           {Object.entries(draft.triggers).map(([id, t]) => (
             <TriggerRow key={id} id={id} t={t} isOpen={open === id} onToggleOpen={() => setOpen(open === id ? null : id)}
-              patch={(p) => patchTrigger(id, p)} draft={draft} />
+              patch={(p) => patchTrigger(id, p)} draft={draft} locked={!!locks.triggers[id]} />
           ))}
         </div>
       </div>
@@ -382,9 +408,9 @@ function Settings({ store, draft, setDraft, loadedRef, ask }: {
   );
 }
 
-function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft }: {
+function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft, locked }: {
   id: string; t: TriggerDef; isOpen: boolean; onToggleOpen: () => void; patch: (p: Partial<TriggerDef>) => void;
-  draft: AugurConfig;
+  draft: AugurConfig; locked: boolean;
 }) {
   // A pure preview — it renders the real prompt but logs NOTHING, so previews
   // never show up in the counts.
@@ -403,7 +429,8 @@ function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft }: {
           {/* stopPropagation only on the toggle, so it doesn't also expand the row;
               the chevron stays part of the header's open/close click. */}
           <span onClick={(e) => e.stopPropagation()} style={{ display: "inline-flex" }}>
-            <Toggle checked={t.enabled} onChange={(v) => patch({ enabled: v })} title="" hint="" compact />
+            <Toggle checked={t.enabled} onChange={(v) => patch({ enabled: v })} title="" hint="" compact disabled={locked}
+              labelTitle={locked ? "Turned off in code" : undefined} />
           </span>
           <span style={muted} aria-hidden>{isOpen ? "▲" : "▼"}</span>
         </span>
@@ -426,10 +453,13 @@ function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft }: {
   );
 }
 
-function Toggle({ checked, onChange, title, hint, compact }: { checked: boolean; onChange: (v: boolean) => void; title: string; hint: string; compact?: boolean }) {
+function Toggle({ checked, onChange, title, hint, compact, disabled, labelTitle }: {
+  checked: boolean; onChange: (v: boolean) => void; title: string; hint: string; compact?: boolean;
+  disabled?: boolean; labelTitle?: string;
+}) {
   return (
-    <label style={{ display: "flex", alignItems: compact ? "center" : "flex-start", gap: 10, cursor: "pointer", padding: compact ? 0 : "8px 0" }}>
-      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} style={{ marginTop: compact ? 0 : 3, width: 16, height: 16, accentColor: "var(--k-action-fill, #394293)" }} />
+    <label title={labelTitle} style={{ display: "flex", alignItems: compact ? "center" : "flex-start", gap: 10, cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.55 : 1, padding: compact ? 0 : "8px 0" }}>
+      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => { if (!disabled) onChange(e.target.checked); }} style={{ marginTop: compact ? 0 : 3, width: 16, height: 16, accentColor: "var(--k-action-fill, #394293)" }} />
       {title && <span><span style={{ fontWeight: 600 }}>{title}</span><br /><span style={muted}>{hint}</span></span>}
     </label>
   );

@@ -8,16 +8,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ─── Gallery layer: the frame around each product shot ─────────────────── */
-:root { --mist: #D6DAE2; --ink: #111318; --ink-2: #3E4450; --top: 124px; --pin: #394293; --pin-soft: #DADDF2; }
+:root { --mist: #DFE3EA; --ink: #111318; --ink-2: #3E4450; --top: 124px; --pin: #394293; --pin-soft: #DADDF2; }
 * { box-sizing: border-box; }
 body { margin: 0; background: #C9CDD5; padding: 40px 0; display: grid; gap: 40px; justify-content: center; font-family: "Schibsted Grotesk", system-ui, sans-serif; }
 .frame { position: relative; width: 1270px; height: calc(760px + var(--top));  background: var(--mist); overflow: hidden; color: var(--ink); }
+/* annotation panel: a white card behind the side column so the notes read clearly */
+.frame::before { content: ""; position: absolute; left: 910px; top: 40px; right: 24px; bottom: 40px; background: #fff; border-radius: 14px;
+  box-shadow: 0 0 0 1px rgba(17,19,24,.08), 0 16px 40px -16px rgba(17,19,24,.22); }
+/* frame 3 carries more notes: lift them a little so the last one stays inside the panel */
+#frame-3 .note, #frame-3 .code, #frame-3 .inset { translate: 0 calc(var(--top) - 24px); }
 .frame .lines { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
 
 .side { position: absolute; left: 924px; top: 60px; width: 306px; translate: 0 var(--top); }
 .side h2 { font-size: 34px; line-height: 1.08; letter-spacing: -0.02em; font-weight: 700; margin: 0 0 14px; text-wrap: balance; }
 .side .sub { font-size: 16px; line-height: 1.45; color: var(--ink-2); margin: 0; text-wrap: pretty; }
-.brand { position: absolute; left: 924px; top: 44px; width: 180px; display: flex; flex-direction: column; gap: 4px; color: var(--ink); }
+.brand { position: absolute; left: 924px; top: 64px; width: 180px; display: flex; flex-direction: column; gap: 4px; color: var(--ink); }
 .brand .wm { width: 100%; height: auto; display: block; }
 .brand .by { display: block; white-space: nowrap; line-height: 1.1; font-weight: 500; }
 .brand .by { color: var(--ink-2); }
@@ -316,7 +321,7 @@ function drawLines() {
       const nr = n.getBoundingClientRect(), tr = t.getBoundingClientRect();
       const x1 = nr.left - fr.left - 10, y1 = nr.top - fr.top + 11;
       const x2 = tr.right - fr.left + 7, y2 = tr.top - fr.top + tr.height * (+n.dataset.y || 0.5);
-      const gx = 904 + i * 7;
+      const gx = 896 + i * 4;   // routes in the gap between window and panel
       mk("path", { d: `M${x1},${y1} H${gx} V${y2} H${x2}`, fill: "none", stroke: "#394293", "stroke-width": 1.5, "stroke-linejoin": "round" });
       mk("circle", { cx: x1 + 2, cy: y1, r: 3.5, fill: "#394293" });
       mk("circle", { cx: x2, cy: y2, r: 5, fill: "#fff", stroke: "#394293", "stroke-width": 2 });

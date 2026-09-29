@@ -102,6 +102,8 @@ writes belong in definer functions.
 
 ## Attribution is a license term, not a toggle
 
+> **Superseded** by "Attribution is a default, not a condition" (v0.2.0).
+
 **Decision.** The "by Augur" byline and its link are always shown and are **not** a
 config option. The host's own feedback button and icon are fully themeable; the
 byline is not. Removing it requires a commercial license (see [LICENSE](./LICENSE)).
@@ -109,3 +111,32 @@ byline is not. Removing it requires a commercial license (see [LICENSE](./LICENS
 **Why.** A config toggle is, by definition, removable. For a free tool, attribution
 is the price, and the honest enforcement is the license — open-source code can't
 prevent a fork from deleting a line, exactly as "powered-by" free tiers work.
+
+## Attribution is a default, not a condition
+
+**Decision.** Augur is MIT-licensed. The "by Augur" byline ships on and can be turned
+off with a `byline` prop on `<Augur>`. It is deliberately not an `AugurConfig` field,
+so it can't be flipped from admin; hiding it is a line in the host's source. The name
+and mark are protected separately by TRADEMARKS.md.
+
+**Why.** The custom license cost more than it protected. GitHub couldn't detect it,
+company legal reviews default to no on unfamiliar licenses, and the rule was
+unenforceable in practice: copy-the-folder distribution means anyone can delete the
+line. Defaults do the real work. Most hosts never change them, so a default-on byline
+keeps most of the visibility with none of the friction. The name, which is what
+carries the project's reputation, is guarded by the trademark note instead.
+
+## Restraint wins for on/off
+
+**Decision.** For `enabled`, `persistentButton`, each trigger's `enabled`, and `mode`,
+code and stored admin settings combine and the more restrained value takes effect:
+something happens only if both allow it, and testing in either place means testing.
+Admin never writes back a value that code has locked. All other settings keep the
+normal order, where admin overrides code.
+
+**Why (a real bug).** Admin's save wrote every switch into stored overrides, and
+overrides were applied last, so once anyone saved in admin, turning Augur off in code
+silently did nothing. That broke the one operation a developer, or their coding
+agent, most needs to trust. With restraint winning, "off in code" always works, admin
+can still pause things without a deploy, and neither side can accidentally switch on
+what the other turned off.

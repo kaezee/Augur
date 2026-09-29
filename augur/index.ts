@@ -10,7 +10,7 @@
 
 export { Augur } from "./Augur";
 export { augur } from "./emit";
-export { AUGUR_BASE_DEFAULTS, mergeConfig, responseTypeOf } from "./config";
+export { AUGUR_BASE_DEFAULTS, mergeConfig, lockedInCode, responseTypeOf } from "./config";
 export type { Answer, AugurConfig, TriggerDef, Presentation, ResponseType, AnswerOption } from "./config";
 export type { AugurStore, Summary, TriggerStat, AdminNote, DateRange, Unconfigured } from "./store";
 

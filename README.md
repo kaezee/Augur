@@ -15,6 +15,9 @@ It exists to catch honest reactions at the moment they happen, without ceremony.
 Distribution is **copy the folder**. No npm install, no build step, no service to
 run. Drop `augur/` into your React app, pick where the data goes, mount it once.
 
+**Works with** React 18+: Vite, Next.js (as a client component), Remix. The engine
+(triggers, caps, stores) is plain TypeScript; only the visible layer is React.
+
 ---
 
 ## Three-step integration
@@ -50,6 +53,19 @@ augur.emit("checkout.done");
 
 See [`example/usage.tsx`](./example/usage.tsx) for a complete file.
 
+## Install with an AI coding tool
+
+Paste this into Claude Code, Cursor, or your AI app builder:
+
+```text
+Add Augur (in-app feedback) to this app: https://github.com/kaezee/Augur
+Read AGENTS.md in that repo first and follow it exactly. Ask me about which moments
+to prompt on before you write any code. If you can't open the link, stop and tell me.
+```
+
+Later, you can ask the same tool to turn Augur off, pause a prompt, or remove it.
+AGENTS.md tells it how.
+
 ---
 
 ## What you get
@@ -70,6 +86,9 @@ See [`example/usage.tsx`](./example/usage.tsx) for a complete file.
 - **Theme-aware, self-contained** — the snackbar reads your `--k-*` CSS variables
   with sane fallbacks, so it inherits your look and still renders fine where none
   are defined. No external assets, no fonts, no network.
+- **Row-level security on by default** — the Supabase schema enables RLS on every
+  table and routes admin reads through checked functions, so feedback isn't readable
+  by anyone with your public key.
 
 ## Admin (optional)
 
@@ -82,18 +101,26 @@ admin check, and the 404 are yours — Augur ships the section, not the page.
 
 Skip the admin import entirely and collection still works, with a smaller bundle.
 
-## Branding & attribution
+## Attribution
 
-Augur is free, and stays free, on one condition: the small **"by Augur"** byline at
-the foot of every prompt — and its link to this repo — **must stay visible**. It is
-not a config toggle; it always shows. Removing, hiding, or altering it requires a
-commercial license (see [LICENSE](./LICENSE)).
+Augur is MIT-licensed. Use it, change it, ship it, commercially or not.
 
-What you *do* own is your **feedback entry point** — the floating "Feedback" button
-and its icon. Restyle or replace that freely. If you want to swap the placeholder
-Augur mark used elsewhere for your own artwork, drop it in [`branding/`](./branding)
-and edit [`augur/mark.tsx`](./augur/mark.tsx) — but leave the byline lockup and its
-link intact. See [`branding/README.md`](./branding/README.md).
+Each prompt carries a small **"by Augur"** byline linking back here. It's on by
+default, and it's how other builders find Augur. If it doesn't fit your product,
+turn it off in code:
+
+```tsx
+<Augur userId={session.user.id} store={store} config={MY_TRIGGERS} byline={false} />
+```
+
+No license, no form, no asking. If you do switch it off, a mention in your credits
+or changelog, or a star on this repo, is what keeps Augur free.
+
+Your **feedback entry point** (the floating "Feedback" button and its icon) is yours
+to restyle or replace. See [`branding/README.md`](./branding/README.md).
+
+The name "Augur" and the eye-in-triangle mark aren't covered by the MIT license.
+Fork freely; give your fork its own name. Details in [TRADEMARKS.md](./TRADEMARKS.md).
 
 ## Remove it
 
@@ -114,6 +141,5 @@ the tables. Nothing else references it.
 
 ## License
 
-Free to use, including commercially, **provided the "by Augur" attribution stays
-visible** (see Branding above). Source-available, not OSI open-source. Full terms in
-[LICENSE](./LICENSE). © 2026 Krishnachandran Ramachandran ([kaezee](https://github.com/kaezee)).
+[MIT](./LICENSE) © 2026 Krishnachandran Ramachandran ([kaezee](https://github.com/kaezee)).
+Name and mark: [TRADEMARKS.md](./TRADEMARKS.md).

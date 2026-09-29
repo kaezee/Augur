@@ -63,21 +63,41 @@ export const responseTypeOf = (t: Pick<TriggerDef, "responseType">): ResponseTyp
 
 // Merge order (AUGUR-HANDOFF §6, Patch 2 §3): base defaults ← host config ← live
 // store overrides. Shallow per top-level key; triggers merge per-trigger.
+//
+// Restraint wins for the on/off switches: code and admin must both allow something
+// for it to happen, and testing in either place means testing. Admin can pause what
+// code allows; it can never revive what code turned off. See DECISIONS.md.
+const both = (a?: boolean, b?: boolean) => a !== false && b !== false;
+
 export function mergeConfig(
   host: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> },
   overrides: Partial<AugurConfig>,
 ): AugurConfig {
   const triggers: Record<string, TriggerDef> = { ...host.triggers };
   for (const [id, t] of Object.entries(overrides.triggers ?? {})) {
-    triggers[id] = { ...triggers[id], ...t };
+    const h = host.triggers[id];
+    triggers[id] = h ? { ...h, ...t, enabled: both(h.enabled, t.enabled) } : { ...t };
   }
   return {
     ...AUGUR_BASE_DEFAULTS,
     ...host,
     ...overrides,
+    enabled: both(host.enabled, overrides.enabled),
+    persistentButton: both(host.persistentButton, overrides.persistentButton),
+    mode: host.mode === "testing" || overrides.mode === "testing" ? "testing" : "live",
     caps: { ...AUGUR_BASE_DEFAULTS.caps, ...host.caps, ...overrides.caps },
     presentation: { ...AUGUR_BASE_DEFAULTS.presentation, ...host.presentation, ...overrides.presentation },
     answers: overrides.answers ?? host.answers ?? AUGUR_BASE_DEFAULTS.answers,
     triggers,
+  };
+}
+
+// Which switches has code turned off? Admin shows these as locked.
+export function lockedInCode(host: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> }) {
+  return {
+    enabled: host.enabled === false,
+    persistentButton: host.persistentButton === false,
+    mode: host.mode === "testing",
+    triggers: Object.fromEntries(Object.entries(host.triggers).map(([id, t]) => [id, t.enabled === false])),
   };
 }

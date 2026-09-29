@@ -22,13 +22,16 @@ interface Active {
   manual: boolean;
 }
 
-export function Augur({ userId, store, config, autoTriggers = true }: {
+export function Augur({ userId, store, config, autoTriggers = true, byline = true }: {
   userId: string;
   store: AugurStore;
   config: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> };
   // When false, timed/event-driven prompts are suppressed but the manual
   // feedback button still shows — e.g. over a demo/sample the writer didn't make.
   autoTriggers?: boolean;
+  // The "by Augur" credit at the foot of each prompt. On by default; it's how
+  // other builders find Augur. Set false to hide it (MIT, no license needed).
+  byline?: boolean;
 }) {
   const [overrides, setOverrides] = useState<Partial<AugurConfig>>({});
   const cfg = useMemo(() => mergeConfig(config, overrides), [config, overrides]);
@@ -65,6 +68,7 @@ export function Augur({ userId, store, config, autoTriggers = true }: {
     const timers = new Set<number>();
     const off = augur.subscribe((triggerId) => {
       if (activeRef.current) return;
+      if (!cfgRef.current.enabled) return;
       const c = cfgRef.current;
       const def = c.triggers[triggerId];
       // §5 — an emit with no config entry: show nothing, but record it so admin can see it.
@@ -90,6 +94,7 @@ export function Augur({ userId, store, config, autoTriggers = true }: {
   // The persistent button (beta only): user-initiated free text (§7). Bypasses every
   // cap and never touches the cap ledger — it must not consume a real-trigger budget.
   const openManual = async () => {
+    if (!cfgRef.current.enabled) return;
     if (activeRef.current) return;
     const c = cfgRef.current;
     try {
@@ -120,8 +125,8 @@ export function Augur({ userId, store, config, autoTriggers = true }: {
 
   return (
     <>
-      {active && <AugurPrompt spec={active.spec} onAnswer={onAnswer} onNote={onNote} onIgnore={onIgnore} onDone={onDone} />}
-      {cfg.persistentButton && !active && <PersistentButton position={cfg.presentation.position} onClick={openManual} />}
+      {active && <AugurPrompt spec={active.spec} byline={byline} onAnswer={onAnswer} onNote={onNote} onIgnore={onIgnore} onDone={onDone} />}
+      {cfg.enabled && cfg.persistentButton && !active && <PersistentButton position={cfg.presentation.position} onClick={openManual} />}
     </>
   );
 }

@@ -22,8 +22,9 @@ export interface PromptSpec {
   position: Presentation["position"];
 }
 
-export function AugurPrompt({ spec, onAnswer, onNote, onIgnore, onDone }: {
+export function AugurPrompt({ spec, byline = true, onAnswer, onNote, onIgnore, onDone }: {
   spec: PromptSpec;
+  byline?: boolean;
   onAnswer: (answer?: string) => void;   // marks the row answered (choice key, or none for text)
   onNote: (body: string) => void;
   onIgnore: () => void;                  // closed without answering (×, Esc, timeout)
@@ -125,9 +126,9 @@ export function AugurPrompt({ spec, onAnswer, onNote, onIgnore, onDone }: {
         </>
       )}
 
-      {/* Required attribution (Augur License §1) — always shown, links to the repo.
+      {/* The "by Augur" credit — on by default, off via <Augur byline={false} />.
           Kept on the opposite side from the action buttons so it never sits under them. */}
-      <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 10 }}><AugurByline /></div>
+      {byline && <div style={{ display: "flex", justifyContent: "flex-start", marginTop: 10 }}><AugurByline /></div>}
     </div>,
     document.body,
   );

@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Augur — gallery frames</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;700&family=Geist:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ─── Gallery layer: the frame around each product shot ─────────────────── */
+:root { --mist: #E7E9EE; --ink: #16181D; --ink-2: #545A66; --pin: #394293; --pin-soft: #DADDF2; }
+* { box-sizing: border-box; }
+body { margin: 0; background: #C9CDD5; padding: 40px 0; display: grid; gap: 40px; justify-content: center; font-family: "Schibsted Grotesk", system-ui, sans-serif; }
+.frame { position: relative; width: 1270px; height: 760px; background: var(--mist); overflow: hidden; color: var(--ink); }
+.frame .lines { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
+
+.side { position: absolute; left: 924px; top: 60px; width: 306px; }
+.side h2 { font-size: 34px; line-height: 1.08; letter-spacing: -0.02em; font-weight: 700; margin: 0 0 14px; text-wrap: balance; }
+.side .sub { font-size: 16px; line-height: 1.45; color: var(--ink-2); margin: 0; text-wrap: pretty; }
+.brand { position: absolute; left: 924px; bottom: 40px; display: flex; align-items: center; gap: 12px; line-height: 1.3; color: var(--ink); font-size: 14px; font-weight: 500; }
+.brand .by { color: var(--ink-2); }
+
+.note { position: absolute; left: 924px; width: 290px; font-size: 15px; line-height: 1.38; font-weight: 500; }
+.note small { display: block; font-size: 13.5px; color: var(--ink-2); font-weight: 400; margin-top: 3px; }
+.note .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--pin); color: #fff; font-size: 12px; font-weight: 700; margin-right: 8px; vertical-align: 1px; }
+
+/* browser window */
+.win { position: absolute; left: 40px; top: 40px; width: 852px; height: 680px; border-radius: 12px; overflow: hidden;
+  box-shadow: 0 1px 0 rgba(0,0,0,.04), 0 24px 60px -12px rgba(22,24,29,.28), 0 0 0 1px rgba(22,24,29,.10); background: #fff; }
+.chrome { height: 38px; display: flex; align-items: center; gap: 14px; padding: 0 14px; background: #F3F4F6; border-bottom: 1px solid #E1E3E8; }
+.chrome.dark { background: #1A1D23; border-bottom-color: #2A2E36; }
+.dots { display: flex; gap: 7px; } .dots i { width: 11px; height: 11px; border-radius: 50%; background: #D5D8DE; display: block; }
+.chrome.dark .dots i { background: #3A3F48; }
+.url { flex: 1; max-width: 420px; margin: 0 auto; height: 24px; border-radius: 6px; background: #fff; border: 1px solid #E1E3E8; font: 500 12px/22px "Geist", system-ui, sans-serif; color: #6B7280; text-align: center; }
+.chrome.dark .url { background: #23272F; border-color: #2F343D; color: #8B93A1; }
+.app { position: relative; height: calc(100% - 38px); overflow: hidden; }
+
+/* ─── Augur's prompt: a faithful copy of augur/prompt.tsx styles ────────── */
+.augur { position: absolute; bottom: 24px; right: 24px; z-index: 3; width: 360px;
+  background: var(--k-bg-raised, #fff); color: var(--k-text-primary, #1F1C15); border: 1px solid var(--k-border, #E7E2D3);
+  border-radius: var(--k-radius-container, 10px); box-shadow: 0 12px 40px rgba(0,0,0,.18); padding: 14px 16px;
+  font: 500 13.5px/1.4 var(--k-font-sans, ui-sans-serif, system-ui, sans-serif); }
+.augur.text { width: 460px; }
+.augur .x { position: absolute; top: 10px; right: 12px; color: var(--k-text-tertiary, #98917E); font-size: 16px; line-height: 1; }
+.augur .q { margin: 0 0 11px; padding-right: 18px; }
+.augur .row { display: flex; gap: 8px; align-items: center; }
+.augur .b { font: inherit; font-weight: 600; padding: 6px 12px; border-radius: var(--k-radius-control, 6px); border: 1px solid var(--k-border-strong, #D3CCB9);
+  background: var(--k-bg-surface, #fff); color: var(--k-text-secondary, #5C5647); white-space: nowrap; }
+.augur .b.p { border-color: transparent; background: var(--k-action-fill, #394293); color: var(--k-on-action-fill, #fff); }
+.augur .b.g { border: none; background: none; }
+.augur .in { flex: 1; padding: 7px 10px; border-radius: var(--k-radius-control, 6px); border: 1px solid var(--k-border, #E7E2D3); background: var(--k-bg-sunken, #F7F6F1); min-width: 0; }
+.augur .ta { min-height: 108px; margin-bottom: 10px; padding: 7px 10px; border-radius: var(--k-radius-control, 6px); border: 1px solid var(--k-border, #E7E2D3); background: var(--k-bg-sunken, #F7F6F1); }
+.caret { display: inline-block; width: 1px; height: 1.1em; background: currentColor; vertical-align: -2px; margin-left: 1px; }
+.by { display: inline-flex; align-items: center; gap: 10px; margin-top: 10px; }
+.by .w { display: inline-flex; align-items: center; gap: 5px; opacity: .85; font-size: 11.5px; font-weight: 700; }
+.by .w em { font-style: normal; opacity: .65; }
+.by .pill { display: inline-flex; gap: 3px; font-size: 10.5px; font-weight: 700; line-height: 1; letter-spacing: .2px; padding: 3px 9px; border-radius: 999px;
+  border: 1px solid var(--k-border-strong, #D3CCB9); color: var(--k-text-secondary, #5C5647); }
+
+/* ─── Host 1: Parcelry (light, order management) ───────────────────────── */
+.parcelry { --k-bg-sunken: #F5F6F8; --k-bg-raised: #FFFFFF; --k-bg-surface: #FFFFFF; --k-border: #E4E7EB; --k-border-strong: #CDD3DA;
+  --k-text-primary: #141A21; --k-text-secondary: #4A5361; --k-text-tertiary: #8C95A1; --k-action-fill: #0E6E60; --k-on-action-fill: #FFFFFF;
+  --k-font-sans: "Geist", system-ui, sans-serif; --k-radius-container: 12px; --k-radius-control: 7px;
+  font-family: "Geist", system-ui, sans-serif; color: var(--k-text-primary); background: #fff; display: grid; grid-template-columns: 188px 1fr; }
+.parcelry nav { background: #F7F8FA; border-right: 1px solid var(--k-border); padding: 16px 12px; font-size: 13px; }
+.parcelry .logo { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 14.5px; padding: 2px 8px 18px; }
+.parcelry .logo b { width: 20px; height: 20px; border-radius: 6px; background: #0E6E60; position: relative; }
+.parcelry .logo b::after { content: ""; position: absolute; inset: 5px 5px 7px; border: 2px solid #fff; border-top-width: 3px; border-radius: 2px; }
+.parcelry nav a { display: flex; justify-content: space-between; padding: 7px 8px; border-radius: 6px; color: #4A5361; font-weight: 500; }
+.parcelry nav a.on { background: #E7F1EF; color: #0B5A4F; }
+.parcelry nav a span { color: #8C95A1; font-weight: 500; } .parcelry nav a.on span { color: #0B5A4F; }
+.parcelry nav .grp { margin: 18px 8px 6px; font-size: 11.5px; color: #8C95A1; font-weight: 500; }
+.parcelry main { padding: 22px 26px; min-width: 0; }
+.parcelry .hd { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.parcelry h1 { font-size: 21px; font-weight: 600; letter-spacing: -0.01em; margin: 0; }
+.parcelry .btn { font-size: 13px; font-weight: 500; padding: 7px 12px; border-radius: 7px; border: 1px solid var(--k-border-strong); background: #fff; color: #141A21; }
+.parcelry .btn.pr { background: #0E6E60; color: #fff; border-color: #0E6E60; }
+.parcelry .tabs { display: flex; gap: 20px; border-bottom: 1px solid var(--k-border); font-size: 13px; margin-bottom: 4px; }
+.parcelry .tabs span { padding: 8px 0 10px; color: #6B7482; font-weight: 500; }
+.parcelry .tabs span.on { color: #141A21; box-shadow: inset 0 -2px 0 #141A21; }
+.parcelry .tabs em { font-style: normal; font-size: 11.5px; background: #EEF0F3; color: #4A5361; border-radius: 99px; padding: 1px 7px; margin-left: 5px; }
+.parcelry table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.parcelry th { text-align: left; font-weight: 500; color: #8C95A1; font-size: 12px; padding: 10px 8px; border-bottom: 1px solid var(--k-border); }
+.parcelry td { padding: 10.5px 8px; border-bottom: 1px solid #EEF0F3; white-space: nowrap; }
+.parcelry td.num { font-variant-numeric: tabular-nums; } .parcelry td.dim { color: #6B7482; }
+.parcelry tr.sel td { background: #F4FAF8; }
+.chip { display: inline-flex; align-items: center; gap: 5px; font-size: 12px; font-weight: 500; padding: 2px 8px; border-radius: 99px; }
+.chip::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+.c-ready { background: #E7F1EF; color: #0B5A4F; } .c-wait { background: #FFF4E0; color: #8A5A00; } .c-ship { background: #EEF0F3; color: #4A5361; }
+.toast { position: absolute; top: 58px; left: 372px; z-index: 2; display: flex; align-items: center; gap: 10px; padding: 10px 14px 10px 12px; border-radius: 10px;
+  background: #141A21; color: #fff; font: 500 13px/1.3 "Geist", sans-serif; box-shadow: 0 10px 30px rgba(20,26,33,.25); }
+.toast i { width: 18px; height: 18px; border-radius: 50%; background: #3FB39E; display: grid; place-items: center; font-style: normal; font-size: 11px; color: #08231E; font-weight: 700; }
+.toast u { text-decoration: none; color: #9FB0C0; margin-left: 6px; }
+
+/* ─── Host 2: Stackline (dark, deploys) ────────────────────────────────── */
+.stackline { --k-bg-sunken: #0F1217; --k-bg-raised: #181C23; --k-bg-surface: #1D222A; --k-border: #2A303A; --k-border-strong: #39414D;
+  --k-text-primary: #E7EAF0; --k-text-secondary: #A9B1BE; --k-text-tertiary: #6E7785; --k-action-fill: #E9A23B; --k-on-action-fill: #1C1407;
+  --k-font-sans: "Manrope", system-ui, sans-serif; --k-radius-container: 10px; --k-radius-control: 6px;
+  font-family: "Manrope", system-ui, sans-serif; color: var(--k-text-primary); background: #0F1217; }
+.stackline header { display: flex; align-items: center; gap: 22px; height: 52px; padding: 0 22px; border-bottom: 1px solid #222731; font-size: 13px; }
+.stackline .logo { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 14.5px; }
+.stackline .logo b { width: 18px; height: 18px; background: linear-gradient(#E9A23B, #E9A23B) 0 0/100% 5px no-repeat, linear-gradient(#C9832A,#C9832A) 0 6.5px/100% 5px no-repeat, linear-gradient(#8F5E22,#8F5E22) 0 13px/100% 5px no-repeat; border-radius: 3px; }
+.stackline .crumb { color: #6E7785; } .stackline .crumb b { color: #E7EAF0; font-weight: 600; }
+.stackline header nav { display: flex; gap: 18px; margin-left: auto; color: #A9B1BE; font-weight: 500; }
+.stackline header nav span.on { color: #fff; }
+.stackline .av { width: 26px; height: 26px; border-radius: 50%; background: #2B3240; display: grid; place-items: center; font-size: 11px; font-weight: 700; color: #C9D1DD; }
+.stackline main { padding: 22px 24px; }
+.stackline .banner { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 10px; background: #13261E; border: 1px solid #1E3D2F; font-size: 13.5px; margin-bottom: 18px; }
+.stackline .banner i { width: 8px; height: 8px; border-radius: 50%; background: #3CCB7F; box-shadow: 0 0 0 4px rgba(60,203,127,.18); }
+.stackline .banner span { color: #8FBFA6; margin-left: auto; font-size: 12.5px; }
+.stackline h1 { font-size: 19px; font-weight: 700; margin: 0 0 12px; letter-spacing: -0.01em; }
+.stackline .list { border: 1px solid #222731; border-radius: 10px; overflow: hidden; }
+.stackline .d { display: grid; grid-template-columns: 18px 1fr 112px 70px 64px; align-items: center; gap: 12px; padding: 11px 14px; border-bottom: 1px solid #1C2129; font-size: 13px; }
+.stackline .d:last-child { border-bottom: 0; }
+.stackline .d .st { width: 8px; height: 8px; border-radius: 50%; }
+.stackline .d b { font-weight: 600; display: block; } .stackline .d small { color: #6E7785; font-size: 12px; font-family: "JetBrains Mono", monospace; }
+.stackline .d .env { font-size: 11.5px; font-weight: 600; padding: 2px 7px; border-radius: 5px; background: #20252E; color: #A9B1BE; justify-self: start; }
+.stackline .d .env.prod { background: #2E2413; color: #E9A23B; }
+.stackline .d .t { color: #A9B1BE; font-variant-numeric: tabular-nums; } .stackline .d .ago { color: #6E7785; text-align: right; }
+
+/* ─── Host 3: Wayfile (light, team docs) with its own button ───────────── */
+.wf-vars, .wayfile { --k-bg-sunken: #F4F6F4; --k-bg-raised: #FFFFFF; --k-bg-surface: #FFFFFF; --k-border: #E2E6E2; --k-border-strong: #C9D0C9;
+  --k-text-primary: #18201B; --k-text-secondary: #4B574F; --k-text-tertiary: #8A958D; --k-action-fill: #24583F; --k-on-action-fill: #FFFFFF;
+  --k-font-sans: "Figtree", system-ui, sans-serif; --k-radius-container: 14px; --k-radius-control: 8px; }
+.wayfile { font-family: "Figtree", system-ui, sans-serif; color: var(--k-text-primary); background: #fff; display: grid; grid-template-columns: 210px 1fr; }
+.wayfile nav { border-right: 1px solid var(--k-border); padding: 16px 12px; font-size: 13.5px; background: #FBFCFB; }
+.wayfile .logo { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 15px; padding: 2px 8px 16px; }
+.wayfile .logo b { width: 20px; height: 20px; border-radius: 50% 50% 50% 4px; background: #24583F; }
+.wayfile .search { margin: 0 4px 14px; padding: 7px 10px; border: 1px solid var(--k-border); border-radius: 8px; color: #8A958D; font-size: 13px; background: #fff; }
+.wayfile nav a { display: block; padding: 6px 8px; border-radius: 6px; color: #4B574F; font-weight: 500; }
+.wayfile nav a.in { padding-left: 22px; } .wayfile nav a.on { background: #EAF1EC; color: #1B4631; font-weight: 600; }
+.wayfile nav .grp { margin: 14px 8px 4px; font-size: 12px; color: #8A958D; font-weight: 600; }
+.wayfile main { padding: 34px 56px 0 48px; max-width: 640px; }
+.wayfile .path { font-size: 12.5px; color: #8A958D; margin-bottom: 14px; }
+.wayfile h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.015em; margin: 0 0 8px; }
+.wayfile .meta { display: flex; gap: 14px; font-size: 12.5px; color: #8A958D; margin-bottom: 22px; }
+.wayfile p { font-size: 15px; line-height: 1.6; color: #2E3832; margin: 0 0 14px; }
+.wayfile h3 { font-size: 16px; margin: 22px 0 10px; }
+.wayfile .todo { display: flex; gap: 10px; font-size: 14.5px; line-height: 1.5; margin: 0 0 9px; color: #2E3832; }
+.wayfile .todo i { flex: 0 0 16px; height: 16px; margin-top: 3px; border-radius: 4px; border: 1.5px solid #B7C1B9; }
+.wayfile .todo.done i { background: #24583F; border-color: #24583F; } .wayfile .todo.done span { color: #8A958D; text-decoration: line-through; }
+.ideas { position: absolute; right: 22px; bottom: 22px; z-index: 2; display: flex; align-items: center; gap: 9px; height: 44px; padding: 0 16px 0 12px;
+  border-radius: 14px; background: #1B4631; color: #F2F7F3; font: 600 14px/1 "Figtree", sans-serif; box-shadow: 0 10px 24px -6px rgba(27,70,49,.5); }
+.ideas svg { flex: 0 0 auto; }
+.ideas.press { transform: scale(.97); box-shadow: 0 6px 16px -6px rgba(27,70,49,.55), 0 0 0 4px rgba(36,88,63,.18); }
+.cursor { position: absolute; z-index: 4; width: 20px; height: 24px; }
+
+/* inset: what augur.open() shows */
+.inset { position: absolute; left: 924px; width: 306px; }
+.inset .scaler { width: 460px; transform: scale(.665); transform-origin: 0 0; }
+.inset .augur { position: relative; right: auto; bottom: auto; }
+.code { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; position: absolute; left: 924px; width: 306px; background: #1B1E26; color: #D5DAE3; border-radius: 10px; padding: 12px 14px;
+  font: 400 11.6px/1.6 "JetBrains Mono", monospace; white-space: pre; box-shadow: 0 10px 30px -10px rgba(22,24,29,.4); }
+.code .c { color: #7C8494; } .code .k { color: #C9B6FF; } .code .s { color: #A6D6A7; } .code .f { color: #8CC8FF; }
+.code, .code * { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+</style>
+</head>
+<body>
+
+<!-- ═════════════ Frame 1 — light ═════════════ -->
+<section class="frame" id="frame-1">
+  <div class="win">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">app.parcelry.com/orders</div></div>
+    <div class="app parcelry">
+      <nav>
+        <div class="logo"><b></b>Parcelry</div>
+        <a class="on">Orders <span>17</span></a><a>Products</a><a>Customers</a><a>Returns <span>2</span></a>
+        <div class="grp">Fulfilment</div><a>Shipping labels</a><a>Carriers</a><a>Pickup schedule</a>
+        <div class="grp">Store</div><a>Analytics</a><a>Settings</a>
+      </nav>
+      <main>
+        <div class="hd"><h1>Orders</h1><div style="display:flex;gap:8px"><span class="btn">Export</span><span class="btn pr">Print labels (4)</span></div></div>
+        <div class="tabs"><span>All</span><span class="on">Ready to ship <em>5</em></span><span>Awaiting stock <em>3</em></span><span>Shipped</span></div>
+        <table>
+          <tr><th>Order</th><th>Customer</th><th>Items</th><th>Total</th><th>Carrier</th><th>Status</th></tr>
+          <tr class="sel"><td>#4812</td><td>Mira Castellanos</td><td class="dim">3 items</td><td class="num">$184.00</td><td class="dim">UPS Ground</td><td><span class="chip c-ready">Label printed</span></td></tr>
+          <tr><td>#4811</td><td>Tomás Reyes</td><td class="dim">1 item</td><td class="num">$42.50</td><td class="dim">USPS Priority</td><td><span class="chip c-ready">Ready</span></td></tr>
+          <tr><td>#4809</td><td>Priya Raman</td><td class="dim">2 items</td><td class="num">$96.00</td><td class="dim">FedEx Home</td><td><span class="chip c-ready">Ready</span></td></tr>
+          <tr><td>#4806</td><td>Jonah Whitfield</td><td class="dim">5 items</td><td class="num">$312.40</td><td class="dim">UPS Ground</td><td><span class="chip c-wait">Partial stock</span></td></tr>
+          <tr><td>#4804</td><td>Ana Lúcia Prado</td><td class="dim">1 item</td><td class="num">$28.00</td><td class="dim">USPS Ground</td><td><span class="chip c-ready">Ready</span></td></tr>
+          <tr><td>#4801</td><td>Kenji Watanabe</td><td class="dim">4 items</td><td class="num">$220.75</td><td class="dim">DHL Express</td><td><span class="chip c-ship">Picked up</span></td></tr>
+          <tr><td>#4799</td><td>Freya Lindqvist</td><td class="dim">2 items</td><td class="num">$74.20</td><td class="dim">USPS Priority</td><td><span class="chip c-ship">Picked up</span></td></tr>
+        </table>
+      </main>
+      <div class="toast" id="t1-toast"><i>✓</i>Label printed for #4812<u>View</u></div>
+      <div class="augur" id="t1-augur">
+        <span class="x">×</span>
+        <p class="q">Did the label print the way you expected?</p>
+        <div class="row" id="t1-answers"><span class="b">Yes</span><span class="b">Not really</span><span class="b" id="t1-last">Not sure</span></div>
+        <div class="by" id="t1-by"><span class="w"><em>by</em> <svg width="33.64" height="14" viewBox="0 0 304.89 126.88" fill="currentColor" role="img" aria-label="Augur"><path d="m125.38,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-.99-2.96-.99-4.8v-30.8h-17.01v13.96l3.66,3.71-3.66,3.51v9.84c0,4.63,1.07,8.74,3.21,12.31,2.13,3.57,5.13,6.38,8.99,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03c3.76-2.02,6.68-4.82,8.78-8.39,2.1-3.57,3.15-7.71,3.15-12.42v-31.02h-17.01v30.8Z"/><path d="m184,52.72c-1.23-1.03-2.61-1.9-4.14-2.62-2.9-1.37-6.2-2.05-9.88-2.05-4.85,0-9.21,1.16-13.08,3.48-3.86,2.32-6.9,5.46-9.11,9.44-2.2,3.97-3.31,8.5-3.31,13.58s1.11,9.42,3.31,13.47c2.21,4.04,5.23,7.25,9.06,9.6,3.82,2.36,8.2,3.53,13.13,3.53,3.68,0,6.98-.69,9.88-2.1,1.4-.67,2.67-1.46,3.81-2.38v3.27c0,3.83-1.19,6.77-3.58,8.83-2.4,2.06-5.69,3.09-9.88,3.09-3.24,0-6.06-.59-8.45-1.76-2.39-1.18-4.55-2.91-6.46-5.19l-10.49,10.37c2.58,3.68,6.09,6.53,10.55,8.56,4.45,2.02,9.58,3.04,15.4,3.04s10.87-1.13,15.4-3.37c4.52-2.25,8.07-5.43,10.65-9.55s3.86-8.94,3.86-14.46v-50.34h-16.67v3.56Zm-.71,27.73c-.92,1.73-2.25,3.11-3.98,4.14-1.73,1.04-3.77,1.55-6.12,1.55s-4.27-.51-5.97-1.55c-1.69-1.03-3.03-2.44-4.03-4.25-.99-1.8-1.49-3.73-1.49-5.79s.48-4.09,1.44-5.85c.96-1.77,2.32-3.17,4.08-4.2,1.77-1.03,3.79-1.54,6.08-1.54s4.37.51,6.07,1.54c1.69,1.03,3,2.43,3.92,4.2.92,1.76,1.38,3.68,1.38,5.74,0,2.28-.46,4.28-1.38,6.01Z"/><path d="m239.53,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-1-2.96-1-4.8v-30.8h-17v31.02c0,4.63,1.07,8.74,3.2,12.31,2.14,3.57,5.14,6.38,9,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03,6.68-4.82,8.78-8.39,3.14-7.71,3.14-12.42v-31.02h-17v30.8Z"/><path d="m299.75,49.21c-1.95-.77-4.21-1.16-6.78-1.16-5.82,0-10.4,1.73-13.75,5.19l-.05.05v-4.13h-17.01v53.65h17.01v-29.37c0-3.46.82-6.05,2.48-7.78,1.66-1.73,3.92-2.59,6.79-2.59,1.4,0,2.65.22,3.75.66,1.11.44,1.99,1.03,2.65,1.77l10.05-12.81c-1.47-1.55-3.19-2.71-5.14-3.48Z"/><path d="m93.61,67.09c-6.22-6.12-13.65-11-21.91-14.25l-13.33-29L47.41,0l-10.74,22.65-14.66,30.93c-7.54,3.23-14.35,7.84-20.11,13.51,3.03,2.98,6.35,5.67,9.91,8.01L0,100h22.26l7.85-16.55c5.61,1.57,11.53,2.41,17.64,2.41s11.55-.77,16.95-2.22l7.52,16.36h21.15l-11.04-24.02c4.08-2.55,7.86-5.53,11.27-8.89Zm-24.48,5.49h0c-3.34,2.08-7,3.69-10.89,4.74-3.34.9-6.85,1.37-10.48,1.37s-7.44-.52-10.9-1.49c-4.07-1.13-7.87-2.89-11.31-5.16-2.2-1.45-4.25-3.11-6.12-4.95,3.56-3.5,7.77-6.35,12.43-8.35,4.7-2.02,9.87-3.17,15.3-3.25.21,0,.41,0,.61,0,.15,0,.3,0,.45,0,5.06.05,9.9,1.04,14.36,2.79,5.1,2.01,9.7,5.03,13.54,8.81-2.11,2.07-4.45,3.92-6.97,5.49Z"/><path d="m46.8,58.42c-1.14,4.23-4.44,7.53-8.67,8.67,4.23,1.14,7.53,4.44,8.67,8.67,1.14-4.23,4.44-7.53,8.67-8.67-4.23-1.14-7.53-4.44-8.67-8.67Z"/></svg></span><span class="pill">Add to your product <span aria-hidden="true">↗</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="side"><h2>Asks once, right after it happened.</h2>
+    <p class="sub">Your code calls <b>augur.emit()</b> when an action succeeds. A few seconds later, Augur asks one question. Then it goes quiet.</p></div>
+  <div class="note" style="top:318px" data-to="#t1-toast" data-at="right">Waits for your own confirmation to land<small>You set the delay per moment, usually 2 to 4 seconds.</small></div>
+  <div class="note" style="top:432px" data-to="#t1-augur" data-at="right" data-y=".22">Once per session, then silent for 21 days<small>Two ignores and that question retires for good.</small></div>
+  <div class="note" style="top:546px" data-to="#t1-last" data-at="right">One tap to answer<small>Yes, Not really, Not sure. No stars, no scores.</small></div>
+  <div class="brand"><svg width="20.59" height="22" viewBox="0 0 272.99 291.63" fill="currentColor" aria-hidden="true"><path d="m272.99,195.66c-18.13-17.84-39.82-32.08-63.9-41.56l-38.88-84.58L138.26,0l-31.32,66.06-42.76,90.2c-21.99,9.42-41.86,22.86-58.66,39.4,8.83,8.69,18.51,16.53,28.9,23.37L0,291.63h64.92l22.88-48.26c16.36,4.58,33.62,7.03,51.45,7.03s33.67-2.25,49.44-6.47l21.93,47.7h61.68l-32.19-70.05c11.9-7.43,22.93-16.13,32.88-25.92Zm-71.4,16.02h-.01c-9.73,6.08-20.41,10.77-31.77,13.81-9.75,2.61-19.99,4-30.56,4s-21.69-1.51-31.8-4.34c-11.86-3.31-22.96-8.43-32.99-15.05-6.42-4.22-12.4-9.07-17.86-14.44,10.38-10.22,22.66-18.53,36.25-24.35,13.72-5.88,28.79-9.24,44.61-9.47.6-.01,1.2-.02,1.79-.02.43,0,.87,0,1.3,0,14.76.16,28.87,3.03,41.87,8.14,14.88,5.86,28.28,14.66,39.49,25.69-6.15,6.05-12.97,11.43-20.32,16.02Z"/><path d="m161.79,195.65h0s0,0,0,0c-12.34,3.32-21.97,12.96-25.29,25.29h0s0,0,0,0c-3.32-12.34-12.96-21.97-25.29-25.29h0s0,0,0,0c12.34-3.32,21.97-12.96,25.29-25.29h0s0,0,0,0c3.32,12.34,12.96,21.97,25.29,25.29Z"/></svg> <span><b>Augur</b><br><span class="by">The one-question feedback widget</span></span></div>
+</section>
+
+<!-- ═════════════ Frame 2 — dark ═════════════ -->
+<section class="frame" id="frame-2">
+  <div class="win" style="background:#0F1217">
+    <div class="chrome dark"><div class="dots"><i></i><i></i><i></i></div><div class="url">stackline.dev/atlas-web/deploys</div></div>
+    <div class="app stackline">
+      <header>
+        <div class="logo"><b></b>Stackline</div>
+        <div class="crumb">northwind / <b>atlas-web</b></div>
+        <nav><span>Overview</span><span class="on">Deploys</span><span>Logs</span><span>Settings</span></nav>
+        <div class="av">RK</div>
+      </header>
+      <main>
+        <div class="banner" id="t2-banner"><i></i>Production deploy finished in 1m 42s <span>atlas-web.com is live</span></div>
+        <h1>Deploys</h1>
+        <div class="list">
+          <div class="d"><i class="st" style="background:#3CCB7F"></i><div><b>Fix currency rounding on invoice totals</b><small>a41f9c2 · main</small></div><span class="env prod">Production</span><span class="t">1m 42s</span><span class="ago">just now</span></div>
+          <div class="d"><i class="st" style="background:#3CCB7F"></i><div><b>Add retry to webhook dispatcher</b><small>7be20d1 · main</small></div><span class="env prod">Production</span><span class="t">1m 51s</span><span class="ago">3h ago</span></div>
+          <div class="d"><i class="st" style="background:#3CCB7F"></i><div><b>Preview: new onboarding copy</b><small>c09a3e4 · copy/onboarding</small></div><span class="env">Preview</span><span class="t">1m 12s</span><span class="ago">5h ago</span></div>
+          <div class="d"><i class="st" style="background:#E5484D"></i><div><b>Upgrade image pipeline to v3</b><small>5d8e7b0 · deps/images</small></div><span class="env">Preview</span><span class="t">48s</span><span class="ago">yesterday</span></div>
+          <div class="d"><i class="st" style="background:#3CCB7F"></i><div><b>Cache pricing page at the edge</b><small>e2c4f18 · main</small></div><span class="env prod">Production</span><span class="t">2m 05s</span><span class="ago">yesterday</span></div>
+          
+        </div>
+      </main>
+      <div class="augur" id="t2-augur">
+        <span class="x">×</span>
+        <p class="q">Thanks. Anything you’d change?</p>
+        <div class="row" id="t2-note"><span class="in">Build logs were hard to find<span class="caret"></span></span><span class="b p">Send</span><span class="b g" id="t2-skip" style="padding:6px 4px">Skip</span></div>
+        <div class="by" id="t2-by"><span class="w"><em>by</em> <svg width="33.64" height="14" viewBox="0 0 304.89 126.88" fill="currentColor" role="img" aria-label="Augur"><path d="m125.38,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-.99-2.96-.99-4.8v-30.8h-17.01v13.96l3.66,3.71-3.66,3.51v9.84c0,4.63,1.07,8.74,3.21,12.31,2.13,3.57,5.13,6.38,8.99,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03c3.76-2.02,6.68-4.82,8.78-8.39,2.1-3.57,3.15-7.71,3.15-12.42v-31.02h-17.01v30.8Z"/><path d="m184,52.72c-1.23-1.03-2.61-1.9-4.14-2.62-2.9-1.37-6.2-2.05-9.88-2.05-4.85,0-9.21,1.16-13.08,3.48-3.86,2.32-6.9,5.46-9.11,9.44-2.2,3.97-3.31,8.5-3.31,13.58s1.11,9.42,3.31,13.47c2.21,4.04,5.23,7.25,9.06,9.6,3.82,2.36,8.2,3.53,13.13,3.53,3.68,0,6.98-.69,9.88-2.1,1.4-.67,2.67-1.46,3.81-2.38v3.27c0,3.83-1.19,6.77-3.58,8.83-2.4,2.06-5.69,3.09-9.88,3.09-3.24,0-6.06-.59-8.45-1.76-2.39-1.18-4.55-2.91-6.46-5.19l-10.49,10.37c2.58,3.68,6.09,6.53,10.55,8.56,4.45,2.02,9.58,3.04,15.4,3.04s10.87-1.13,15.4-3.37c4.52-2.25,8.07-5.43,10.65-9.55s3.86-8.94,3.86-14.46v-50.34h-16.67v3.56Zm-.71,27.73c-.92,1.73-2.25,3.11-3.98,4.14-1.73,1.04-3.77,1.55-6.12,1.55s-4.27-.51-5.97-1.55c-1.69-1.03-3.03-2.44-4.03-4.25-.99-1.8-1.49-3.73-1.49-5.79s.48-4.09,1.44-5.85c.96-1.77,2.32-3.17,4.08-4.2,1.77-1.03,3.79-1.54,6.08-1.54s4.37.51,6.07,1.54c1.69,1.03,3,2.43,3.92,4.2.92,1.76,1.38,3.68,1.38,5.74,0,2.28-.46,4.28-1.38,6.01Z"/><path d="m239.53,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-1-2.96-1-4.8v-30.8h-17v31.02c0,4.63,1.07,8.74,3.2,12.31,2.14,3.57,5.14,6.38,9,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03,6.68-4.82,8.78-8.39,3.14-7.71,3.14-12.42v-31.02h-17v30.8Z"/><path d="m299.75,49.21c-1.95-.77-4.21-1.16-6.78-1.16-5.82,0-10.4,1.73-13.75,5.19l-.05.05v-4.13h-17.01v53.65h17.01v-29.37c0-3.46.82-6.05,2.48-7.78,1.66-1.73,3.92-2.59,6.79-2.59,1.4,0,2.65.22,3.75.66,1.11.44,1.99,1.03,2.65,1.77l10.05-12.81c-1.47-1.55-3.19-2.71-5.14-3.48Z"/><path d="m93.61,67.09c-6.22-6.12-13.65-11-21.91-14.25l-13.33-29L47.41,0l-10.74,22.65-14.66,30.93c-7.54,3.23-14.35,7.84-20.11,13.51,3.03,2.98,6.35,5.67,9.91,8.01L0,100h22.26l7.85-16.55c5.61,1.57,11.53,2.41,17.64,2.41s11.55-.77,16.95-2.22l7.52,16.36h21.15l-11.04-24.02c4.08-2.55,7.86-5.53,11.27-8.89Zm-24.48,5.49h0c-3.34,2.08-7,3.69-10.89,4.74-3.34.9-6.85,1.37-10.48,1.37s-7.44-.52-10.9-1.49c-4.07-1.13-7.87-2.89-11.31-5.16-2.2-1.45-4.25-3.11-6.12-4.95,3.56-3.5,7.77-6.35,12.43-8.35,4.7-2.02,9.87-3.17,15.3-3.25.21,0,.41,0,.61,0,.15,0,.3,0,.45,0,5.06.05,9.9,1.04,14.36,2.79,5.1,2.01,9.7,5.03,13.54,8.81-2.11,2.07-4.45,3.92-6.97,5.49Z"/><path d="m46.8,58.42c-1.14,4.23-4.44,7.53-8.67,8.67,4.23,1.14,7.53,4.44,8.67,8.67,1.14-4.23,4.44-7.53,8.67-8.67-4.23-1.14-7.53-4.44-8.67-8.67Z"/></svg></span><span class="pill">Add to your product <span aria-hidden="true">↗</span></span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="side"><h2>Looks like it shipped with your product.</h2>
+    <p class="sub">Augur reads your CSS variables, so your colours, fonts and corner radii carry over. Dark mode included, no styling work.</p></div>
+  <div class="note" style="top:318px" data-to="#t2-augur" data-at="right" data-y=".2">Your palette, your type, your radii<small>Set <b>--k-*</b> variables once. Augur picks them up.</small></div>
+  <div class="note" style="top:432px" data-to="#t2-skip" data-at="right">An optional line after the answer<small>Skip is always one tap away.</small></div>
+  <div class="note" style="top:546px">Writes to your own database<small>Supabase, your API, or local for testing.</small></div>
+  <div class="brand"><svg width="20.59" height="22" viewBox="0 0 272.99 291.63" fill="currentColor" aria-hidden="true"><path d="m272.99,195.66c-18.13-17.84-39.82-32.08-63.9-41.56l-38.88-84.58L138.26,0l-31.32,66.06-42.76,90.2c-21.99,9.42-41.86,22.86-58.66,39.4,8.83,8.69,18.51,16.53,28.9,23.37L0,291.63h64.92l22.88-48.26c16.36,4.58,33.62,7.03,51.45,7.03s33.67-2.25,49.44-6.47l21.93,47.7h61.68l-32.19-70.05c11.9-7.43,22.93-16.13,32.88-25.92Zm-71.4,16.02h-.01c-9.73,6.08-20.41,10.77-31.77,13.81-9.75,2.61-19.99,4-30.56,4s-21.69-1.51-31.8-4.34c-11.86-3.31-22.96-8.43-32.99-15.05-6.42-4.22-12.4-9.07-17.86-14.44,10.38-10.22,22.66-18.53,36.25-24.35,13.72-5.88,28.79-9.24,44.61-9.47.6-.01,1.2-.02,1.79-.02.43,0,.87,0,1.3,0,14.76.16,28.87,3.03,41.87,8.14,14.88,5.86,28.28,14.66,39.49,25.69-6.15,6.05-12.97,11.43-20.32,16.02Z"/><path d="m161.79,195.65h0s0,0,0,0c-12.34,3.32-21.97,12.96-25.29,25.29h0s0,0,0,0c-3.32-12.34-12.96-21.97-25.29-25.29h0s0,0,0,0c12.34-3.32,21.97-12.96,25.29-25.29h0s0,0,0,0c3.32,12.34,12.96,21.97,25.29,25.29Z"/></svg> <span><b>Augur</b><br><span class="by">The one-question feedback widget</span></span></div>
+</section>
+
+<!-- ═════════════ Frame 3 — custom button ═════════════ -->
+<section class="frame" id="frame-3">
+  <div class="win">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">wayfile.app/team/handbook</div></div>
+    <div class="app wayfile">
+      <nav>
+        <div class="logo"><b></b>Wayfile</div>
+        <div class="search">Search pages</div>
+        <div class="grp">Handbook</div>
+        <a>Welcome</a><a>How we work</a><a class="on">Onboarding checklist</a><a class="in">First week</a><a class="in">Tools and access</a><a>Time off</a>
+        <div class="grp">Engineering</div><a>Release process</a><a>On-call</a><a>Incident notes</a>
+      </nav>
+      <main>
+        <div class="path">Handbook / Onboarding checklist</div>
+        <h1>Onboarding checklist</h1>
+        <div class="meta"><span>Edited by Dana Okafor</span><span>2 days ago</span><span>6 min read</span></div>
+        <p>Everything a new teammate needs in their first two weeks. Work through it with your onboarding buddy and tick items off as you go.</p>
+        <h3>Before day one</h3>
+        <div class="todo done"><i></i><span>Laptop ordered and shipped to home address</span></div>
+        <div class="todo done"><i></i><span>Accounts created for email, chat and the code host</span></div>
+        <div class="todo"><i></i><span>Buddy assigned and intro call booked</span></div>
+        <h3>First week</h3>
+        <div class="todo"><i></i><span>Read “How we work” and leave one comment</span></div>
+        <div class="todo"><i></i><span>Ship a small change to the handbook itself</span></div>
+      </main>
+      <div class="ideas press" id="t3-fab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6"/><path d="M10 22h4"/><path d="M12 2a7 7 0 0 0-4 12.7c.6.5 1 1.3 1 2.1V17h6v-.2c0-.8.4-1.6 1-2.1A7 7 0 0 0 12 2z"/></svg>Share an idea</div>
+      <svg class="cursor" id="t3-cursor" style="right:44px;bottom:6px" viewBox="0 0 20 24"><path d="M2 2l15 10.5-6.6 1.1 3.9 7.4-2.9 1.5-3.9-7.4L2 20z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+
+  <div class="side" style="top:52px"><h2>Keep your own button.</h2>
+    <p class="sub">Turn off Augur's built-in button and call <b>augur.open()</b> from yours. Any shape, any icon, anywhere in your UI.</p></div>
+  <div class="note" style="top:250px" data-to="#t3-fab" data-at="right"><span class="n">1</span>Your button, your design</div>
+  <div class="code" style="top:290px"><span class="c">// in your Augur config</span>
+persistentButton: <span class="k">false</span>,
+
+<span class="c">// on your own button</span>
+&lt;IdeasButton
+  onClick={() =&gt; <span class="f">augur.open</span>()} /&gt;</div>
+  <div class="note" style="top:434px"><span class="n">2</span>It opens Augur's panel</div>
+  <div class="inset" style="top:466px"><div class="scaler">
+    <div class="augur text wf-vars" id="t3-augur">
+      <span class="x">×</span>
+      <p class="q">What would make this better?</p>
+      <div class="ta">Let me pin a page to the sidebar<span class="caret"></span></div>
+      <div class="row" style="justify-content:flex-end"><span class="b g">Cancel</span><span class="b p">Send</span></div>
+      <div class="by"><span class="w"><em>by</em> <svg width="33.64" height="14" viewBox="0 0 304.89 126.88" fill="currentColor" role="img" aria-label="Augur"><path d="m125.38,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-.99-2.96-.99-4.8v-30.8h-17.01v13.96l3.66,3.71-3.66,3.51v9.84c0,4.63,1.07,8.74,3.21,12.31,2.13,3.57,5.13,6.38,8.99,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03c3.76-2.02,6.68-4.82,8.78-8.39,2.1-3.57,3.15-7.71,3.15-12.42v-31.02h-17.01v30.8Z"/><path d="m184,52.72c-1.23-1.03-2.61-1.9-4.14-2.62-2.9-1.37-6.2-2.05-9.88-2.05-4.85,0-9.21,1.16-13.08,3.48-3.86,2.32-6.9,5.46-9.11,9.44-2.2,3.97-3.31,8.5-3.31,13.58s1.11,9.42,3.31,13.47c2.21,4.04,5.23,7.25,9.06,9.6,3.82,2.36,8.2,3.53,13.13,3.53,3.68,0,6.98-.69,9.88-2.1,1.4-.67,2.67-1.46,3.81-2.38v3.27c0,3.83-1.19,6.77-3.58,8.83-2.4,2.06-5.69,3.09-9.88,3.09-3.24,0-6.06-.59-8.45-1.76-2.39-1.18-4.55-2.91-6.46-5.19l-10.49,10.37c2.58,3.68,6.09,6.53,10.55,8.56,4.45,2.02,9.58,3.04,15.4,3.04s10.87-1.13,15.4-3.37c4.52-2.25,8.07-5.43,10.65-9.55s3.86-8.94,3.86-14.46v-50.34h-16.67v3.56Zm-.71,27.73c-.92,1.73-2.25,3.11-3.98,4.14-1.73,1.04-3.77,1.55-6.12,1.55s-4.27-.51-5.97-1.55c-1.69-1.03-3.03-2.44-4.03-4.25-.99-1.8-1.49-3.73-1.49-5.79s.48-4.09,1.44-5.85c.96-1.77,2.32-3.17,4.08-4.2,1.77-1.03,3.79-1.54,6.08-1.54s4.37.51,6.07,1.54c1.69,1.03,3,2.43,3.92,4.2.92,1.76,1.38,3.68,1.38,5.74,0,2.28-.46,4.28-1.38,6.01Z"/><path d="m239.53,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-1-2.96-1-4.8v-30.8h-17v31.02c0,4.63,1.07,8.74,3.2,12.31,2.14,3.57,5.14,6.38,9,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03,6.68-4.82,8.78-8.39,3.14-7.71,3.14-12.42v-31.02h-17v30.8Z"/><path d="m299.75,49.21c-1.95-.77-4.21-1.16-6.78-1.16-5.82,0-10.4,1.73-13.75,5.19l-.05.05v-4.13h-17.01v53.65h17.01v-29.37c0-3.46.82-6.05,2.48-7.78,1.66-1.73,3.92-2.59,6.79-2.59,1.4,0,2.65.22,3.75.66,1.11.44,1.99,1.03,2.65,1.77l10.05-12.81c-1.47-1.55-3.19-2.71-5.14-3.48Z"/><path d="m93.61,67.09c-6.22-6.12-13.65-11-21.91-14.25l-13.33-29L47.41,0l-10.74,22.65-14.66,30.93c-7.54,3.23-14.35,7.84-20.11,13.51,3.03,2.98,6.35,5.67,9.91,8.01L0,100h22.26l7.85-16.55c5.61,1.57,11.53,2.41,17.64,2.41s11.55-.77,16.95-2.22l7.52,16.36h21.15l-11.04-24.02c4.08-2.55,7.86-5.53,11.27-8.89Zm-24.48,5.49h0c-3.34,2.08-7,3.69-10.89,4.74-3.34.9-6.85,1.37-10.48,1.37s-7.44-.52-10.9-1.49c-4.07-1.13-7.87-2.89-11.31-5.16-2.2-1.45-4.25-3.11-6.12-4.95,3.56-3.5,7.77-6.35,12.43-8.35,4.7-2.02,9.87-3.17,15.3-3.25.21,0,.41,0,.61,0,.15,0,.3,0,.45,0,5.06.05,9.9,1.04,14.36,2.79,5.1,2.01,9.7,5.03,13.54,8.81-2.11,2.07-4.45,3.92-6.97,5.49Z"/><path d="m46.8,58.42c-1.14,4.23-4.44,7.53-8.67,8.67,4.23,1.14,7.53,4.44,8.67,8.67,1.14-4.23,4.44-7.53,8.67-8.67-4.23-1.14-7.53-4.44-8.67-8.67Z"/></svg></span><span class="pill">Add to your product <span aria-hidden="true">↗</span></span></div>
+    </div></div></div>
+  <div class="note" style="top:666px"><span class="n">3</span>Augur records it, with caps and testing mode as usual</div>
+</section>
+
+<script>
+// Leader lines: from each note's edge to its target inside the product shot.
+function drawLines() {
+  document.querySelectorAll(".frame").forEach(f => {
+    f.querySelector("svg.lines")?.remove();
+    const fr = f.getBoundingClientRect();
+    const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    svg.setAttribute("class", "lines"); svg.setAttribute("width", fr.width); svg.setAttribute("height", fr.height);
+    const mk = (tag, attrs) => { const e = document.createElementNS(svg.namespaceURI, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); svg.appendChild(e); };
+    [...f.querySelectorAll(".note[data-to]")].forEach((n, i) => {
+      const t = f.querySelector(n.dataset.to); if (!t) return;
+      const nr = n.getBoundingClientRect(), tr = t.getBoundingClientRect();
+      const x1 = nr.left - fr.left - 10, y1 = nr.top - fr.top + 11;
+      const x2 = tr.right - fr.left + 7, y2 = tr.top - fr.top + tr.height * (+n.dataset.y || 0.5);
+      const gx = 904 + i * 7;
+      mk("path", { d: `M${x1},${y1} H${gx} V${y2} H${x2}`, fill: "none", stroke: "#394293", "stroke-width": 1.5, "stroke-linejoin": "round" });
+      mk("circle", { cx: x1 + 2, cy: y1, r: 3.5, fill: "#394293" });
+      mk("circle", { cx: x2, cy: y2, r: 5, fill: "#fff", stroke: "#394293", "stroke-width": 2 });
+    });
+    f.appendChild(svg);
+  });
+  window.__ready = true;
+}
+document.fonts.ready.then(drawLines);
+addEventListener("resize", drawLines);
+</script>
+</body>
+</html>

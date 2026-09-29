@@ -7,6 +7,10 @@ One well-timed question, three answers, an optional line.
 
 </div>
 
+<p align="center">
+  <img src=".github/assets/gallery/gallery-1-light.png" alt="Augur asking one question in an order-management app, a few seconds after a shipping label printed" width="100%">
+</p>
+
 Augur asks the user a single question at a real moment in your product — *"Did that
 go the way you expected?"* — takes one of three answers and an optional line, then
 gets out of the way. It is not a form builder, not an NPS widget, not a survey tool.
@@ -89,6 +93,15 @@ AGENTS.md tells it how.
 - **Row-level security on by default** — the Supabase schema enables RLS on every
   table and routes admin reads through checked functions, so feedback isn't readable
   by anyone with your public key.
+- **Bring your own button** — set `persistentButton: false` and call `augur.open()`
+  from any control in your UI. Your design, Augur's prompt and logging.
+
+<p align="center">
+  <img src=".github/assets/gallery/gallery-2-dark.png" alt="Augur in a dark deploys dashboard, matching the host's colours and fonts" width="100%">
+</p>
+<p align="center">
+  <img src=".github/assets/gallery/gallery-3-custom-button.png" alt="A host's own 'Share an idea' button opening Augur's feedback prompt through augur.open()" width="100%">
+</p>
 
 ## Admin (optional)
 

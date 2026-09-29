@@ -106,6 +106,10 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
       });
     } catch { /* ignore */ }
   };
+  // augur.open() from the host's own button. Not gated on persistentButton: turning
+  // the built-in button off to use your own is the point.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => augur.onOpen(() => { openManual(); }), [userId, store]);
 
   const onAnswer = (answer?: string) => {
     if (!active || isTesting()) return;

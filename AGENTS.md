@@ -178,6 +178,7 @@ admin Settings tab. Never write to Augur's database tables to change settings.
 | Turn it all off (no prompts, no button, nothing logged) | `enabled: false` in the host config. |
 | Stop the automatic prompts, keep the Feedback button | Set `enabled: false` on each trigger in the host config. Leave the module on. |
 | Hide the Feedback button, keep the prompts | `persistentButton: false` in the host config. |
+| Use our own feedback button | `persistentButton: false` in the host config, then `onClick={() => augur.open()}` on their button. Don't restyle Augur's built-in button instead. |
 | Pause one prompt | `enabled: false` on that trigger in the host config. |
 | No prompts on this page/screen only | `autoTriggers={false}` on the `<Augur>` mount rendered there. |
 | Turn it back on | Remove the `false` you set (or set `true`). If it's still off, it's off in admin too: tell them. |

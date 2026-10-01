@@ -140,3 +140,40 @@ silently did nothing. That broke the one operation a developer, or their coding
 agent, most needs to trust. With restraint winning, "off in code" always works, admin
 can still pause things without a deploy, and neither side can accidentally switch on
 what the other turned off.
+
+## One entry point
+
+**Decision.** The feedback button opens a panel with categories (Something broke,
+Something's confusing, Something's missing by default), then a line. Categories apply
+only to feedback a person starts; moments keep their own question and answers.
+
+**Why.** Products otherwise end up with two doors, a feedback widget and a separate
+"report a bug" button, and people have to guess which one is for them. One button
+with three plain categories covers both, so Augur can be a product's only feedback
+and bug button. Moments stay a single question because they are asked at a specific
+point about a specific thing (principle 2); putting a category menu in front of
+"Did that go the way you expected?" would turn one question into a form.
+
+## Context collects places, never words
+
+**Decision.** Button submissions carry diagnostic context by default: the page path,
+app version, viewport, browser, and short lines from the last five uncaught errors.
+Never the query string or fragment, never the DOM or form fields, never anything the
+person typed elsewhere. `context: false` turns it off.
+
+**Why.** A report that says "it broke" without where or on what is rarely fixable,
+and the person writing it won't think to say. But URLs routinely carry tokens, emails
+and ids in the query and fragment, and error messages can quote user data, so the
+limits are strict: path only, first line of each message cut to 120 characters,
+extension noise dropped. On by default because the default is what most hosts ship.
+
+## The trigger link is gone
+
+**Decision.** Moments have no outbound link. The optional "Say more" link lives on
+the button's panel instead (`moreLink`).
+
+**Why.** A link on a moment pulled people out of a one-question exchange into a long
+form, the opposite of what a moment is for, and it made the moment's answer harder to
+read (did they answer, click, or both?). When someone wants to say more, they're
+already in the panel they opened themselves; that is where the door belongs.
+

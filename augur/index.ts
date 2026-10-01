@@ -10,9 +10,9 @@
 
 export { Augur } from "./Augur";
 export { augur } from "./emit";
-export { AUGUR_BASE_DEFAULTS, mergeConfig, lockedInCode, responseTypeOf } from "./config";
-export type { Answer, AugurConfig, TriggerDef, Presentation, ResponseType, AnswerOption } from "./config";
-export type { AugurStore, Summary, TriggerStat, AdminNote, DateRange, Unconfigured } from "./store";
+export { AUGUR_BASE_DEFAULTS, mergeConfig, lockedInCode, responseTypeOf, effectiveCategories } from "./config";
+export type { Answer, AugurConfig, HostConfig, ConfigOverrides, TriggerDef, Presentation, ResponseType, AnswerOption, Category, MoreLink, AugurStrings } from "./config";
+export type { AugurStore, Summary, TriggerStat, AdminNote, DateRange, Unconfigured, Submission, SubmitContext, ErrorEntry } from "./store";
 
 // Stores — import the one your backend needs; unused ones tree-shake away.
 export { SupabaseStore } from "./stores/supabase";

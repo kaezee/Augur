@@ -25,6 +25,38 @@ export interface Presentation {
 
 export interface AnswerOption { key: Answer; label: string; aria?: string }
 
+// The button's panel (person-initiated feedback only; moments keep their own
+// question). 0 categories = plain free text; otherwise 2–5 with unique keys.
+// `placeholder` is optional per category and falls back to strings.textPlaceholder.
+export interface Category { key: string; label: string; placeholder?: string }
+export interface MoreLink { label: string; href: string }
+
+// What a host passes to <Augur config={…}>: any subset of the config, strings
+// per key, plus its own triggers.
+export type HostConfig = Partial<Omit<AugurConfig, "strings" | "triggers">> & {
+  strings?: Partial<AugurStrings>;
+  triggers: Record<string, TriggerDef>;
+};
+// Stored admin overrides: the same shape, triggers optional.
+export type ConfigOverrides = Partial<Omit<HostConfig, "triggers">> & { triggers?: Record<string, TriggerDef> };
+
+// Every visible string Augur renders, so a host can translate or reword it.
+// Merged per key: override one without restating the rest. The byline is not here.
+export interface AugurStrings {
+  categoryQuestion: string;  // heading on the category step
+  button: string;            // built-in button text
+  buttonLabel: string;       // built-in button accessible name / tooltip
+  promptLabel: string;       // accessible name of the prompt region
+  send: string;
+  skip: string;
+  cancel: string;
+  sent: string;
+  notePlaceholder: string;   // the optional line after an answer
+  textPlaceholder: string;   // the free-text box
+  close: string;             // accessible name of ×
+  back: string;              // accessible name of the category back control
+}
+
 export interface AugurConfig {
   enabled: boolean;
   // "testing" keeps every prompt visible so you can try the flow, but records
@@ -37,6 +69,13 @@ export interface AugurConfig {
   answers: AnswerOption[];                          // the choice3 answers, forever
   followup: string;                                // "Thanks. Anything you'd change?"
   presentation: Presentation;
+  categories: Category[];                          // [] = plain free text
+  moreLink?: MoreLink;                             // optional "Say more" on the panel
+  strings: AugurStrings;
+  // Diagnostic context on person-initiated submissions (route path, app version,
+  // viewport, browser, recent errors). false = no listeners, nothing sent.
+  context: boolean;
+  ignoreErrorSources: string[];                    // error source prefixes to drop
   triggers: Record<string, TriggerDef>;            // host-supplied
 }
 
@@ -56,7 +95,42 @@ export const AUGUR_BASE_DEFAULTS: Omit<AugurConfig, "triggers"> = {
   ],
   followup: "Thanks. Anything you’d change?",
   presentation: { position: "bottom-right" },
+  categories: [
+    { key: "broke",     label: "Something broke" },
+    { key: "confusing", label: "Something’s confusing" },
+    { key: "missing",   label: "Something’s missing" },
+  ],
+  strings: {
+    categoryQuestion: "What’s on your mind?",
+    button: "Feedback",
+    buttonLabel: "Give feedback",
+    promptLabel: "Feedback",
+    send: "Send",
+    skip: "Skip",
+    cancel: "Cancel",
+    sent: "Thanks — that’s logged.",
+    notePlaceholder: "one line, optional",
+    textPlaceholder: "Type your feedback…",
+    close: "Dismiss",
+    back: "Back",
+  },
+  context: true,
+  ignoreErrorSources: [],
 };
+
+// 0 or 2–5 categories with unique keys. One category is meaningless (a one-option
+// menu), so it's treated as none; extras and duplicate keys are dropped. Warns once.
+let warned = false;
+export function effectiveCategories(cats: Category[] | undefined): Category[] {
+  const seen = new Set<string>();
+  const uniq = (cats ?? []).filter((c) => c && c.key && !seen.has(c.key) && !!seen.add(c.key));
+  const out = uniq.length < 2 ? [] : uniq.slice(0, 5);
+  if (!warned && (cats ?? []).length > 0 && out.length !== (cats ?? []).length) {
+    warned = true;
+    console.warn(`[augur] categories need 0 or 2–5 entries with unique keys; using ${out.length}.`);
+  }
+  return out;
+}
 
 // The default response type when a trigger doesn't set one.
 export const responseTypeOf = (t: Pick<TriggerDef, "responseType">): ResponseType => t.responseType ?? "choice3";
@@ -70,8 +144,8 @@ export const responseTypeOf = (t: Pick<TriggerDef, "responseType">): ResponseTyp
 const both = (a?: boolean, b?: boolean) => a !== false && b !== false;
 
 export function mergeConfig(
-  host: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> },
-  overrides: Partial<AugurConfig>,
+  host: HostConfig,
+  overrides: ConfigOverrides,
 ): AugurConfig {
   const triggers: Record<string, TriggerDef> = { ...host.triggers };
   for (const [id, t] of Object.entries(overrides.triggers ?? {})) {
@@ -87,13 +161,14 @@ export function mergeConfig(
     mode: host.mode === "testing" || overrides.mode === "testing" ? "testing" : "live",
     caps: { ...AUGUR_BASE_DEFAULTS.caps, ...host.caps, ...overrides.caps },
     presentation: { ...AUGUR_BASE_DEFAULTS.presentation, ...host.presentation, ...overrides.presentation },
+    strings: { ...AUGUR_BASE_DEFAULTS.strings, ...host.strings, ...overrides.strings },
     answers: overrides.answers ?? host.answers ?? AUGUR_BASE_DEFAULTS.answers,
     triggers,
   };
 }
 
 // Which switches has code turned off? Admin shows these as locked.
-export function lockedInCode(host: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> }) {
+export function lockedInCode(host: HostConfig) {
   return {
     enabled: host.enabled === false,
     persistentButton: host.persistentButton === false,

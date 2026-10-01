@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { AugurConfig, TriggerDef } from "./config";
+import type { HostConfig } from "./config";
 import type { AugurStore } from "./store";
 import { AugurAdminSection } from "./admin";
 import { AugurMark } from "./mark";
@@ -20,7 +20,7 @@ const primary: React.CSSProperties = { ...btn, border: "1px solid transparent", 
 
 export function AugurConsole({ store, hostConfig, email, onSignOut, onChangePassword, selfUserId }: {
   store: AugurStore;
-  hostConfig: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> };
+  hostConfig: HostConfig;
   email: string;
   onSignOut: () => void;
   onChangePassword?: (newPassword: string) => Promise<void>;

@@ -3,13 +3,13 @@
 // works), and a reference implementation of the full AugurStore including the
 // admin reads. Single-device, no auth, no network. Not for real collection.
 
-import type { AugurConfig } from "../config";
-import type { AdminNote, AugurStore, DateRange, Summary, TriggerStat, Unconfigured } from "../store";
+import type { ConfigOverrides } from "../config";
+import type { AdminNote, AugurStore, DateRange, Submission, SubmitContext, Summary, TriggerStat, Unconfigured } from "../store";
 
-interface Ev { id: string; userId: string; triggerId: string; triggerVer: number; outcome: "shown" | "ignored" | "answered"; answer?: string; shownAt: number; }
+interface Ev { id: string; userId: string; triggerId: string; triggerVer: number; outcome: "shown" | "ignored" | "answered"; answer?: string; shownAt: number; category?: string; context?: SubmitContext; }
 interface Note { id: string; eventId: string; body: string; createdAt: number; readAt?: number; }
 interface Unc { triggerId: string; userId: string; seenAt: number; }
-interface Bag { events: Ev[]; notes: Note[]; unconfigured: Unc[]; overrides: Partial<AugurConfig>; }
+interface Bag { events: Ev[]; notes: Note[]; unconfigured: Unc[]; overrides: ConfigOverrides; }
 
 const KEY = "augur.local";
 
@@ -32,6 +32,15 @@ export class LocalStore implements AugurStore {
     return id;
   }
 
+  // One submission = one answered event (entry point as its trigger id) + its note.
+  async submit(s: Submission): Promise<void> {
+    const b = load();
+    const id = crypto.randomUUID();
+    b.events.push({ id, userId: s.userId, triggerId: s.source, triggerVer: 0, outcome: "answered", shownAt: Date.now(), category: s.category, context: s.context });
+    if (s.body.trim()) b.notes.push({ id: crypto.randomUUID(), eventId: id, body: s.body.trim(), createdAt: Date.now() });
+    save(b);
+  }
+
   async logOutcome(eventId: string, outcome: "ignored" | "answered", answer?: string): Promise<void> {
     const b = load();
     const ev = b.events.find((x) => x.id === eventId);
@@ -50,7 +59,7 @@ export class LocalStore implements AugurStore {
     save(b);
   }
 
-  async readConfig(): Promise<Partial<AugurConfig>> { return load().overrides; }
+  async readConfig(): Promise<ConfigOverrides> { return load().overrides; }
 
   async readSummary(range: DateRange): Promise<Summary> {
     const b = load();
@@ -98,7 +107,8 @@ export class LocalStore implements AugurStore {
       .map((n) => {
         const e = evById.get(n.eventId);
         const answer = e?.answer;
-        return { id: n.id, triggerId: e?.triggerId ?? "?", answer: (answer === "yes" || answer === "not_really" || answer === "unclear") ? answer : null, body: n.body, createdAt: new Date(n.createdAt).toISOString(), read: !!n.readAt };
+        return { id: n.id, triggerId: e?.triggerId ?? "?", answer: (answer === "yes" || answer === "not_really" || answer === "unclear") ? answer : null, body: n.body, createdAt: new Date(n.createdAt).toISOString(), read: !!n.readAt,
+          category: e?.category ?? null, context: (e?.context as unknown as Record<string, unknown>) ?? null };
       });
   }
 
@@ -124,7 +134,7 @@ export class LocalStore implements AugurStore {
     return removed;
   }
 
-  async writeConfig(overrides: Partial<AugurConfig>): Promise<void> {
+  async writeConfig(overrides: ConfigOverrides): Promise<void> {
     const b = load(); b.overrides = overrides; save(b);
   }
 }

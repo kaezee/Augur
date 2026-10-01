@@ -188,6 +188,11 @@ admin Settings tab. Never write to Augur's database tables to change settings.
 | Try it without recording anything | Set `mode: "testing"` in the host config, or use admin's Testing mode. Remove it before real users arrive. |
 | Move it to the other corner | `presentation: { position: "bottom-left" }` (or `"bottom-right"`). |
 | Hide the "by Augur" byline | `byline={false}` on `<Augur>`. See §7. |
+| Change or remove the categories | Edit `categories` in the host config. `[]` for plain free text. 2 to 5 entries. |
+| Hide our own button while Augur is open | Subscribe with `augur.onPanelState(open => …)` in the button component. |
+| Turn off diagnostic context | `context: false` in the host config. |
+| Translate Augur | Override keys in `strings`, plus `followup`, `manualQuestion` and the `answers` labels. |
+| Upgrade from 0.2 | Replace the `augur/` folder, then ask the developer to run `sql/migrations/0.3.0.sql`. Never run SQL yourself. |
 | Remove Augur completely | Delete `augur/`, the `<Augur>` mount, every `augur.emit(` call (grep for it), and the admin route if any. Dropping the tables is the developer's call: ask, and never run it yourself. |
 
 **"Turn Augur off" is ambiguous.** Ask one question before editing: *"Everything off,

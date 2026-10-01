@@ -13,8 +13,14 @@ optional line. Copy this folder into any React app.
   question: "Did that go through as expected?" }
 ```
 
+**The button's panel:** the built-in button (or yours, via `augur.open(source)`) opens
+categories → a line → sent, with diagnostic context (page path, app version, viewport,
+browser, recent errors; never query strings or anything typed) unless
+`context: false`. `categories: []` gives plain free text. Every visible word is in
+`strings`.
+
 **Store** (`store.ts`) is the one persistence seam — `logShown` · `logOutcome` ·
-`logNote` · `logUnconfigured` · `readConfig`, plus optional admin reads. Pick one:
+`logNote` · `logUnconfigured` · `submit` · `readConfig`, plus optional admin reads. Pick one:
 `LocalStore` (zero backend), `SupabaseStore(client)` (run the migrations), or
 `HttpStore({endpoint})` — or write your own to the interface.
 

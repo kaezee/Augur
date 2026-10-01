@@ -1,10 +1,11 @@
 // A complete integration in one file. Copy the augur/ folder into your src/, then:
 
-import { Augur, augur, SupabaseStore, type AugurConfig, type TriggerDef } from "../augur";
+import { Augur, augur, SupabaseStore, type HostConfig } from "../augur";
+// @ts-expect-error -- placeholder: point this at your app's own Supabase client
 import { supabase } from "./your-supabase-client"; // your app's client
 
 // 1) Your triggers live here — never inside the module. Reword/tune later in admin.
-export const MY_AUGUR: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> } = {
+export const MY_AUGUR: HostConfig = {
   manualQuestion: "What’s one thing that would make this better?",
   triggers: {
     "checkout.done": {

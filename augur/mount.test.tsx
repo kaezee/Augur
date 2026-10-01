@@ -1,0 +1,159 @@
+// @vitest-environment jsdom
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { act } from "react-dom/test-utils";
+import { createRoot, type Root } from "react-dom/client";
+import { Augur, submitFeedback } from "./Augur";
+import { augur } from "./emit";
+import * as publicApi from "./index";
+import { mergeConfig, type HostConfig } from "./config";
+import { LocalStore } from "./stores/local";
+import { __resetSession } from "./caps";
+import type { AugurStore, Submission } from "./store";
+
+(globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+const fakeStore = (): AugurStore & { submitted: Submission[] } => {
+  const submitted: Submission[] = [];
+  return {
+    submitted,
+    logShown: vi.fn(async () => "ev1"), logOutcome: vi.fn(async () => {}), logNote: vi.fn(async () => {}),
+    logUnconfigured: vi.fn(async () => {}), readConfig: vi.fn(async () => ({})),
+    submit: vi.fn(async (s: Submission) => { submitted.push(s); }),
+  };
+};
+const CFG: HostConfig = { triggers: { "t.done": { enabled: true, version: 1, delayMs: 0, maxAsks: 5, dismissKill: 5, question: "Did that work?" } } };
+
+let host: HTMLDivElement, root: Root;
+async function mount(config: HostConfig, store: AugurStore) {
+  await act(async () => { root.render(<Augur userId="u1" store={store} config={config} appVersion="1.2.3" />); });
+}
+const q = (sel: string) => document.body.querySelector<HTMLElement>(sel);
+const buttonByText = (t: string) => [...document.body.querySelectorAll("button")].find((b) => b.textContent?.trim() === t) as HTMLButtonElement;
+
+beforeEach(() => {
+  localStorage.clear(); __resetSession();
+  host = document.createElement("div"); document.body.appendChild(host); root = createRoot(host);
+});
+afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.useRealTimers(); });
+
+describe("emit API", () => {
+  it("open() records 'button' when no source is given", () => {
+    const seen: string[] = [];
+    const off = augur.onOpen((s) => seen.push(s));
+    augur.open(); augur.open("fab");
+    off();
+    expect(seen).toEqual(["button", "fab"]);
+  });
+
+  it("does not expose the panel-state broadcaster", () => {
+    expect("setPanelOpen" in publicApi).toBe(false);
+    expect("_setPanelOpen" in augur).toBe(false);
+  });
+
+  it("onPanelState fires true then false around a moment's prompt", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const states: boolean[] = [];
+    const off = augur.onPanelState((o) => states.push(o));
+    await mount(CFG, fakeStore());
+    await act(async () => { augur.emit("t.done"); await vi.runOnlyPendingTimersAsync(); });
+    expect(q('[role="region"]')?.textContent).toContain("Did that work?");
+    await act(async () => { buttonByText("×").click(); });
+    off();
+    const changes = states.filter((s, i) => s !== states[i - 1]);
+    expect(changes.slice(-2)).toEqual([true, false]);
+  });
+
+  it("a moment never takes focus; the panel does, and returns it on close", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const outside = document.createElement("button"); outside.textContent = "host"; document.body.appendChild(outside);
+    await mount(CFG, fakeStore());
+    outside.focus();
+    await act(async () => { augur.emit("t.done"); await vi.runOnlyPendingTimersAsync(); });
+    expect(document.activeElement).toBe(outside);
+    await act(async () => { augur.close(); await vi.runOnlyPendingTimersAsync(); });
+
+    await act(async () => { augur.open("fab"); });
+    expect(document.activeElement?.textContent).toBe("Something broke");
+    await act(async () => { augur.close(); await vi.runOnlyPendingTimersAsync(); });
+    expect(document.activeElement).toBe(outside);
+    outside.remove();
+  });
+});
+
+describe("the button's panel", () => {
+  it("picks a category, writes a line, and submits once with context", async () => {
+    const store = fakeStore();
+    await mount({ ...CFG, persistentButton: false }, store);
+    await act(async () => { augur.open("fab"); });
+    expect(store.logShown).not.toHaveBeenCalled();            // nothing written on open
+    await act(async () => { buttonByText("Something’s confusing").click(); });
+    const ta = q("textarea") as HTMLTextAreaElement;
+    await act(async () => {
+      const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!;
+      set.call(ta, "The strip's dots"); ta.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => { buttonByText("Send").click(); });
+    expect(store.submitted).toHaveLength(1);
+    const s = store.submitted[0];
+    expect(s).toMatchObject({ userId: "u1", category: "confusing", body: "The strip's dots", source: "fab" });
+    expect(s.context).toMatchObject({ source: "fab", appVersion: "1.2.3", route: "/" });
+    expect(Array.isArray(s.context?.errors)).toBe(true);
+  });
+
+  it("writes nothing if closed without sending", async () => {
+    const store = fakeStore();
+    await mount(CFG, store);
+    await act(async () => { augur.open(); });
+    await act(async () => { buttonByText("Something broke").click(); });
+    await act(async () => { buttonByText("Cancel").click(); });
+    expect(store.submit).not.toHaveBeenCalled();
+    expect(store.logShown).not.toHaveBeenCalled();
+  });
+
+  it("with categories: [] goes straight to the free-text box", async () => {
+    await mount({ ...CFG, categories: [] }, fakeStore());
+    await act(async () => { augur.open(); });
+    expect(q("textarea")).not.toBeNull();
+    expect(buttonByText("Something broke")).toBeUndefined();
+  });
+
+  it("never opens when the module is off", async () => {
+    await mount({ ...CFG, enabled: false }, fakeStore());
+    await act(async () => { augur.open(); });
+    expect(q('[role="region"]')).toBeNull();
+  });
+
+  it("context: false installs no error listeners and sends no context", async () => {
+    const add = vi.spyOn(window, "addEventListener");
+    const store = fakeStore();
+    await mount({ ...CFG, context: false, categories: [] }, store);
+    expect(add.mock.calls.some(([t]) => t === "error" || t === "unhandledrejection")).toBe(false);
+    add.mockRestore();
+    await act(async () => { augur.open(); });
+    const ta = q("textarea") as HTMLTextAreaElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(ta, "hi");
+      ta.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => { buttonByText("Send").click(); });
+    expect(store.submitted[0].context).toBeUndefined();
+  });
+});
+
+describe("LocalStore.submit", () => {
+  it("records category, body, source and context", async () => {
+    const store = new LocalStore();
+    await store.submit({ userId: "u1", category: "broke", body: "It broke", source: "fab",
+      context: { route: "/w", viewport: { w: 1, h: 1 }, userAgent: "x", timestamp: "t", source: "fab", sessionId: "s", errors: [] } });
+    const [n] = await store.readNotes();
+    expect(n).toMatchObject({ triggerId: "fab", category: "broke", body: "It broke" });
+    expect(n.context).toMatchObject({ route: "/w", source: "fab" });
+  });
+
+  it("records nothing in testing mode", async () => {
+    const store = new LocalStore();
+    const sent = submitFeedback(store, mergeConfig({ ...CFG, mode: "testing" }, {}), { userId: "u1", body: "x", source: "button" });
+    expect(sent).toBe(false);
+    expect(await store.readNotes()).toEqual([]);
+  });
+});

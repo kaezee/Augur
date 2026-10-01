@@ -1,10 +1,13 @@
-// The one-line integration surface for the host: augur.emit('trigger.id') after a
-// completed action. A tiny synchronous bus — no context, no host state.
+// The host's integration surface: augur.emit('trigger.id') after a completed action,
+// augur.open() from the host's own button. A tiny synchronous bus — no context, no
+// host state.
 
 type Listener = (triggerId: string) => void;
 const listeners = new Set<Listener>();
-type OpenListener = () => void;
-const openListeners = new Set<OpenListener>();
+type OpenListener = (source: string) => void;
+const openers = new Set<OpenListener>();
+const closers = new Set<() => void>();
+const panelListeners = new Set<(open: boolean) => void>();
 
 export const augur = {
   emit(triggerId: string): void {
@@ -15,13 +18,33 @@ export const augur = {
     return () => { listeners.delete(l); };
   },
 
-  // Open the free-text feedback prompt from the host's own button.
-  // Same prompt, logging and testing-mode behaviour as Augur's built-in button.
-  open(): void {
-    for (const l of [...openListeners]) l();
+  // Open the feedback panel from the host's own button. `source` is the entry point
+  // recorded with the submission ("button" when omitted, same as the built-in button).
+  open(source = "button"): void {
+    for (const l of [...openers]) l(source);
   },
   onOpen(l: OpenListener): () => void {
-    openListeners.add(l);
-    return () => { openListeners.delete(l); };
+    openers.add(l);
+    return () => { openers.delete(l); };
+  },
+  // Close whatever Augur is showing (a moment's prompt or the panel).
+  close(): void {
+    for (const l of [...closers]) l();
+  },
+  // true when any prompt or panel appears, false when it closes — so a host's own
+  // button can hide while Augur is on screen.
+  onPanelState(l: (open: boolean) => void): () => void {
+    panelListeners.add(l);
+    return () => { panelListeners.delete(l); };
   },
 };
+
+// Internal: the <Augur> mount and its own tests use these. Not re-exported from
+// index.ts, so hosts can listen to panel state but can't fake it.
+export function onClose(l: () => void): () => void {
+  closers.add(l);
+  return () => { closers.delete(l); };
+}
+export function setPanelOpen(open: boolean): void {
+  for (const l of [...panelListeners]) l(open);
+}

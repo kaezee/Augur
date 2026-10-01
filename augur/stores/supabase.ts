@@ -6,8 +6,8 @@
 // The client type is structural on purpose: augur/ takes no hard dependency on
 // @supabase/supabase-js. Pass a real SupabaseClient and it fits.
 
-import type { AugurConfig } from "../config";
-import type { AdminNote, AugurStore, DateRange, Summary, TriggerStat, Unconfigured } from "../store";
+import type { ConfigOverrides } from "../config";
+import type { AdminNote, AugurStore, DateRange, Submission, Summary, TriggerStat, Unconfigured } from "../store";
 
 type Result<T> = Promise<{ data: T | null; error: unknown }>;
 interface Filter<T> { eq(col: string, val: unknown): Result<T>; }
@@ -33,6 +33,15 @@ export class SupabaseStore implements AugurStore {
     return data as unknown as string;
   }
 
+  // One submission via augur_submit (user from the JWT): an answered event carrying
+  // category + context, plus the note. Entry point goes in as the trigger id.
+  async submit(s: Submission): Promise<void> {
+    const { error } = await this.sb.rpc("augur_submit", {
+      p_trigger_id: s.source, p_category: s.category ?? null, p_body: s.body, p_context: s.context ?? null,
+    });
+    if (error) throw error;
+  }
+
   async logOutcome(eventId: string, outcome: "ignored" | "answered", answer?: string): Promise<void> {
     const { error } = await this.sb.rpc("augur_log_outcome", { p_event_id: eventId, p_outcome: outcome, p_answer: answer ?? null });
     if (error) throw error;
@@ -48,9 +57,9 @@ export class SupabaseStore implements AugurStore {
     if (error) throw error;
   }
 
-  async readConfig(): Promise<Partial<AugurConfig>> {
+  async readConfig(): Promise<ConfigOverrides> {
     const { data } = await this.sb.from("augur_config").select("overrides").eq("id", 1).maybeSingle();
-    return (data?.overrides as Partial<AugurConfig>) ?? {};
+    return (data?.overrides as ConfigOverrides) ?? {};
   }
 
   // ── admin (gated server-side on the allowlist; returns null/[] for non-admins) ──
@@ -82,6 +91,7 @@ export class SupabaseStore implements AugurStore {
     return rows.map((r) => ({
       id: String(r.id), triggerId: String(r.trigger_id), answer: (r.answer as AdminNote["answer"]) ?? null,
       body: String(r.body), createdAt: String(r.created_at), read: Boolean(r.read),
+      category: (r.category as string | null) ?? null, context: (r.context as Record<string, unknown> | null) ?? null,
     }));
   }
 
@@ -100,7 +110,7 @@ export class SupabaseStore implements AugurStore {
     return Number(data ?? 0);
   }
 
-  async writeConfig(overrides: Partial<AugurConfig>): Promise<void> {
+  async writeConfig(overrides: ConfigOverrides): Promise<void> {
     const { error } = await this.sb.from("augur_config")
       .update({ overrides, updated_at: new Date().toISOString() }).eq("id", 1);
     if (error) throw error;

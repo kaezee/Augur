@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { lockedInCode, mergeConfig, responseTypeOf, type AugurConfig, type TriggerDef } from "./config";
+import { lockedInCode, mergeConfig, responseTypeOf, type AugurConfig, type ConfigOverrides, type HostConfig, type TriggerDef } from "./config";
 import type { AdminNote, AugurStore, DateRange, Summary, TriggerStat, Unconfigured } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
 import { AugurWordmark, AUGUR_REPO_URL } from "./mark";
@@ -55,7 +55,7 @@ export type Confirm = (message: string) => Promise<boolean>;
 
 export function AugurAdminSection({ store, hostConfig, confirm }: {
   store: AugurStore;
-  hostConfig: Partial<AugurConfig> & { triggers: Record<string, TriggerDef> };
+  hostConfig: HostConfig;
   selfUserId?: string;   // accepted for host compatibility; previews need no user
   confirm?: Confirm;
 }) {
@@ -68,7 +68,7 @@ export function AugurAdminSection({ store, hostConfig, confirm }: {
   const [draft, setDraft] = useState<AugurConfig | null>(null);
   const loadedRef = useRef<AugurConfig | null>(null);
   // The raw stored overrides, so a save never writes back a switch code has locked.
-  const storedRef = useRef<Partial<AugurConfig>>({});
+  const storedRef = useRef<ConfigOverrides>({});
   const locks = useMemo(() => lockedInCode(hostConfig), [hostConfig]);
   useEffect(() => {
     let live = true;
@@ -129,7 +129,8 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
 
   const byIdRange = useMemo(() => new Map(statsRange.map((s) => [s.triggerId, s])), [statsRange]);
   const everFired = useMemo(() => new Set(statsAll.filter((s) => s.shown > 0).map((s) => s.triggerId)), [statsAll]);
-  const rt = (id: string): "choice3" | "choice" | "text" => id === "manual" ? "text" : draft.triggers[id] ? responseTypeOf(draft.triggers[id]) : "choice3";
+  const entryPoints = useMemo(() => new Set(["manual", "button", ...notes.filter((n) => n.category != null || n.context != null).map((n) => n.triggerId)]), [notes]);
+  const rt = (id: string): "choice3" | "choice" | "text" => draft.triggers[id] ? responseTypeOf(draft.triggers[id]) : entryPoints.has(id) ? "text" : "choice3";
 
   const rowIds = useMemo(() => {
     const ids = new Set<string>([...Object.keys(draft.triggers), ...statsRange.map((s) => s.triggerId), ...statsAll.map((s) => s.triggerId)]);
@@ -147,7 +148,24 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rowIds, byIdRange]);
 
-  const shownNotes = notes.filter((n) => !unreadOnly || !n.read);
+  // Submissions from the button's panel: notes carrying a category or context. Their
+  // trigger id is the entry point ("button", or the host's own label; "manual" from
+  // before 0.3 counts as the button). Counted within the selected range.
+  const [catFilter, setCatFilter] = useState("all");
+  const sourceOf = (n: AdminNote) => (n.triggerId === "manual" ? "button" : n.triggerId);
+  const submissions = useMemo(() => notes.filter((n) => (n.category != null || n.context != null)
+    && n.createdAt >= range.from && n.createdAt < range.to), [notes, range]);
+  const tally = (key: (n: AdminNote) => string) => {
+    const m = new Map<string, number>();
+    for (const n of submissions) m.set(key(n), (m.get(key(n)) ?? 0) + 1);
+    return [...m.entries()].sort((a, z) => z[1] - a[1]);
+  };
+  const byCategory = useMemo(() => tally((n) => n.category || DASH), [submissions]); // eslint-disable-line react-hooks/exhaustive-deps
+  const bySource = useMemo(() => tally(sourceOf), [submissions]); // eslint-disable-line react-hooks/exhaustive-deps
+  const categoryLabel = (k: string) => draft.categories.find((c) => c.key === k)?.label ?? k;
+  const noteCats = [...new Set(notes.map((n) => n.category).filter((c): c is string => !!c))].sort();
+
+  const shownNotes = notes.filter((n) => (!unreadOnly || !n.read) && (catFilter === "all" || n.category === catFilter));
 
   return (
     <>
@@ -162,7 +180,7 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
             {rowIds.map((id) => {
               const s = byIdRange.get(id);
               const c3 = rt(id) === "choice3";
-              const name = <code style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{id}{id === "manual" ? " ·button" : ""}</code>;
+              const name = <code style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{id}{entryPoints.has(id) && !draft.triggers[id] ? " ·button" : ""}</code>;
               if (!everFired.has(id)) return (
                 <tr key={id} style={{ borderTop: "1px solid var(--k-border, #E7E2D3)" }}>
                   <td style={{ padding: "9px 12px" }}>{name}</td>
@@ -187,12 +205,30 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
         </table>
       </div>
 
+      {submissions.length > 0 && (
+        <div style={{ ...card, display: "flex", gap: 24, flexWrap: "wrap" }}>
+          <p style={{ margin: 0, fontSize: 15, flexBasis: "100%" }}>{submissions.length} submission{submissions.length === 1 ? "" : "s"} from the feedback button in this range.</p>
+          <Tally title="By category" rows={byCategory.map(([k, n]) => [k === DASH ? "No category" : categoryLabel(k), n])} />
+          <Tally title="By entry point" rows={bySource} />
+        </div>
+      )}
+
       <div style={card}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, marginBottom: 10, flexWrap: "wrap" }}>
           <strong>Notes</strong>
-          <label style={{ ...muted, display: "flex", gap: 6, alignItems: "center", cursor: "pointer" }}>
-            <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} /> unread only
-          </label>
+          <span style={{ display: "inline-flex", gap: 14, alignItems: "center" }}>
+            {noteCats.length > 0 && (
+              <label style={{ ...muted, display: "flex", gap: 6, alignItems: "center" }}>category
+                <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} style={{ font: "inherit", fontSize: 12.5 }}>
+                  <option value="all">all</option>
+                  {noteCats.map((c) => <option key={c} value={c}>{categoryLabel(c)}</option>)}
+                </select>
+              </label>
+            )}
+            <label style={{ ...muted, display: "flex", gap: 6, alignItems: "center", cursor: "pointer" }}>
+              <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} /> unread only
+            </label>
+          </span>
         </div>
         {shownNotes.length === 0 ? <p style={muted}>Nothing here.</p> : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
@@ -200,6 +236,7 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
               <li key={n.id} style={{ borderLeft: `2px solid ${n.read ? "var(--k-border, #E7E2D3)" : "var(--k-action-fill, #394293)"}`, paddingLeft: 12 }}>
                 <p style={{ margin: "0 0 3px" }}>{n.body}</p>
                 <div style={{ ...muted, display: "flex", gap: 8, alignItems: "center" }}>
+                  {n.category && <span style={{ border: "1px solid var(--k-border, #E7E2D3)", borderRadius: 4, padding: "0 6px" }}>{categoryLabel(n.category)}</span>}
                   <span style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{n.triggerId}</span>
                   {n.answer && <span>· {n.answer}</span>}
                   <span>· {new Date(n.createdAt).toLocaleDateString()}</span>
@@ -208,12 +245,52 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
                     <button onClick={() => deleteNote(n.id)} style={{ cursor: "pointer", font: "inherit", fontSize: 12, background: "none", border: "none", color: "var(--k-danger, #B4453B)", padding: 0 }}>delete</button>
                   </span>
                 </div>
+                {n.context && <ContextBlock ctx={n.context} />}
               </li>
             ))}
           </ul>
         )}
       </div>
     </>
+  );
+}
+
+function Tally({ title, rows }: { title: string; rows: [string, number][] }) {
+  return (
+    <div style={{ minWidth: 180 }}>
+      <div style={{ ...lbl, marginBottom: 6 }}>{title}</div>
+      <table style={{ borderCollapse: "collapse", fontSize: 13 }}>
+        <tbody>{rows.map(([k, n]) => (
+          <tr key={k}><td style={{ padding: "3px 16px 3px 0" }}>{k}</td><td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{n}</td></tr>
+        ))}</tbody>
+      </table>
+    </div>
+  );
+}
+
+// The stored diagnostic context, in plain words. Reads 0.3's shape and the older
+// one (recentErrors as plain strings) alike.
+function ContextBlock({ ctx }: { ctx: Record<string, unknown> }) {
+  const vp = ctx.viewport as { w?: number; h?: number } | undefined;
+  const errs = Array.isArray(ctx.errors) ? (ctx.errors as { type?: string; source?: string; line?: number; message?: string }[])
+    .map((e) => `${e.type ?? "Error"}: ${e.message ?? ""}${e.source ? ` (${e.source}${e.line ? `:${e.line}` : ""})` : ""}`)
+    : Array.isArray(ctx.recentErrors) ? (ctx.recentErrors as string[]) : [];
+  const rows: [string, React.ReactNode][] = [
+    ["Page", ctx.route ? <code>{String(ctx.route)}</code> : DASH],
+    ["App version", ctx.appVersion ? String(ctx.appVersion) : DASH],
+    ["Opened from", ctx.source ? String(ctx.source) : DASH],
+    ["Screen size", vp?.w ? `${vp.w} × ${vp.h}` : DASH],
+    ["Browser", ctx.userAgent ? String(ctx.userAgent) : DASH],
+    ["Recent errors", errs.length ? <code style={{ whiteSpace: "pre-wrap" }}>{errs.join("\n")}</code> : "None"],
+    ["Sent at", ctx.timestamp ? new Date(String(ctx.timestamp)).toLocaleString() : DASH],
+  ];
+  return (
+    <details style={{ marginTop: 6 }}>
+      <summary style={{ ...muted, cursor: "pointer" }}>Context</summary>
+      <dl style={{ display: "grid", gridTemplateColumns: "max-content 1fr", gap: "3px 12px", margin: "6px 0 0", fontSize: 12.5 }}>
+        {rows.map(([k, v]) => [<dt key={k + "t"} style={muted}>{k}</dt>, <dd key={k + "d"} style={{ margin: 0, wordBreak: "break-word" }}>{v}</dd>])}
+      </dl>
+    </details>
   );
 }
 
@@ -225,7 +302,7 @@ function Num({ v }: { v: number | string }) {
 function Settings({ store, draft, setDraft, loadedRef, storedRef, locks, ask }: {
   store: AugurStore; draft: AugurConfig; setDraft: (c: AugurConfig) => void;
   loadedRef: React.MutableRefObject<AugurConfig | null>;
-  storedRef: React.MutableRefObject<Partial<AugurConfig>>;
+  storedRef: React.MutableRefObject<ConfigOverrides>;
   locks: ReturnType<typeof lockedInCode>; ask: Confirm;
 }) {
   const [open, setOpen] = useState<string | null>(null);
@@ -261,7 +338,7 @@ function Settings({ store, draft, setDraft, loadedRef, storedRef, locks, ask }: 
 
   // A code-locked switch reads as off/testing in the merged draft. Writing that back
   // would keep restraining it after code turns it on again, so keep the stored value.
-  function unlockedOnly(o: Partial<AugurConfig>): Partial<AugurConfig> {
+  function unlockedOnly(o: ConfigOverrides): ConfigOverrides {
     const stored = storedRef.current;
     const triggers = Object.fromEntries(Object.entries(o.triggers ?? {}).map(([id, t]) => {
       if (!locks.triggers[id]) return [id, t];
@@ -448,7 +525,7 @@ function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft, locked }: {
         </div>
       )}
       {/* Preview only — no logShown/logOutcome/logNote, so it isn't counted. */}
-      {preview && <AugurPrompt spec={spec} onAnswer={() => {}} onNote={() => {}} onIgnore={() => setPreview(false)} onDone={() => setPreview(false)} />}
+      {preview && <AugurPrompt spec={spec} strings={draft.strings} onAnswer={() => {}} onNote={() => {}} onIgnore={() => setPreview(false)} onDone={() => setPreview(false)} />}
     </div>
   );
 }

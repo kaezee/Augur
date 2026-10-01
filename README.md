@@ -5,6 +5,8 @@
 **A portable, in-product feedback module.**
 One well-timed question, three answers, an optional line.
 
+[![CI](https://github.com/kaezee/Augur/actions/workflows/ci.yml/badge.svg)](https://github.com/kaezee/Augur/actions/workflows/ci.yml)
+
 </div>
 
 <p align="center">
@@ -15,6 +17,11 @@ Augur asks the user a single question at a real moment in your product — *"Did
 go the way you expected?"* — takes one of three answers and an optional line, then
 gets out of the way. It is not a form builder, not an NPS widget, not a survey tool.
 It exists to catch honest reactions at the moment they happen, without ceremony.
+
+**Already have a help or bug button? Augur can be it.** Its feedback button opens a
+small panel: *"What's on your mind?"* with Something broke / confusing / missing,
+then a line. Use the built-in button, or keep your own and call `augur.open()` from
+it (`persistentButton: false`). Both are supported, and both record the same way.
 
 Distribution is **copy the folder**. No npm install, no build step, no service to
 run. Drop `augur/` into your React app, pick where the data goes, mount it once.
@@ -95,6 +102,34 @@ AGENTS.md tells it how.
   by anyone with your public key.
 - **Bring your own button** — set `persistentButton: false` and call `augur.open()`
   from any control in your UI. Your design, Augur's prompt and logging.
+  `augur.open("help-menu")` records where it was opened from; `augur.close()` closes
+  whatever Augur is showing; `augur.onPanelState(open => …)` lets your button hide
+  while Augur is on screen.
+- **Categories on the button's panel** — `Something broke`, `Something's confusing`,
+  `Something's missing` by default. Set your own (2 to 5, each `{ key, label }` with
+  an optional `placeholder`), or `categories: []` for plain free text. Optional
+  `moreLink: { label, href }` adds a quiet "Say more ↗" link. Categories are only
+  for feedback people start themselves; moments keep their own question.
+- **Diagnostic context with each button submission**, on by default, so a report is
+  fixable. It collects places, never words:
+  - the page path (`location.pathname` only: never the query string or `#` fragment,
+    which often carry tokens and emails),
+  - your app version, if you pass `appVersion` to `<Augur>`,
+  - the window size, the browser's user agent, the time, where it was opened from,
+    and a per-tab session id,
+  - the last 5 uncaught errors, each as its type, script URL (query stripped), line
+    and the first line of the message cut to 120 characters. Browser-extension errors
+    are dropped, and so is any source you list in `ignoreErrorSources`.
+
+  It never reads the page, form fields, or anything the person typed elsewhere.
+  `context: false` turns it off entirely: no listeners, nothing sent.
+- **Every string configurable** — `strings` covers each visible word (buttons,
+  headings, placeholders, accessible labels) and merges per key, so you can
+  override one without restating the rest. Translate `followup`, `manualQuestion`
+  and the `answers` labels alongside it.
+- **Accessible** — prompts are announced politely, moments never take focus, the
+  panel takes focus when someone opens it and gives it back when it closes, Esc
+  closes in every state, and every control has a visible focus ring.
 
 <p align="center">
   <img src=".github/assets/gallery/gallery-2-dark.png" alt="Augur in a dark deploys dashboard, matching the host's colours and fonts" width="100%">
@@ -112,7 +147,31 @@ and timing, **Show preview** to see a prompt at real width — previews are neve
 counted — and a master switch). The route, the
 admin check, and the 404 are yours — Augur ships the section, not the page.
 
+Results also counts button submissions by category and by entry point, filters
+notes by category, and shows each submission's context in plain words.
+
 Skip the admin import entirely and collection still works, with a smaller bundle.
+
+## For a beta
+
+The default caps (one prompt per session, then 21 days of quiet) are right for a
+shipped product, where asking too often costs goodwill. In a beta, people expect to
+be asked, so you can tighten the loop:
+
+```tsx
+caps: { perSession: 1, perUserDays: 7, suppressAfterAnswerDays: 7 },
+```
+
+Go back to the defaults when you launch.
+
+## Upgrading from 0.2
+
+1. Replace your `augur/` folder with the new one.
+2. On Supabase, run [`sql/migrations/0.3.0.sql`](./sql/migrations/0.3.0.sql) once.
+   It's additive and safe to rerun.
+
+Your triggers keep working unchanged. The built-in button now opens the category
+panel; set `categories: []` to keep plain free text. See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Attribution
 

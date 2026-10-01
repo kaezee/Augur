@@ -6,8 +6,8 @@
 // Wire format is deliberately tiny and stable: { kind, ...payload }. The endpoint
 // authenticates however the host chooses (a token header passed in at construction).
 
-import type { AugurConfig } from "../config";
-import type { AugurStore } from "../store";
+import type { ConfigOverrides } from "../config";
+import type { AugurStore, Submission } from "../store";
 
 export class HttpStore implements AugurStore {
   constructor(private readonly opts: { endpoint: string; headers?: Record<string, string> }) {}
@@ -32,13 +32,16 @@ export class HttpStore implements AugurStore {
   async logNote(eventId: string, body: string): Promise<void> {
     await this.post<void>("note", { eventId, body });
   }
+  async submit(s: Submission): Promise<void> {
+    await this.post<void>("submit", { ...s });
+  }
   async logUnconfigured(triggerId: string, userId: string): Promise<void> {
     await this.post<void>("unconfigured", { triggerId, userId });
   }
-  async readConfig(): Promise<Partial<AugurConfig>> {
+  async readConfig(): Promise<ConfigOverrides> {
     try {
       const res = await fetch(`${this.opts.endpoint}?kind=config`, { headers: this.opts.headers });
-      return res.ok ? ((await res.json()) as Partial<AugurConfig>) : {};
+      return res.ok ? ((await res.json()) as ConfigOverrides) : {};
     } catch { return {}; }
   }
 }

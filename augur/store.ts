@@ -1,8 +1,8 @@
 // The one persistence seam. Nothing in augur/ writes SQL, names a table, or imports
 // a database client — it all goes through this interface. Collection needs the
-// first five methods; the admin surface needs the rest (all optional).
+// first six methods; the admin surface needs the rest (all optional).
 
-import type { Answer, AugurConfig } from "./config";
+import type { Answer, ConfigOverrides } from "./config";
 
 export interface DateRange { from: string; to: string }   // ISO; [from, to)
 
@@ -28,13 +28,41 @@ export interface Unconfigured {
   lastSeen: string;
 }
 
+// One recent uncaught error, as stored in context. Never a full stack.
+export interface ErrorEntry { type: string; source: string; line: number; message: string }
+
+// Diagnostic context on a person-initiated submission. Places, never words: see
+// context.ts for the limits.
+export interface SubmitContext {
+  route: string;                     // location.pathname only
+  appVersion?: string;
+  viewport: { w: number; h: number };
+  userAgent: string;
+  timestamp: string;                 // ISO
+  source: string;                    // entry point: "button", or the host's own label
+  sessionId: string;
+  errors: ErrorEntry[];              // last 5, newest last
+}
+
+// A person-initiated submission from the button's panel. One call on Send; nothing
+// is written if the person closes without sending.
+export interface Submission {
+  userId: string;
+  category?: string;
+  body: string;
+  source: string;
+  context?: SubmitContext;
+}
+
 export interface AdminNote {
   id: string;
-  triggerId: string;
+  triggerId: string;                 // a trigger id, or a submission's entry point
   answer: Answer | null;
   body: string;
   createdAt: string;
   read: boolean;
+  category?: string | null;          // submissions only
+  context?: Record<string, unknown> | null;   // submissions only; shape varies by version
 }
 
 export interface AugurStore {
@@ -43,7 +71,8 @@ export interface AugurStore {
   logOutcome(eventId: string, outcome: "ignored" | "answered", answer?: string): Promise<void>;
   logNote(eventId: string, body: string): Promise<void>;
   logUnconfigured(triggerId: string, userId: string): Promise<void>;   // §5 — emit with no config
-  readConfig(): Promise<Partial<AugurConfig>>;
+  submit(s: Submission): Promise<void>;                                 // the button's panel
+  readConfig(): Promise<ConfigOverrides>;
 
   // ── admin reads (optional) ──
   readSummary?(range: DateRange): Promise<Summary>;
@@ -53,5 +82,5 @@ export interface AugurStore {
   markNoteRead?(noteId: string): Promise<void>;
   deleteNote?(noteId: string): Promise<void>;
   purgeData?(beforeDays: number | null): Promise<number>;   // null = everything; returns events removed
-  writeConfig?(overrides: Partial<AugurConfig>): Promise<void>;
+  writeConfig?(overrides: ConfigOverrides): Promise<void>;
 }

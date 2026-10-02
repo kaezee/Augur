@@ -26,7 +26,7 @@ const DEMO_AUGUR: HostConfig = {
   triggers: {
     "task.done": {
       enabled: true, version: 1, delayMs: 700, maxAsks: 1000, dismissKill: 1000,
-      question: "Was moving that card easy?",
+      question: "Did Acme Tasks help you get that done?",
     },
   },
 };
@@ -259,7 +259,7 @@ function Board({ invite, onDone, say }: { invite: boolean; onDone: () => void; s
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 const STEPS = [
-  { k: "move", b: "Move a card to Done", e: "1 drag", d: "Drag it by the handle, or use its arrow. Augur then asks one short question." },
+  { k: "move", b: "Move a card to Done", e: "1 drag", d: "Drag any card straight into Done, or click its arrow until it gets there. Augur then asks one short question." },
   { k: "feedback", b: "Send feedback", e: "1 note", d: "Feedback is at the bottom right. Pick a topic, write a line." },
   { k: "signal", b: "Click Assign 3 times, fast", e: "3 clicks", d: "Nothing changes in the app. Augur still notices." },
   { k: "admin", b: "Open Admin", e: "1 click", d: "See everything Augur saved, the way your team would." },

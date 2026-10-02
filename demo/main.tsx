@@ -5,28 +5,21 @@
 
 import { StrictMode, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as KE, type PointerEvent as PE, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { Augur, AugurAdminSection, AugurWordmark, LocalStore, augur, type FrictionEvent, type HostConfig, type Submission } from "../augur";
+import { AUGUR_BASE_DEFAULTS, Augur, AugurAdminSection, AugurWordmark, LocalStore, augur, type FrictionEvent, type HostConfig, type Submission } from "../augur";
 
-// ── Augur config: one trigger, four feedback categories ──────────────────────
-// Augur's standard answers, which Admin counts per trigger.
-const ANSWERS = [{ key: "yes", label: "Yes" }, { key: "not_really", label: "Not really" }, { key: "unclear", label: "Not sure" }];
-const CATEGORIES = [
-  { key: "bug", label: "Bug", placeholder: "What went wrong?" },
-  { key: "idea", label: "Idea", placeholder: "What would help?" },
-  { key: "question", label: "Question", placeholder: "What are you trying to do?" },
-  { key: "praise", label: "Praise", placeholder: "What worked well?" },
-];
+// ── Augur config: one trigger; everything else is Augur's out-of-the-box default ──
+// The built-in Feedback button, its categories and wording are left as shipped, so
+// the demo shows exactly what an app gets on install.
+const ANSWERS = AUGUR_BASE_DEFAULTS.answers;
+const CATEGORIES = AUGUR_BASE_DEFAULTS.categories;
 // Limits are lifted so a visitor can try each step more than once. A real app keeps
 // the defaults (one prompt per session, then 21 days of quiet).
 const DEMO_AUGUR: HostConfig = {
-  persistentButton: false,   // the app has its own Feedback button
-  categories: CATEGORIES,
-  strings: { categoryQuestion: "What's it about?" },
   caps: { perSession: 1000, perUserDays: 0, suppressAfterAnswerDays: 0 },
   triggers: {
     "task.done": {
       enabled: true, version: 1, delayMs: 700, maxAsks: 1000, dismissKill: 1000,
-      question: "Did Acme Tasks help you get that done?",
+      question: "Was it easy to move that card to Done?",
     },
   },
 };
@@ -95,7 +88,6 @@ const PATHS: Record<string, ReactNode> = {
   userPlus: <><circle cx="10" cy="8" r="3.5" /><path d="M3.5 19.5c.8-3.3 3.4-5 6.5-5s5.7 1.7 6.5 5M19 8v6M16 11h6" /></>,
   plus: <path d="M12 5v14M5 12h14" />,
   reset: <><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5" /><path d="M4 4v4.5h4.5" /></>,
-  github: <path d="M9 19c-4 1.3-4-2-6-2.5M15 21v-3.4a3 3 0 0 0-.8-2.3c2.7-.3 5.5-1.3 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.3 4.3 0 0 0-.1-3.2s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6 0C6.5 2.6 5.5 2.9 5.5 2.9a4.3 4.3 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.3c0 4.6 2.8 5.7 5.5 6a3 3 0 0 0-.8 2.3V21" />,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></>,
   inbox: <><path d="M3 13l3-8h12l3 8v6H3z" /><path d="M3 13h5l1.5 2.5h5L16 13h5" /></>,
   list: <><path d="M10 6h10M10 12h10M10 18h10" /><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11" /><circle cx="5" cy="18" r="1.4" /></>,
@@ -260,13 +252,12 @@ function Board({ invite, onDone, say }: { invite: boolean; onDone: () => void; s
 // ── Page ─────────────────────────────────────────────────────────────────────
 const STEPS = [
   { k: "move", b: "Move a card to Done", e: "1 drag", d: "Drag any card straight into Done, or click its arrow until it gets there. Augur then asks one short question." },
-  { k: "feedback", b: "Send feedback", e: "1 note", d: "Feedback is at the bottom right. Pick a topic, write a line." },
+  { k: "feedback", b: "Send feedback", e: "1 note", d: "Augur's Feedback button is at the bottom right. Pick what it's about, write a line." },
   { k: "signal", b: "Click Assign 3 times, fast", e: "3 clicks", d: "Nothing changes in the app. Augur still notices." },
   { k: "admin", b: "Open Admin", e: "1 click", d: "See everything Augur saved, the way your team would." },
 ] as const;
 type StepKey = (typeof STEPS)[number]["k"];
 const clock = (d: Date) => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-const GITHUB = "https://github.com/kaezee/Augur";
 const ADD = "https://github.com/kaezee/Augur#three-step-integration";
 
 function App() {
@@ -275,7 +266,6 @@ function App() {
   const [done, setDone] = useState<Record<StepKey, boolean>>({ move: false, feedback: false, signal: false, admin: false });
   const [saved, setSaved] = useState<Saved[]>([]);
   const [toast, setToast] = useState<string | null>(null);
-  const [augurOpen, setAugurOpen] = useState(false);
   const [live, setLive] = useState("");
   const seq = useRef(0);
   const toastTimer = useRef<number>();
@@ -283,7 +273,6 @@ function App() {
   const tick = (k: StepKey) => setDone((d) => (d[k] ? d : { ...d, [k]: true }));
   const say = (t: string) => { setLive(""); window.setTimeout(() => setLive(t), 30); };
 
-  useEffect(() => augur.onPanelState(setAugurOpen), []);
   useEffect(() => {
     report = (s) => {
       setSaved((list) => [{ ...s, id: ++seq.current, at: new Date() }, ...list]);
@@ -310,7 +299,6 @@ function App() {
         <AugurWordmark size={20} /><span className="pill">Demo</span>
         <span className="grow" />
         <button className="link" type="button" onClick={startOver}><Icon n="reset" /><span>Start over</span></button>
-        <a className="link" href={GITHUB} target="_blank" rel="noopener"><Icon n="github" /><span>GitHub</span></a>
         <a className="btn btn-ink btn-sm" href={ADD}>Add it to your app</a>
       </header>
 
@@ -398,7 +386,6 @@ function App() {
         </section>
       </main>
 
-      {!augurOpen && <button className="fb-btn" type="button" onClick={() => augur.open("feedback-button")}><Icon n="chat" />Feedback</button>}
       <div className="sr" aria-live="polite">{live}</div>
       <Augur userId={userId()} store={store} config={DEMO_AUGUR} appVersion="demo" />
     </>

@@ -12,22 +12,23 @@
 * { box-sizing: border-box; }
 body { margin: 0; background: #C9CDD5; padding: 40px 0; display: grid; gap: 40px; justify-content: center; font-family: "Schibsted Grotesk", system-ui, sans-serif; }
 .frame { position: relative; width: 1270px; height: calc(760px + var(--top));  background: var(--mist); overflow: hidden; color: var(--ink); }
-/* annotation panel: a white card behind the side column so the notes read clearly */
-.frame::before { content: ""; position: absolute; left: 910px; top: 40px; right: 24px; bottom: 40px; background: #fff; border-radius: 14px;
-  box-shadow: 0 0 0 1px rgba(17,19,24,.08), 0 16px 40px -16px rgba(17,19,24,.22); }
 /* frame 3 carries more notes: lift them a little so the last one stays inside the panel */
-#frame-3 .note, #frame-3 .code, #frame-3 .inset { translate: 0 calc(var(--top) - 24px); }
+#frame-3 .note, #frame-3 .code, #frame-3 .inset { translate: 0 calc(var(--top) - 12px); }
 .frame .lines { position: absolute; inset: 0; pointer-events: none; z-index: 5; }
 
 .side { position: absolute; left: 924px; top: 60px; width: 306px; translate: 0 var(--top); }
+/* annotation cards: a white card around each text block; negative margins keep the text in place */
+.side, .note { background: #fff; border-radius: 12px; box-shadow: 0 0 0 1px rgba(17,19,24,.08), 0 10px 28px -14px rgba(17,19,24,.25); }
 .side h2 { font-size: 34px; line-height: 1.08; letter-spacing: -0.02em; font-weight: 700; margin: 0 0 14px; text-wrap: balance; }
 .side .sub { font-size: 16px; line-height: 1.45; color: var(--ink-2); margin: 0; text-wrap: pretty; }
-.brand { position: absolute; left: 924px; top: 64px; width: 180px; display: flex; flex-direction: column; gap: 4px; color: var(--ink); }
+.brand { position: absolute; left: 924px; top: 50px; width: 180px; display: flex; flex-direction: column; gap: 4px; color: var(--ink); }
 .brand .wm { width: 100%; height: auto; display: block; }
 .brand .by { display: block; white-space: nowrap; line-height: 1.1; font-weight: 500; }
 .brand .by { color: var(--ink-2); }
 
 .note { position: absolute; left: 924px; width: 290px; translate: 0 var(--top); font-size: 15px; line-height: 1.38; font-weight: 500; }
+.side { padding: 16px 18px 18px; margin: -16px -18px; width: 342px; }
+.note { padding: 9px 14px 10px; margin: -9px -14px; width: 318px; }
 .note small { display: block; font-size: 13.5px; color: var(--ink-2); font-weight: 400; margin-top: 3px; }
 .note .n { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 50%; background: var(--pin); color: #fff; font-size: 12px; font-weight: 700; margin-right: 8px; vertical-align: 1px; }
 
@@ -201,7 +202,7 @@ body { margin: 0; background: #C9CDD5; padding: 40px 0; display: grid; gap: 40px
 
   <div class="side"><h2>Asks once, right after it happened.</h2>
     <p class="sub">Your code calls <b>augur.emit()</b> when an action succeeds. A few seconds later, Augur asks one question. Then it goes quiet.</p></div>
-  <div class="note" style="top:318px" data-to="#t1-toast" data-at="right">Waits for your own confirmation to land<small>You set the delay per moment, usually 2 to 4 seconds.</small></div>
+  <div class="note" style="top:318px" data-to="#t1-toast" data-at="right">Waits for your own confirmation to land<small>You set the delay per trigger, usually 2 to 4 seconds.</small></div>
   <div class="note" style="top:432px" data-to="#t1-augur" data-at="right" data-y=".22">Once per session, then silent for 21 days<small>Two ignores and that question retires for good.</small></div>
   <div class="note" style="top:546px" data-to="#t1-last" data-at="right">One tap to answer<small>Yes, Not really, Not sure. No stars, no scores.</small></div>
   <div class="brand"><svg class="wm" width="57.68" height="24" viewBox="0 0 304.89 126.88" fill="currentColor" role="img" aria-label="Augur"><path d="m125.38,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-.99-2.96-.99-4.8v-30.8h-17.01v13.96l3.66,3.71-3.66,3.51v9.84c0,4.63,1.07,8.74,3.21,12.31,2.13,3.57,5.13,6.38,8.99,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03c3.76-2.02,6.68-4.82,8.78-8.39,2.1-3.57,3.15-7.71,3.15-12.42v-31.02h-17.01v30.8Z"/><path d="m184,52.72c-1.23-1.03-2.61-1.9-4.14-2.62-2.9-1.37-6.2-2.05-9.88-2.05-4.85,0-9.21,1.16-13.08,3.48-3.86,2.32-6.9,5.46-9.11,9.44-2.2,3.97-3.31,8.5-3.31,13.58s1.11,9.42,3.31,13.47c2.21,4.04,5.23,7.25,9.06,9.6,3.82,2.36,8.2,3.53,13.13,3.53,3.68,0,6.98-.69,9.88-2.1,1.4-.67,2.67-1.46,3.81-2.38v3.27c0,3.83-1.19,6.77-3.58,8.83-2.4,2.06-5.69,3.09-9.88,3.09-3.24,0-6.06-.59-8.45-1.76-2.39-1.18-4.55-2.91-6.46-5.19l-10.49,10.37c2.58,3.68,6.09,6.53,10.55,8.56,4.45,2.02,9.58,3.04,15.4,3.04s10.87-1.13,15.4-3.37c4.52-2.25,8.07-5.43,10.65-9.55s3.86-8.94,3.86-14.46v-50.34h-16.67v3.56Zm-.71,27.73c-.92,1.73-2.25,3.11-3.98,4.14-1.73,1.04-3.77,1.55-6.12,1.55s-4.27-.51-5.97-1.55c-1.69-1.03-3.03-2.44-4.03-4.25-.99-1.8-1.49-3.73-1.49-5.79s.48-4.09,1.44-5.85c.96-1.77,2.32-3.17,4.08-4.2,1.77-1.03,3.79-1.54,6.08-1.54s4.37.51,6.07,1.54c1.69,1.03,3,2.43,3.92,4.2.92,1.76,1.38,3.68,1.38,5.74,0,2.28-.46,4.28-1.38,6.01Z"/><path d="m239.53,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-1-2.96-1-4.8v-30.8h-17v31.02c0,4.63,1.07,8.74,3.2,12.31,2.14,3.57,5.14,6.38,9,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03,6.68-4.82,8.78-8.39,3.14-7.71,3.14-12.42v-31.02h-17v30.8Z"/><path d="m299.75,49.21c-1.95-.77-4.21-1.16-6.78-1.16-5.82,0-10.4,1.73-13.75,5.19l-.05.05v-4.13h-17.01v53.65h17.01v-29.37c0-3.46.82-6.05,2.48-7.78,1.66-1.73,3.92-2.59,6.79-2.59,1.4,0,2.65.22,3.75.66,1.11.44,1.99,1.03,2.65,1.77l10.05-12.81c-1.47-1.55-3.19-2.71-5.14-3.48Z"/><path d="m93.61,67.09c-6.22-6.12-13.65-11-21.91-14.25l-13.33-29L47.41,0l-10.74,22.65-14.66,30.93c-7.54,3.23-14.35,7.84-20.11,13.51,3.03,2.98,6.35,5.67,9.91,8.01L0,100h22.26l7.85-16.55c5.61,1.57,11.53,2.41,17.64,2.41s11.55-.77,16.95-2.22l7.52,16.36h21.15l-11.04-24.02c4.08-2.55,7.86-5.53,11.27-8.89Zm-24.48,5.49h0c-3.34,2.08-7,3.69-10.89,4.74-3.34.9-6.85,1.37-10.48,1.37s-7.44-.52-10.9-1.49c-4.07-1.13-7.87-2.89-11.31-5.16-2.2-1.45-4.25-3.11-6.12-4.95,3.56-3.5,7.77-6.35,12.43-8.35,4.7-2.02,9.87-3.17,15.3-3.25.21,0,.41,0,.61,0,.15,0,.3,0,.45,0,5.06.05,9.9,1.04,14.36,2.79,5.1,2.01,9.7,5.03,13.54,8.81-2.11,2.07-4.45,3.92-6.97,5.49Z"/><path d="m46.8,58.42c-1.14,4.23-4.44,7.53-8.67,8.67,4.23,1.14,7.53,4.44,8.67,8.67,1.14-4.23,4.44-7.53,8.67-8.67-4.23-1.14-7.53-4.44-8.67-8.67Z"/></svg><span class="by">The one-question feedback widget</span></div>
@@ -277,7 +278,7 @@ body { margin: 0; background: #C9CDD5; padding: 40px 0; display: grid; gap: 40px
     </div>
   </div>
 
-  <div class="side" style="top:52px"><h2>Keep your own button.</h2>
+  <div class="side" style="top:46px"><h2>Keep your own button.</h2>
     <p class="sub">Turn off Augur's built-in button and call <b>augur.open()</b> from yours. Any shape, any icon, anywhere in your UI.</p></div>
   <div class="note" style="top:250px" data-to="#t3-fab" data-at="right"><span class="n">1</span>Your button, your design</div>
   <div class="code" style="top:290px"><span class="c">// in your Augur config</span>
@@ -286,8 +287,8 @@ persistentButton: <span class="k">false</span>,
 <span class="c">// on your own button</span>
 &lt;IdeasButton
   onClick={() =&gt; <span class="f">augur.open</span>()} /&gt;</div>
-  <div class="note" style="top:434px"><span class="n">2</span>It opens Augur's panel</div>
-  <div class="inset" style="top:466px"><div class="scaler">
+  <div class="note" style="top:442px"><span class="n">2</span>It opens Augur's panel</div>
+  <div class="inset" style="top:482px"><div class="scaler">
     <div class="augur text wf-vars" id="t3-augur">
       <span class="x">×</span>
       <p class="q">What would make this better?</p>
@@ -319,7 +320,8 @@ function drawLines() {
     [...f.querySelectorAll(".note[data-to]")].forEach((n, i) => {
       const t = f.querySelector(n.dataset.to); if (!t) return;
       const nr = n.getBoundingClientRect(), tr = t.getBoundingClientRect();
-      const x1 = nr.left - fr.left - 10, y1 = nr.top - fr.top + 11;
+      const pad = parseFloat(getComputedStyle(n).paddingTop) || 0;
+      const x1 = nr.left - fr.left - 4, y1 = nr.top - fr.top + pad + 11;
       const x2 = tr.right - fr.left + 7, y2 = tr.top - fr.top + tr.height * (+n.dataset.y || 0.5);
       const gx = 896 + i * 4;   // routes in the gap between window and panel
       mk("path", { d: `M${x1},${y1} H${gx} V${y2} H${x2}`, fill: "none", stroke: "#394293", "stroke-width": 1.5, "stroke-linejoin": "round" });

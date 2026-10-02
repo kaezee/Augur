@@ -7,7 +7,7 @@
 // @supabase/supabase-js. Pass a real SupabaseClient and it fits.
 
 import type { ConfigOverrides } from "../config";
-import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, Submission, Summary, TriggerStat, Unconfigured } from "../store";
+import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, NotesQuery, Submission, SubmissionStat, Summary, TriggerStat, Unconfigured } from "../store";
 
 type Result<T> = Promise<{ data: T | null; error: unknown }>;
 interface Filter<T> { eq(col: string, val: unknown): Result<T>; }
@@ -99,13 +99,23 @@ export class SupabaseStore implements AugurStore {
     return rows.map((r) => ({ triggerId: String(r.trigger_id), seen: Number(r.seen), lastSeen: String(r.last_seen) }));
   }
 
-  async readNotes(opts?: { unreadOnly?: boolean }): Promise<AdminNote[]> {
-    const { data } = await this.sb.rpc("augur_admin_notes", { p_unread_only: opts?.unreadOnly ?? false });
+  async readNotes(opts?: NotesQuery): Promise<AdminNote[]> {
+    const { data } = await this.sb.rpc("augur_admin_notes", {
+      p_unread_only: opts?.unreadOnly ?? false, p_category: opts?.category ?? null,
+      p_before: opts?.before?.createdAt ?? null, p_before_id: opts?.before?.id ?? null, p_limit: opts?.limit ?? null,
+    });
     const rows = (data as Array<Record<string, unknown>>) ?? [];
     return rows.map((r) => ({
       id: String(r.id), triggerId: String(r.trigger_id), answer: (r.answer as AdminNote["answer"]) ?? null,
       body: String(r.body), createdAt: String(r.created_at), read: Boolean(r.read),
       category: (r.category as string | null) ?? null, context: (r.context as Record<string, unknown> | null) ?? null,
+    }));
+  }
+
+  async readSubmissionStats(r: DateRange): Promise<SubmissionStat[]> {
+    const { data } = await this.sb.rpc("augur_admin_submissions", { p_from: r.from, p_to: r.to });
+    return ((data as Array<Record<string, unknown>>) ?? []).map((x) => ({
+      source: String(x.source), category: (x.category as string | null) ?? null, count: Number(x.n),
     }));
   }
 

@@ -3,6 +3,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react-dom/test-utils";
 import { createRoot, type Root } from "react-dom/client";
 import { Augur, submitFeedback } from "./Augur";
+import { resultsHeadline } from "./admin";
 import { augur } from "./emit";
 import * as publicApi from "./index";
 import { mergeConfig, type HostConfig } from "./config";
@@ -155,6 +156,39 @@ describe("the button's panel", () => {
     });
     await act(async () => { buttonByText("Send").click(); });
     expect(store.submitted[0].context).toBeUndefined();
+  });
+});
+
+describe("admin reads that hold up as feedback grows", () => {
+  it("pages notes newest first without skipping notes that share a timestamp, and filters by category", async () => {
+    const store = new LocalStore();
+    vi.useFakeTimers({ toFake: ["Date"] }); vi.setSystemTime(new Date("2026-05-01T10:00:00Z"));
+    for (let i = 0; i < 7; i++) await store.submit({ userId: "u1", category: i % 2 ? "missing" : "broke", body: `n${i}`, source: i === 0 ? "manual" : "button" });
+    vi.useRealTimers();                                       // all seven share one timestamp
+    const seen: string[] = [];
+    let before: { createdAt: string; id: string } | undefined;
+    for (;;) {
+      const page = await store.readNotes({ limit: 3, before });
+      seen.push(...page.map((n) => n.body));
+      if (page.length < 3) break;
+      before = { createdAt: page[2].createdAt, id: page[2].id };
+    }
+    expect(seen.sort()).toEqual(["n0", "n1", "n2", "n3", "n4", "n5", "n6"]);
+    expect((await store.readNotes({ category: "missing" })).map((n) => n.body).sort()).toEqual(["n1", "n3", "n5"]);
+    const stats = await store.readSubmissionStats({ from: "2026-01-01T00:00:00Z", to: "2027-01-01T00:00:00Z" });
+    expect(stats.reduce((a, x) => a + x.count, 0)).toBe(7);
+    expect(stats.find((x) => x.source === "button" && x.category === "broke")?.count).toBe(4);   // "manual" counts as the button
+  });
+
+  it("the headline names the question with the most 'Not really', not a blended total", () => {
+    expect(resultsHeadline([])).toBe("No rating prompts were shown in this range.");
+    expect(resultsHeadline([{ id: "a", shown: 3, answered: 0, notReally: 0 }])).toBe("3 prompts shown, none answered yet.");
+    expect(resultsHeadline([{ id: "a", shown: 4, answered: 2, notReally: 0 }, { id: "b", shown: 1, answered: 1, notReally: 0 }]))
+      .toBe("No “Not really” answers in this range: 3 answers across 2 questions.");
+    expect(resultsHeadline([
+      { id: "import.done", question: "Did the import land?", shown: 20, answered: 10, notReally: 2 },
+      { id: "moment.recorded", question: "Was recording that moment easy?", shown: 12, answered: 6, notReally: 3 },
+    ])).toBe("Most “Not really”: “Was recording that moment easy?”, 3 of 6 answers (50%).");
   });
 });
 

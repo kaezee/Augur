@@ -145,7 +145,7 @@ AGENTS.md tells it how.
   <img src=".github/assets/gallery/gallery-2-dark.png" alt="Augur in a dark deploys dashboard, matching the host's colours and fonts" width="100%">
 </p>
 <p align="center">
-  <img src=".github/assets/gallery/gallery-3-custom-button.png" alt="A host's own 'Share an idea' button opening Augur's feedback prompt through augur.open()" width="100%">
+  <img src=".github/assets/gallery/gallery-3-custom-button.png" alt="A host's own Feedback button opening Augur's panel through augur.open(): What's on your mind? Something broke, Something's confusing, Something's missing" width="100%">
 </p>
 
 ## Admin (optional)
@@ -173,6 +173,54 @@ caps: { perSession: 1, perUserDays: 7, suppressAfterAnswerDays: 7 },
 ```
 
 Go back to the defaults when you launch.
+
+## Privacy
+
+Augur has no server and calls nothing outside your app. Everything it records goes
+to the store you chose: your Supabase project, your API, or the browser in local mode.
+
+**What it records**
+
+| When | What |
+|---|---|
+| A triggered prompt shows | the `userId` you pass, the trigger id and version, the time, then the outcome (answered / dismissed / ignored), the answer, and the optional line |
+| Someone sends feedback from the button | the category, their line, the entry point, and the diagnostic context listed under [What you get](#what-you-get) (page path, app version, window size, user agent, time, per-tab session id, the last 5 uncaught errors) |
+| A labelled control is pressed 3 times in a second | the `userId`, the `data-augur` label, the page path, the press count, the time |
+
+It never reads page content, form fields or keystrokes, and sets no cookies. In the
+browser it keeps prompt-cap counters in `localStorage` and a per-tab session id in
+`sessionStorage`. Page paths keep `location.pathname` only, so the query string and
+fragment are never stored.
+
+**How long it's kept.** Until you delete it. Augur never deletes anything on its
+own. Admin → Purge clears prompt events, submissions and friction older than the
+number of days you pick, or all of it. Augur's rows are keyed by `user_id` with no
+foreign key to your users table, so add them to your account-deletion path:
+
+```sql
+delete from augur_events       where user_id = :id;  -- notes cascade
+delete from augur_unconfigured where user_id = :id;
+delete from augur_friction     where user_id = :id;
+```
+
+**Before you ship it, consider:**
+
+- **Say so in your privacy policy.** Name the feedback and its diagnostic context,
+  and the friction notes (which are tied to a user). Augur collects places, never
+  words, but a policy that says nothing about either is still incomplete.
+- **Pick a lawful basis where one applies.** Under GDPR, volunteered feedback usually
+  rests on consent. Diagnostic context and friction usually rest on legitimate
+  interest (finding and fixing problems), which needs your own assessment and an
+  opt-out route. This is a starting point, not legal advice.
+- **Check what your paths contain.** If a path can hold personal data (for example
+  `/users/jane@example.com`), set `context: false` and don't label controls on those
+  pages. Paths that hold opaque ids are fine to keep, but say so in your policy.
+- **Keep identifiers opaque.** Pass a random user id as `userId`, never an email, and
+  never put personal data in a `data-augur` label: labels are stored as written.
+- **Everything is switchable.** `context: false` attaches no context and installs no
+  error listeners. `friction: false`, or simply no `data-augur` labels, records no
+  friction. `enabled: false` stops prompts, the button and friction; error listeners
+  follow `context` alone, so set both to `false` for nothing at all.
 
 ## Upgrading
 

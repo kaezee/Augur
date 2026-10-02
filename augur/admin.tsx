@@ -87,7 +87,7 @@ export function AugurAdminSection({ store, hostConfig, confirm }: {
           <h1 style={{ margin: 0, display: "inline-flex", alignItems: "center" }}><AugurWordmark size={26} /></h1>
           <p style={{ ...muted, margin: "2px 0 0" }}>{declared} trigger{declared === 1 ? "" : "s"} declared, {enabled} enabled · adding or removing a trigger needs a code change.</p>
         </div>
-        <select value={preset} onChange={(e) => setPreset(e.target.value as Preset)} style={{ ...btn, cursor: "pointer" }}>
+        <select aria-label="Date range" value={preset} onChange={(e) => setPreset(e.target.value as Preset)} style={{ ...btn, cursor: "pointer" }}>
           {PRESETS.map(([k, v]) => <option key={k} value={k}>{v}</option>)}
         </select>
       </div>
@@ -484,8 +484,8 @@ function Settings({ store, draft, setDraft, loadedRef, storedRef, locks, ask }: 
         <h2 style={{ margin: "0 0 2px", fontSize: 16 }}>Maintenance</h2>
         <p style={{ ...muted, margin: "0 0 12px" }}>Feedback and insights accumulate. Clear out old data to keep this fast — your triggers and settings are never touched.</p>
         <div style={{ display: "flex", gap: 10, alignItems: "center", flexWrap: "wrap" }}>
-          <span style={{ fontSize: 13.5 }}>Delete feedback older than</span>
-          <select value={purgeDays} onChange={(e) => setPurgeDays(Number(e.target.value))} style={{ ...btn, cursor: "pointer" }}>
+          <span id="augur-purge-label" style={{ fontSize: 13.5 }}>Delete feedback older than</span>
+          <select aria-labelledby="augur-purge-label" value={purgeDays} onChange={(e) => setPurgeDays(Number(e.target.value))} style={{ ...btn, cursor: "pointer" }}>
             {[30, 90, 180, 365].map((d) => <option key={d} value={d}>{d} days</option>)}
           </select>
           <button style={btn} onClick={() => purge(purgeDays)} disabled={purging}>{purging ? "Working…" : "Clear old"}</button>

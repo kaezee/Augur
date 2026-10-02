@@ -90,9 +90,16 @@ const PATHS: Record<string, ReactNode> = {
   reset: <><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5" /><path d="M4 4v4.5h4.5" /></>,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></>,
   inbox: <><path d="M3 13l3-8h12l3 8v6H3z" /><path d="M3 13h5l1.5 2.5h5L16 13h5" /></>,
+  external: <path d="M14 4h6v6M20 4l-9 9M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5" />,
   list: <><path d="M10 6h10M10 12h10M10 18h10" /><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11" /><circle cx="5" cy="18" r="1.4" /></>,
 };
 const Icon = ({ n }: { n: string }) => <svg className="i" viewBox="0 0 24 24" aria-hidden="true">{PATHS[n]}</svg>;
+// A link that leaves the demo: opens in a new tab, says so, and shows it.
+const ExternalLink = ({ href, className, children }: { href: string; className: string; children: ReactNode }) => (
+  <a className={className} href={href} target="_blank" rel="noopener noreferrer">
+    {children}<Icon n="external" /><span className="sr"> (opens GitHub in a new tab)</span>
+  </a>
+);
 const Grip = () => <svg className="i" viewBox="0 0 16 16" aria-hidden="true">{[3.5, 8, 12.5].flatMap((y) => [5.5, 10.5].map((x) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.3" />))}</svg>;
 const KIND: Record<Kind, { l: string; i: string }> = { answer: { l: "answer", i: "question" }, feedback: { l: "feedback", i: "chat" }, signal: { l: "repeated clicks", i: "click" } };
 
@@ -101,7 +108,7 @@ type Col = "todo" | "doing" | "done";
 interface Task { id: number; t: string; tag: string; who?: string; col: Col }
 const COLS: { id: Col; name: string }[] = [{ id: "todo", name: "To do" }, { id: "doing", name: "In progress" }, { id: "done", name: "Done" }];
 const SW: Record<Col, string> = { todo: "#9aa1ae", doing: "#e0a33b", done: "#2f9e6d" };
-const PEOPLE: Record<string, [string, string]> = { MK: ["#e4e8ff", "#3340a8"], JR: ["#e1f4ec", "#1d6b4b"], AL: ["#fdeedd", "#8a4b0f"] };
+const PEOPLE: Record<string, [string, string]> = { MK: ["#e4e8ff", "#2a3699"], JR: ["#e1f4ec", "#14523a"], AL: ["#fdeedd", "#6b3a0b"] };
 const TAGS: Record<string, string> = { Growth: "#6b7cf0", Bug: "#e0574f", Ops: "#8b93a3", Infra: "#2f9e9a" };
 const START: Task[] = [
   { id: 1, t: "Write onboarding emails", tag: "Growth", col: "todo" },
@@ -119,7 +126,13 @@ function Board({ invite, onDone, say }: { invite: boolean; onDone: () => void; s
   const [dragId, setDragId] = useState<number | null>(null);
   const [target, setTarget] = useState<Col | null>(null);
   const [lifted, setLifted] = useState<{ id: number; to: number; from: Col } | null>(null);
+  const [focusId, setFocusId] = useState<number | null>(null);
   const cardsRef = useRef(cards); cardsRef.current = cards;
+  useEffect(() => {
+    if (focusId == null) return;
+    document.querySelector<HTMLElement>(`.task[data-id="${focusId}"]`)?.focus();
+    setFocusId(null);
+  }, [focusId, cards]);
   const drag = useRef<{ el: HTMLElement; id: number; from: Col; sx: number; sy: number; ox: number; oy: number; w: number; started: boolean; pid: number; ghost?: HTMLElement } | null>(null);
 
   const moveTo = (id: number, to: Col): boolean => {
@@ -182,6 +195,7 @@ function Board({ invite, onDone, say }: { invite: boolean; onDone: () => void; s
       if (!lifted) { setLifted({ id: c.id, to: COLS.findIndex((x) => x.id === c.col), from: c.col }); say(`Picked up ${c.t}. Left and right arrows choose a column, space drops, escape cancels.`); return; }
       const to = COLS[lifted.to].id; setLifted(null); setTarget(null);
       if (!moveTo(c.id, to)) say("Dropped back.");
+      else setFocusId(c.id);
       return;
     }
     if (lifted && (e.key === "ArrowRight" || e.key === "ArrowLeft")) {
@@ -212,7 +226,7 @@ function Board({ invite, onDone, say }: { invite: boolean; onDone: () => void; s
               {col.id === "done" && <span className="ask" title="Augur asks a question when a task lands here"><Icon n="question" />Augur asks here</span>}
             </div>
             {list.map((c) => (
-              <article key={c.id} className={`task${c.col === "done" ? " isdone" : ""}${dragId === c.id ? " placeholder" : ""}${lifted?.id === c.id ? " lifted" : ""}`}
+              <article key={c.id} data-id={c.id} className={`task${c.col === "done" ? " isdone" : ""}${dragId === c.id ? " placeholder" : ""}${lifted?.id === c.id ? " lifted" : ""}`}
                 tabIndex={0} aria-roledescription="draggable task" aria-label={`${c.t}. In ${col.name}. Press space to pick up.`}
                 onPointerDown={(e) => onPointerDown(e, c)} onKeyDown={(e) => onKeyDown(e, c)}
                 onBlur={() => { if (lifted?.id === c.id) { setLifted(null); setTarget(null); } }}>
@@ -226,7 +240,7 @@ function Board({ invite, onDone, say }: { invite: boolean; onDone: () => void; s
                     // notice repeated presses.
                     <button className="assign" type="button" data-augur="assign"><Icon n="userPlus" />Assign</button>
                   )}
-                  {next && <button className="move" type="button" aria-label={`Move ${c.t} to ${next.name}`} title={`Move to ${next.name}`} onClick={() => moveTo(c.id, next.id)}><Icon n="arrow" /></button>}
+                  {next && <button className="move" type="button" aria-label={`Move ${c.t} to ${next.name}`} title={`Move to ${next.name}`} onClick={() => { if (moveTo(c.id, next.id)) setFocusId(c.id); }}><Icon n="arrow" /></button>}
                 </div>
               </article>
             ))}
@@ -290,6 +304,13 @@ function App() {
     setTab(t);
     if (t === "admin") { tick("admin"); setAdminKey((k) => k + 1); }   // remount so it reads the latest data
   };
+  // Tabs: Left/Right/Home/End move between them (WAI-ARIA tabs pattern).
+  const onTabKey = (e: KE<HTMLElement>) => {
+    const to = e.key === "ArrowRight" || e.key === "End" ? "admin" : e.key === "ArrowLeft" || e.key === "Home" ? "app" : null;
+    if (!to) return;
+    e.preventDefault(); show(to);
+    document.getElementById(`tab-${to}`)?.focus();
+  };
   const n = Object.values(done).filter(Boolean).length;
   const latest = saved[0]?.id;
 
@@ -298,8 +319,8 @@ function App() {
       <header className="top">
         <AugurWordmark size={20} /><span className="pill">Demo</span>
         <span className="grow" />
-        <button className="link" type="button" onClick={startOver}><Icon n="reset" /><span>Start over</span></button>
-        <a className="btn btn-ink btn-sm" href={ADD}>Add it to your app</a>
+        <button className="link" type="button" onClick={startOver} aria-label="Start over"><Icon n="reset" /><span>Start over</span></button>
+        <ExternalLink className="btn btn-ink btn-sm" href={ADD}>Add it to your app</ExternalLink>
       </header>
 
       <main className="page">
@@ -334,7 +355,7 @@ function App() {
               <div className="finish">
                 <b>That's Augur in under a minute</b>
                 <p>A question at the right moment, feedback with its context, and clicks that went nowhere, all in one place.</p>
-                <div className="row"><a className="btn btn-sm" href={ADD}>Add it to your app</a></div>
+                <div className="row"><ExternalLink className="btn btn-sm" href={ADD}>Add it to your app</ExternalLink></div>
               </div>
             )}
             <div className="steps-foot">
@@ -360,27 +381,27 @@ function App() {
 
         <section className="sandbox" aria-label="Sample app">
           <div className="bar-row">
-            <div className="tabs" role="tablist" aria-label="View">
-              <button className="tab" role="tab" type="button" aria-selected={tab === "app"} onClick={() => show("app")}>App</button>
-              <button className="tab" role="tab" type="button" aria-selected={tab === "admin"} onClick={() => show("admin")}>Admin {saved.length > 0 && <span className="count">{saved.length}</span>}</button>
+            <div className="tabs" role="tablist" aria-label="View" onKeyDown={onTabKey}>
+              <button className="tab" role="tab" type="button" id="tab-app" aria-controls="panel-app" aria-selected={tab === "app"} tabIndex={tab === "app" ? 0 : -1} onClick={() => show("app")}>App</button>
+              <button className="tab" role="tab" type="button" id="tab-admin" aria-controls="panel-admin" aria-selected={tab === "admin"} tabIndex={tab === "admin" ? 0 : -1} onClick={() => show("admin")}>
+                Admin {saved.length > 0 && <span className="count" aria-label={`${saved.length} saved`}>{saved.length}</span>}
+              </button>
             </div>
             <span className="note"><span className="dot" aria-hidden="true" />Augur is running in this sample app</span>
           </div>
 
           <div className="frame">
             {/* Kept mounted so the board keeps its state while Admin is open. */}
-            <div style={{ display: tab === "app" ? "contents" : "none" }}>
+            <div className="panel" role="tabpanel" id="panel-app" aria-labelledby="tab-app" hidden={tab !== "app"}>
               <div className="frame-head"><h3>Acme Tasks</h3><span>Sprint 14</span>
                 <span className="people" aria-label="Team">{Object.keys(PEOPLE).map((w) => <Avatar key={w} who={w} />)}</span>
               </div>
               <Board invite={!done.move} onDone={() => tick("move")} say={say} />
             </div>
-            {tab === "admin" && (
-              <>
-                <div className="frame-head"><h3>Augur admin</h3><span>Acme Tasks · what your team sees</span></div>
-                <div className="admin-wrap"><AugurAdminSection key={adminKey} store={store} hostConfig={DEMO_AUGUR} /></div>
-              </>
-            )}
+            <div className="panel" role="tabpanel" id="panel-admin" aria-labelledby="tab-admin" hidden={tab !== "admin"}>
+              <div className="frame-head"><h3>Augur admin</h3><span>Acme Tasks · what your team sees</span></div>
+              {tab === "admin" && <div className="admin-wrap"><AugurAdminSection key={adminKey} store={store} hostConfig={DEMO_AUGUR} /></div>}
+            </div>
             {toast && <div className="toast" aria-hidden="true"><span className="tic"><Icon n="check" /></span>{toast}</div>}
           </div>
         </section>

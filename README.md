@@ -6,6 +6,10 @@
 One well-timed question, three answers, an optional line.
 
 [![CI](https://github.com/kaezee/Augur/actions/workflows/ci.yml/badge.svg)](https://github.com/kaezee/Augur/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
+[![Zero dependencies](https://img.shields.io/badge/dependencies-0-brightgreen.svg)](./augur)
+
+**[Try the live demo →](https://kaezee.github.io/Augur/)**
 
 </div>
 
@@ -147,6 +151,9 @@ AGENTS.md tells it how.
 <p align="center">
   <img src=".github/assets/gallery/gallery-3-custom-button.png" alt="A host's own Feedback button opening Augur's panel through augur.open(): What's on your mind? Something broke, Something's confusing, Something's missing" width="100%">
 </p>
+<p align="center">
+  <img src=".github/assets/gallery/gallery-4-friction.png" alt="Three quick presses on a labelled Save address button, recorded as friction, and the admin's Friction table ranking labels by bursts" width="100%">
+</p>
 
 ## Admin (optional)
 
@@ -276,3 +283,6 @@ the tables. Nothing else references it.
 
 [MIT](./LICENSE) © 2026 Krishnachandran Ramachandran ([kaezee](https://github.com/kaezee)).
 Name and mark: [TRADEMARKS.md](./TRADEMARKS.md).
+
+Issues are welcome; for pull requests, open an issue first ([CONTRIBUTING.md](./CONTRIBUTING.md)).
+Report security problems privately ([SECURITY.md](./SECURITY.md)).

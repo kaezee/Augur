@@ -5,28 +5,21 @@
 
 import { StrictMode, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as KE, type PointerEvent as PE, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
-import { Augur, AugurAdminSection, AugurWordmark, LocalStore, augur, type FrictionEvent, type HostConfig, type Submission } from "../augur";
+import { AUGUR_BASE_DEFAULTS, Augur, AugurAdminSection, AugurWordmark, LocalStore, augur, type FrictionEvent, type HostConfig, type Submission } from "../augur";
 
-// ── Augur config: one trigger, four feedback categories ──────────────────────
-// Augur's standard answers, which Admin counts per trigger.
-const ANSWERS = [{ key: "yes", label: "Yes" }, { key: "not_really", label: "Not really" }, { key: "unclear", label: "Not sure" }];
-const CATEGORIES = [
-  { key: "bug", label: "Bug", placeholder: "What went wrong?" },
-  { key: "idea", label: "Idea", placeholder: "What would help?" },
-  { key: "question", label: "Question", placeholder: "What are you trying to do?" },
-  { key: "praise", label: "Praise", placeholder: "What worked well?" },
-];
+// ── Augur config: one trigger; everything else is Augur's out-of-the-box default ──
+// The built-in Feedback button, its categories and wording are left as shipped, so
+// the demo shows exactly what an app gets on install.
+const ANSWERS = AUGUR_BASE_DEFAULTS.answers;
+const CATEGORIES = AUGUR_BASE_DEFAULTS.categories;
 // Limits are lifted so a visitor can try each step more than once. A real app keeps
 // the defaults (one prompt per session, then 21 days of quiet).
 const DEMO_AUGUR: HostConfig = {
-  persistentButton: false,   // the app has its own Feedback button
-  categories: CATEGORIES,
-  strings: { categoryQuestion: "What's it about?" },
   caps: { perSession: 1000, perUserDays: 0, suppressAfterAnswerDays: 0 },
   triggers: {
     "task.done": {
       enabled: true, version: 1, delayMs: 700, maxAsks: 1000, dismissKill: 1000,
-      question: "Did Acme Tasks help you get that done?",
+      question: "Was it easy to move that card to Done?",
     },
   },
 };
@@ -260,7 +253,7 @@ function Board({ invite, onDone, say }: { invite: boolean; onDone: () => void; s
 // ── Page ─────────────────────────────────────────────────────────────────────
 const STEPS = [
   { k: "move", b: "Move a card to Done", e: "1 drag", d: "Drag any card straight into Done, or click its arrow until it gets there. Augur then asks one short question." },
-  { k: "feedback", b: "Send feedback", e: "1 note", d: "Feedback is at the bottom right. Pick a topic, write a line." },
+  { k: "feedback", b: "Send feedback", e: "1 note", d: "Augur's Feedback button is at the bottom right. Pick what it's about, write a line." },
   { k: "signal", b: "Click Assign 3 times, fast", e: "3 clicks", d: "Nothing changes in the app. Augur still notices." },
   { k: "admin", b: "Open Admin", e: "1 click", d: "See everything Augur saved, the way your team would." },
 ] as const;
@@ -275,7 +268,6 @@ function App() {
   const [done, setDone] = useState<Record<StepKey, boolean>>({ move: false, feedback: false, signal: false, admin: false });
   const [saved, setSaved] = useState<Saved[]>([]);
   const [toast, setToast] = useState<string | null>(null);
-  const [augurOpen, setAugurOpen] = useState(false);
   const [live, setLive] = useState("");
   const seq = useRef(0);
   const toastTimer = useRef<number>();
@@ -283,7 +275,6 @@ function App() {
   const tick = (k: StepKey) => setDone((d) => (d[k] ? d : { ...d, [k]: true }));
   const say = (t: string) => { setLive(""); window.setTimeout(() => setLive(t), 30); };
 
-  useEffect(() => augur.onPanelState(setAugurOpen), []);
   useEffect(() => {
     report = (s) => {
       setSaved((list) => [{ ...s, id: ++seq.current, at: new Date() }, ...list]);
@@ -398,7 +389,6 @@ function App() {
         </section>
       </main>
 
-      {!augurOpen && <button className="fb-btn" type="button" onClick={() => augur.open("feedback-button")}><Icon n="chat" />Feedback</button>}
       <div className="sr" aria-live="polite">{live}</div>
       <Augur userId={userId()} store={store} config={DEMO_AUGUR} appVersion="demo" />
     </>

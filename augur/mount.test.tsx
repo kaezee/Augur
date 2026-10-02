@@ -50,7 +50,7 @@ describe("emit API", () => {
     expect("_setPanelOpen" in augur).toBe(false);
   });
 
-  it("onPanelState fires true then false around a moment's prompt", async () => {
+  it("onPanelState fires true then false around a triggered prompt", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const states: boolean[] = [];
     const off = augur.onPanelState((o) => states.push(o));
@@ -63,7 +63,7 @@ describe("emit API", () => {
     expect(changes.slice(-2)).toEqual([true, false]);
   });
 
-  it("a moment never takes focus; the panel does, and returns it on close", async () => {
+  it("a triggered prompt never takes focus; the panel does, and returns it on close", async () => {
     vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
     const outside = document.createElement("button"); outside.textContent = "host"; document.body.appendChild(outside);
     await mount(CFG, fakeStore());

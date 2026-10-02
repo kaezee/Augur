@@ -145,12 +145,12 @@ what the other turned off.
 
 **Decision.** The feedback button opens a panel with categories (Something broke,
 Something's confusing, Something's missing by default), then a line. Categories apply
-only to feedback a person starts; moments keep their own question and answers.
+only to feedback a person starts; triggered prompts keep their own question and answers.
 
 **Why.** Products otherwise end up with two doors, a feedback widget and a separate
 "report a bug" button, and people have to guess which one is for them. One button
 with three plain categories covers both, so Augur can be a product's only feedback
-and bug button. Moments stay a single question because they are asked at a specific
+and bug button. Triggered prompts stay a single question because they are asked at a specific
 point about a specific thing (principle 2); putting a category menu in front of
 "Did that go the way you expected?" would turn one question into a form.
 
@@ -169,11 +169,22 @@ extension noise dropped. On by default because the default is what most hosts sh
 
 ## The trigger link is gone
 
-**Decision.** Moments have no outbound link. The optional "Say more" link lives on
+**Decision.** Triggered prompts have no outbound link. The optional "Say more" link lives on
 the button's panel instead (`moreLink`).
 
-**Why.** A link on a moment pulled people out of a one-question exchange into a long
-form, the opposite of what a moment is for, and it made the moment's answer harder to
+**Why.** A link on a triggered prompt pulled people out of a one-question exchange into a
+long form, the opposite of what a trigger is for, and it made the prompt's answer harder to
 read (did they answer, click, or both?). When someone wants to say more, they're
 already in the panel they opened themselves; that is where the door belongs.
 
+## Triggers, not "moments"
+
+**Decision.** The automatic prompts are called **triggers** (what the host emits) and
+**triggered prompts** (what appears), matching the config key `triggers` and
+`augur.emit()`. The other way in is **the feedback button** and its panel. "Moment"
+is only ever plain English ("at a real moment in your product"), never a term.
+
+**Why.** Augur grew up inside Kronicler, where a "moment" is a product feature, and
+the word leaked into Augur's docs as the name for its prompts. In any other product
+it's unexplained jargon, and in Kronicler it reads as if Augur only asks about
+Kronicler moments. Using the name the code already uses keeps docs and API in step.

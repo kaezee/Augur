@@ -8,11 +8,11 @@ import { AugurByline } from "./mark";
 // look and renders fine where none are defined. Never a modal, never centre-screen,
 // never in the prose column. One prompt → the optional line, in place.
 //
-// Response type decides a moment's first step: choice3/choice show answer buttons;
+// Response type decides a triggered prompt's first step: choice3/choice show answer buttons;
 // text shows a single free-text box. The button's panel (`panel` set) is person-
 // initiated: categories → a line → sent, or straight to the line with no categories.
 //
-// Focus: a moment never takes focus (it interrupts gently); the panel does, onto the
+// Focus: a triggered prompt never takes focus (it interrupts gently); the panel does, onto the
 // first category or the textarea. The mount returns focus on close.
 
 const AUTO_DISMISS_MS = 20_000;
@@ -28,12 +28,12 @@ export interface PromptSpec {
 
 export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onNote, onIgnore, onDone, onSubmit }: {
   spec: PromptSpec;
-  // Set for the button's panel (person-initiated). Absent for a moment.
+  // Set for the button's panel (person-initiated). Absent for a triggered prompt.
   panel?: { categories: Category[]; moreLink?: MoreLink };
   strings: AugurStrings;
   byline?: boolean;
-  onAnswer: (answer?: string) => void;   // moments: marks the row answered
-  onNote: (body: string) => void;        // moments: the optional line
+  onAnswer: (answer?: string) => void;   // triggers: marks the row answered
+  onNote: (body: string) => void;        // triggers: the optional line
   onIgnore: () => void;                  // closed without answering/sending (×, Esc, Cancel, timeout)
   onDone: () => void;                    // closed after answering/sending
   onSubmit?: (category: string | undefined, body: string) => void;   // the panel's Send
@@ -55,7 +55,7 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
   const finish = () => { if (closed.current || sent) return; setSent(true); window.setTimeout(done, 1500); };
   const dismiss = () => (sent ? done() : step === "q" ? ignore() : done());
 
-  // 20s no-interaction auto-dismiss — moments only, and only on the first step.
+  // 20s no-interaction auto-dismiss — triggered prompts only, and only on the first step.
   // Silence is a real signal (§6.3): it resolves the row to 'ignored'. The panel
   // never times out: the person opened it and may be mid-sentence.
   useEffect(() => {
@@ -138,7 +138,7 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
           </div>
         </>
       ) : isText ? (
-        // Free text: the panel's line (after a category, or with none), or a text moment.
+        // Free text: the panel's line (after a category, or with none), or a text trigger.
         <>
           {cat ? (
             <button style={{ ...quiet, padding: "2px 0", margin: "0 0 9px", fontSize: 12.5 }} aria-label={`${strings.back}: ${cat.label}`}

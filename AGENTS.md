@@ -37,8 +37,8 @@ your own initiative to make Augur fit.
 
 ## 2. Interview the developer about triggers — BEFORE writing any emit
 
-This is the step agents skip and regret. A trigger is defined by a **moment**, its
-**timing**, and its **question**. Ask these, and don't proceed on assumptions:
+This is the step agents skip and regret. A trigger is defined by **where it fires**
+(a completed action), its **timing**, and its **question**. Ask these, and don't proceed on assumptions:
 
 1. **Which moments matter?** "Name the two or three points in the product where you'd
    most want to know if it landed — right after the user *did* something, not while
@@ -62,8 +62,8 @@ This is the step agents skip and regret. A trigger is defined by a **moment**, i
    deliberately gentle — surface them and let the developer loosen or tighten.
 
 5. **Any non-default response type?** Default is `choice3` (Yes / Not really / Not
-   sure) and it's the only type that rolls into the summary. A moment that needs 2–5
-   fixed options uses `choice`; a moment that wants an open line uses `text`. Most
+   sure) and it's the only type that rolls into the summary. A trigger that needs 2–5
+   fixed options uses `choice`; a trigger that wants an open line uses `text`. Most
    triggers should stay `choice3` — only deviate if the developer names a reason.
 
 6. **Where do the two feedback surfaces live?** The auto-prompt snackbar sits

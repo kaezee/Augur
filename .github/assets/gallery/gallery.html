@@ -162,6 +162,41 @@ body { margin: 0; background: #C9CDD5; padding: 40px 0; display: grid; gap: 40px
   font: 400 11.6px/1.6 "JetBrains Mono", monospace; white-space: pre; box-shadow: 0 10px 30px -10px rgba(22,24,29,.4); }
 .code .c { color: #7C8494; } .code .k { color: #C9B6FF; } .code .s { color: #A6D6A7; } .code .f { color: #8CC8FF; }
 .code, .code * { font-variant-ligatures: none; font-feature-settings: "liga" 0, "calt" 0; }
+
+/* ─── Frame 4: friction on a labelled control ───────────────────────────── */
+#frame-4 .note, #frame-4 .code, #frame-4 .inset { translate: 0 calc(var(--top) - 12px); }
+.parcelry .form { max-width: 460px; display: grid; gap: 14px; margin-top: 6px; }
+.parcelry .field label { display: block; font-size: 12.5px; color: #4A5361; font-weight: 500; margin-bottom: 5px; }
+.parcelry .field .in { height: 36px; border: 1px solid var(--k-border-strong); border-radius: 7px; padding: 0 11px; font-size: 13.5px; line-height: 34px; color: #141A21; background: #fff; }
+.parcelry .field.bad .in { border-color: #D9A3A3; }
+.parcelry .two { display: grid; grid-template-columns: 1fr 140px; gap: 12px; }
+.parcelry .sub-hd { font-size: 13px; color: #6B7482; margin: -8px 0 18px; }
+.parcelry .actions { display: flex; gap: 26px; align-items: center; justify-content: flex-end; margin-top: 10px; }
+.burst { position: relative; }
+.burst.press { transform: scale(.97); box-shadow: 0 0 0 4px rgba(14,110,96,.16); }
+.burst .ring { position: absolute; inset: -9px; border-radius: 12px; border: 2px solid rgba(14,110,96,.28); }
+.burst .ring.r2 { inset: -17px; border-radius: 16px; border-color: rgba(14,110,96,.14); }
+.burst .x3 { position: absolute; top: -26px; right: -30px; font: 700 12px/1 "Geist", sans-serif; background: #141A21; color: #fff; padding: 5px 7px; border-radius: 99px; }
+.ftable { background: #fff; border-radius: 12px; box-shadow: 0 0 0 1px rgba(17,19,24,.08), 0 10px 28px -14px rgba(17,19,24,.25); padding: 14px 16px 6px; font-family: "Geist", system-ui, sans-serif; color: #1F1C15; }
+.ftable strong { font-size: 15px; } .ftable p { margin: 2px 0 10px; font-size: 12.5px; color: #6B6556; }
+.ftable table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.ftable th { text-align: left; font-size: 11.5px; color: #8A8370; font-weight: 600; padding: 7px 6px; border-bottom: 1px solid #ECE8DC; }
+.ftable td { padding: 8px 6px; border-bottom: 1px solid #F2EFE6; white-space: nowrap; }
+.ftable tr:last-child td { border-bottom: 0; }
+.ftable td.l { font-family: "JetBrains Mono", monospace; font-size: 12px; } .ftable td.n { text-align: right; font-variant-numeric: tabular-nums; } .ftable th.n { text-align: right; }
+.ftable td.r { color: #6B6556; font-family: "JetBrains Mono", monospace; font-size: 11.5px; }
+
+/* ─── Social preview (1280×640): Settings → General → Social preview ─────── */
+#social { width: 1280px; height: 640px; }
+#social .lock { position: absolute; left: 88px; top: 96px; width: 560px; }
+#social .lock .wm { width: 320px; height: auto; display: block; margin-bottom: 30px; }
+#social .lock h1 { font-size: 48px; line-height: 1.06; letter-spacing: -0.025em; font-weight: 700; margin: 0 0 18px; }
+#social .lock p { font-size: 21px; line-height: 1.4; color: var(--ink-2); margin: 0; }
+#social .card { position: absolute; left: 700px; top: 236px; width: 492px; }
+#social .card .augur { font-family: "Geist", system-ui, sans-serif; --k-action-fill: #394293; }
+#social .card .augur { position: relative; right: auto; bottom: auto; width: 100%; font-size: 18px; padding: 20px 22px; border-radius: 14px; }
+#social .card .augur .q { margin-bottom: 15px; } #social .card .augur .b { padding: 9px 16px; } #social .card .by { margin-top: 14px; }
+#social .meta { position: absolute; left: 88px; bottom: 64px; font: 500 16px/1 "Geist", sans-serif; color: var(--ink-2); display: flex; gap: 22px; }
 </style>
 </head>
 <body>
@@ -298,6 +333,75 @@ persistentButton: <span class="k">false</span>,
     </div></div></div>
   <div class="note" style="top:610px"><span class="n">3</span>Then one line, with context<small>The page, app version and recent errors come along. Never what they typed.</small></div>
   <div class="brand"><svg class="wm" width="57.68" height="24" viewBox="0 0 304.89 126.88" fill="currentColor" role="img" aria-label="Augur"><path d="m125.38,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-.99-2.96-.99-4.8v-30.8h-17.01v13.96l3.66,3.71-3.66,3.51v9.84c0,4.63,1.07,8.74,3.21,12.31,2.13,3.57,5.13,6.38,8.99,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03c3.76-2.02,6.68-4.82,8.78-8.39,2.1-3.57,3.15-7.71,3.15-12.42v-31.02h-17.01v30.8Z"/><path d="m184,52.72c-1.23-1.03-2.61-1.9-4.14-2.62-2.9-1.37-6.2-2.05-9.88-2.05-4.85,0-9.21,1.16-13.08,3.48-3.86,2.32-6.9,5.46-9.11,9.44-2.2,3.97-3.31,8.5-3.31,13.58s1.11,9.42,3.31,13.47c2.21,4.04,5.23,7.25,9.06,9.6,3.82,2.36,8.2,3.53,13.13,3.53,3.68,0,6.98-.69,9.88-2.1,1.4-.67,2.67-1.46,3.81-2.38v3.27c0,3.83-1.19,6.77-3.58,8.83-2.4,2.06-5.69,3.09-9.88,3.09-3.24,0-6.06-.59-8.45-1.76-2.39-1.18-4.55-2.91-6.46-5.19l-10.49,10.37c2.58,3.68,6.09,6.53,10.55,8.56,4.45,2.02,9.58,3.04,15.4,3.04s10.87-1.13,15.4-3.37c4.52-2.25,8.07-5.43,10.65-9.55s3.86-8.94,3.86-14.46v-50.34h-16.67v3.56Zm-.71,27.73c-.92,1.73-2.25,3.11-3.98,4.14-1.73,1.04-3.77,1.55-6.12,1.55s-4.27-.51-5.97-1.55c-1.69-1.03-3.03-2.44-4.03-4.25-.99-1.8-1.49-3.73-1.49-5.79s.48-4.09,1.44-5.85c.96-1.77,2.32-3.17,4.08-4.2,1.77-1.03,3.79-1.54,6.08-1.54s4.37.51,6.07,1.54c1.69,1.03,3,2.43,3.92,4.2.92,1.76,1.38,3.68,1.38,5.74,0,2.28-.46,4.28-1.38,6.01Z"/><path d="m239.53,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-1-2.96-1-4.8v-30.8h-17v31.02c0,4.63,1.07,8.74,3.2,12.31,2.14,3.57,5.14,6.38,9,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03,6.68-4.82,8.78-8.39,3.14-7.71,3.14-12.42v-31.02h-17v30.8Z"/><path d="m299.75,49.21c-1.95-.77-4.21-1.16-6.78-1.16-5.82,0-10.4,1.73-13.75,5.19l-.05.05v-4.13h-17.01v53.65h17.01v-29.37c0-3.46.82-6.05,2.48-7.78,1.66-1.73,3.92-2.59,6.79-2.59,1.4,0,2.65.22,3.75.66,1.11.44,1.99,1.03,2.65,1.77l10.05-12.81c-1.47-1.55-3.19-2.71-5.14-3.48Z"/><path d="m93.61,67.09c-6.22-6.12-13.65-11-21.91-14.25l-13.33-29L47.41,0l-10.74,22.65-14.66,30.93c-7.54,3.23-14.35,7.84-20.11,13.51,3.03,2.98,6.35,5.67,9.91,8.01L0,100h22.26l7.85-16.55c5.61,1.57,11.53,2.41,17.64,2.41s11.55-.77,16.95-2.22l7.52,16.36h21.15l-11.04-24.02c4.08-2.55,7.86-5.53,11.27-8.89Zm-24.48,5.49h0c-3.34,2.08-7,3.69-10.89,4.74-3.34.9-6.85,1.37-10.48,1.37s-7.44-.52-10.9-1.49c-4.07-1.13-7.87-2.89-11.31-5.16-2.2-1.45-4.25-3.11-6.12-4.95,3.56-3.5,7.77-6.35,12.43-8.35,4.7-2.02,9.87-3.17,15.3-3.25.21,0,.41,0,.61,0,.15,0,.3,0,.45,0,5.06.05,9.9,1.04,14.36,2.79,5.1,2.01,9.7,5.03,13.54,8.81-2.11,2.07-4.45,3.92-6.97,5.49Z"/><path d="m46.8,58.42c-1.14,4.23-4.44,7.53-8.67,8.67,4.23,1.14,7.53,4.44,8.67,8.67,1.14-4.23,4.44-7.53,8.67-8.67-4.23-1.14-7.53-4.44-8.67-8.67Z"/></svg><span class="by">The one-question feedback widget</span></div>
+</section>
+
+<section class="frame" id="frame-4">
+  <div class="win">
+    <div class="chrome"><div class="dots"><i></i><i></i><i></i></div><div class="url">app.parcelry.com/settings/address</div></div>
+    <div class="app parcelry">
+      <nav>
+        <div class="logo"><b></b>Parcelry</div>
+        <a>Orders <span>128</span></a><a>Returns <span>6</span></a><a>Products</a><a>Customers</a>
+        <div class="grp">Settings</div>
+        <a>Store</a><a class="on">Return address</a><a>Carriers</a><a>Team</a><a>Billing</a>
+      </nav>
+      <main>
+        <div class="hd"><h1>Return address</h1></div>
+        <p class="sub-hd">Where customers send returns. Printed on every return label.</p>
+        <div class="form">
+          <div class="field"><label>Company</label><div class="in">Parcelry Goods Ltd</div></div>
+          <div class="field"><label>Street</label><div class="in">14 Wharf Lane, Unit 3</div></div>
+          <div class="two">
+            <div class="field"><label>City</label><div class="in">Leeds</div></div>
+            <div class="field bad"><label>Postcode</label><div class="in">LS1 4 DY</div></div>
+          </div>
+          <div class="field"><label>Country</label><div class="in">United Kingdom</div></div>
+          <div class="actions">
+            <span class="btn">Cancel</span>
+            <span class="btn pr burst press" id="t4-save"><i class="ring"></i><i class="ring r2"></i><b class="x3">×3</b>Save address</span>
+          </div>
+        </div>
+      </main>
+      <svg class="cursor" id="t4-cursor" style="left:624px;top:412px" viewBox="0 0 20 24"><path d="M2 2l15 10.5-6.6 1.1 3.9 7.4-2.9 1.5-3.9-7.4L2 20z" fill="#111" stroke="#fff" stroke-width="1.6" stroke-linejoin="round"/></svg>
+    </div>
+  </div>
+
+  <div class="side" style="top:46px"><h2>See where people get stuck.</h2>
+    <p class="sub">Label the controls that matter. Repeated presses are recorded quietly: no prompt, no text.</p></div>
+  <div class="note" style="top:250px" data-to="#t4-save" data-at="right"><span class="n">1</span>Label a control</div>
+  <div class="code" style="top:290px">&lt;button
+  <span class="k">data-augur</span>=<span class="s">"save-address"</span>
+  onClick={save}&gt;
+  Save address
+&lt;/button&gt;</div>
+  <div class="note" style="top:426px"><span class="n">2</span>Three presses in a second<small>Augur notes the label, the page and the count. Nothing else.</small></div>
+  <div class="note" style="top:520px"><span class="n">3</span>Admin ranks the trouble spots</div>
+  <div class="inset" style="top:560px"><div class="scaler">
+    <div class="ftable">
+      <strong>Friction</strong>
+      <p>Labelled elements people pressed 3+ times within a second, last 30 days.</p>
+      <table>
+        <tr><th>Label</th><th class="n">Bursts</th><th class="n">People</th><th>Most often on</th></tr>
+        <tr><td class="l">save-address</td><td class="n">41</td><td class="n">28</td><td class="r">/settings/address</td></tr>
+        <tr><td class="l">apply-discount</td><td class="n">12</td><td class="n">9</td><td class="r">/orders/new</td></tr>
+        <tr><td class="l">print-labels</td><td class="n">5</td><td class="n">4</td><td class="r">/orders</td></tr>
+      </table>
+    </div></div></div>
+  <div class="brand"><svg class="wm" width="57.68" height="24" viewBox="0 0 304.89 126.88" fill="currentColor" role="img" aria-label="Augur"><path d="m125.38,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-.99-2.96-.99-4.8v-30.8h-17.01v13.96l3.66,3.71-3.66,3.51v9.84c0,4.63,1.07,8.74,3.21,12.31,2.13,3.57,5.13,6.38,8.99,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03c3.76-2.02,6.68-4.82,8.78-8.39,2.1-3.57,3.15-7.71,3.15-12.42v-31.02h-17.01v30.8Z"/><path d="m184,52.72c-1.23-1.03-2.61-1.9-4.14-2.62-2.9-1.37-6.2-2.05-9.88-2.05-4.85,0-9.21,1.16-13.08,3.48-3.86,2.32-6.9,5.46-9.11,9.44-2.2,3.97-3.31,8.5-3.31,13.58s1.11,9.42,3.31,13.47c2.21,4.04,5.23,7.25,9.06,9.6,3.82,2.36,8.2,3.53,13.13,3.53,3.68,0,6.98-.69,9.88-2.1,1.4-.67,2.67-1.46,3.81-2.38v3.27c0,3.83-1.19,6.77-3.58,8.83-2.4,2.06-5.69,3.09-9.88,3.09-3.24,0-6.06-.59-8.45-1.76-2.39-1.18-4.55-2.91-6.46-5.19l-10.49,10.37c2.58,3.68,6.09,6.53,10.55,8.56,4.45,2.02,9.58,3.04,15.4,3.04s10.87-1.13,15.4-3.37c4.52-2.25,8.07-5.43,10.65-9.55s3.86-8.94,3.86-14.46v-50.34h-16.67v3.56Zm-.71,27.73c-.92,1.73-2.25,3.11-3.98,4.14-1.73,1.04-3.77,1.55-6.12,1.55s-4.27-.51-5.97-1.55c-1.69-1.03-3.03-2.44-4.03-4.25-.99-1.8-1.49-3.73-1.49-5.79s.48-4.09,1.44-5.85c.96-1.77,2.32-3.17,4.08-4.2,1.77-1.03,3.79-1.54,6.08-1.54s4.37.51,6.07,1.54c1.69,1.03,3,2.43,3.92,4.2.92,1.76,1.38,3.68,1.38,5.74,0,2.28-.46,4.28-1.38,6.01Z"/><path d="m239.53,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-1-2.96-1-4.8v-30.8h-17v31.02c0,4.63,1.07,8.74,3.2,12.31,2.14,3.57,5.14,6.38,9,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03,6.68-4.82,8.78-8.39,3.14-7.71,3.14-12.42v-31.02h-17v30.8Z"/><path d="m299.75,49.21c-1.95-.77-4.21-1.16-6.78-1.16-5.82,0-10.4,1.73-13.75,5.19l-.05.05v-4.13h-17.01v53.65h17.01v-29.37c0-3.46.82-6.05,2.48-7.78,1.66-1.73,3.92-2.59,6.79-2.59,1.4,0,2.65.22,3.75.66,1.11.44,1.99,1.03,2.65,1.77l10.05-12.81c-1.47-1.55-3.19-2.71-5.14-3.48Z"/><path d="m93.61,67.09c-6.22-6.12-13.65-11-21.91-14.25l-13.33-29L47.41,0l-10.74,22.65-14.66,30.93c-7.54,3.23-14.35,7.84-20.11,13.51,3.03,2.98,6.35,5.67,9.91,8.01L0,100h22.26l7.85-16.55c5.61,1.57,11.53,2.41,17.64,2.41s11.55-.77,16.95-2.22l7.52,16.36h21.15l-11.04-24.02c4.08-2.55,7.86-5.53,11.27-8.89Zm-24.48,5.49h0c-3.34,2.08-7,3.69-10.89,4.74-3.34.9-6.85,1.37-10.48,1.37s-7.44-.52-10.9-1.49c-4.07-1.13-7.87-2.89-11.31-5.16-2.2-1.45-4.25-3.11-6.12-4.95,3.56-3.5,7.77-6.35,12.43-8.35,4.7-2.02,9.87-3.17,15.3-3.25.21,0,.41,0,.61,0,.15,0,.3,0,.45,0,5.06.05,9.9,1.04,14.36,2.79,5.1,2.01,9.7,5.03,13.54,8.81-2.11,2.07-4.45,3.92-6.97,5.49Z"/><path d="m46.8,58.42c-1.14,4.23-4.44,7.53-8.67,8.67,4.23,1.14,7.53,4.44,8.67,8.67,1.14-4.23,4.44-7.53,8.67-8.67-4.23-1.14-7.53-4.44-8.67-8.67Z"/></svg><span class="by">The one-question feedback widget</span></div>
+</section>
+
+<section class="frame" id="social">
+  <div class="lock"><svg class="wm" width="57.68" height="24" viewBox="0 0 304.89 126.88" fill="currentColor" role="img" aria-label="Augur"><path d="m125.38,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-.99-2.96-.99-4.8v-30.8h-17.01v13.96l3.66,3.71-3.66,3.51v9.84c0,4.63,1.07,8.74,3.21,12.31,2.13,3.57,5.13,6.38,8.99,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03c3.76-2.02,6.68-4.82,8.78-8.39,2.1-3.57,3.15-7.71,3.15-12.42v-31.02h-17.01v30.8Z"/><path d="m184,52.72c-1.23-1.03-2.61-1.9-4.14-2.62-2.9-1.37-6.2-2.05-9.88-2.05-4.85,0-9.21,1.16-13.08,3.48-3.86,2.32-6.9,5.46-9.11,9.44-2.2,3.97-3.31,8.5-3.31,13.58s1.11,9.42,3.31,13.47c2.21,4.04,5.23,7.25,9.06,9.6,3.82,2.36,8.2,3.53,13.13,3.53,3.68,0,6.98-.69,9.88-2.1,1.4-.67,2.67-1.46,3.81-2.38v3.27c0,3.83-1.19,6.77-3.58,8.83-2.4,2.06-5.69,3.09-9.88,3.09-3.24,0-6.06-.59-8.45-1.76-2.39-1.18-4.55-2.91-6.46-5.19l-10.49,10.37c2.58,3.68,6.09,6.53,10.55,8.56,4.45,2.02,9.58,3.04,15.4,3.04s10.87-1.13,15.4-3.37c4.52-2.25,8.07-5.43,10.65-9.55s3.86-8.94,3.86-14.46v-50.34h-16.67v3.56Zm-.71,27.73c-.92,1.73-2.25,3.11-3.98,4.14-1.73,1.04-3.77,1.55-6.12,1.55s-4.27-.51-5.97-1.55c-1.69-1.03-3.03-2.44-4.03-4.25-.99-1.8-1.49-3.73-1.49-5.79s.48-4.09,1.44-5.85c.96-1.77,2.32-3.17,4.08-4.2,1.77-1.03,3.79-1.54,6.08-1.54s4.37.51,6.07,1.54c1.69,1.03,3,2.43,3.92,4.2.92,1.76,1.38,3.68,1.38,5.74,0,2.28-.46,4.28-1.38,6.01Z"/><path d="m239.53,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-1-2.96-1-4.8v-30.8h-17v31.02c0,4.63,1.07,8.74,3.2,12.31,2.14,3.57,5.14,6.38,9,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03,6.68-4.82,8.78-8.39,3.14-7.71,3.14-12.42v-31.02h-17v30.8Z"/><path d="m299.75,49.21c-1.95-.77-4.21-1.16-6.78-1.16-5.82,0-10.4,1.73-13.75,5.19l-.05.05v-4.13h-17.01v53.65h17.01v-29.37c0-3.46.82-6.05,2.48-7.78,1.66-1.73,3.92-2.59,6.79-2.59,1.4,0,2.65.22,3.75.66,1.11.44,1.99,1.03,2.65,1.77l10.05-12.81c-1.47-1.55-3.19-2.71-5.14-3.48Z"/><path d="m93.61,67.09c-6.22-6.12-13.65-11-21.91-14.25l-13.33-29L47.41,0l-10.74,22.65-14.66,30.93c-7.54,3.23-14.35,7.84-20.11,13.51,3.03,2.98,6.35,5.67,9.91,8.01L0,100h22.26l7.85-16.55c5.61,1.57,11.53,2.41,17.64,2.41s11.55-.77,16.95-2.22l7.52,16.36h21.15l-11.04-24.02c4.08-2.55,7.86-5.53,11.27-8.89Zm-24.48,5.49h0c-3.34,2.08-7,3.69-10.89,4.74-3.34.9-6.85,1.37-10.48,1.37s-7.44-.52-10.9-1.49c-4.07-1.13-7.87-2.89-11.31-5.16-2.2-1.45-4.25-3.11-6.12-4.95,3.56-3.5,7.77-6.35,12.43-8.35,4.7-2.02,9.87-3.17,15.3-3.25.21,0,.41,0,.61,0,.15,0,.3,0,.45,0,5.06.05,9.9,1.04,14.36,2.79,5.1,2.01,9.7,5.03,13.54,8.81-2.11,2.07-4.45,3.92-6.97,5.49Z"/><path d="m46.8,58.42c-1.14,4.23-4.44,7.53-8.67,8.67,4.23,1.14,7.53,4.44,8.67,8.67,1.14-4.23,4.44-7.53,8.67-8.67-4.23-1.14-7.53-4.44-8.67-8.67Z"/></svg>
+    <h1>One well-timed question, inside your product.</h1>
+    <p>A portable React feedback module. Copy the folder, pick a store, mount it once.</p>
+  </div>
+  <div class="card"><div class="augur">
+    <span class="x">×</span>
+    <p class="q">Did that go the way you expected?</p>
+    <div class="row"><span class="b">Yes</span><span class="b">Not really</span><span class="b">Not sure</span></div>
+    <div class="by"><span class="w"><em>by</em> <svg width="33.64" height="14" viewBox="0 0 304.89 126.88" fill="currentColor" role="img" aria-label="Augur"><path d="m125.38,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-.99-2.96-.99-4.8v-30.8h-17.01v13.96l3.66,3.71-3.66,3.51v9.84c0,4.63,1.07,8.74,3.21,12.31,2.13,3.57,5.13,6.38,8.99,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03c3.76-2.02,6.68-4.82,8.78-8.39,2.1-3.57,3.15-7.71,3.15-12.42v-31.02h-17.01v30.8Z"/><path d="m184,52.72c-1.23-1.03-2.61-1.9-4.14-2.62-2.9-1.37-6.2-2.05-9.88-2.05-4.85,0-9.21,1.16-13.08,3.48-3.86,2.32-6.9,5.46-9.11,9.44-2.2,3.97-3.31,8.5-3.31,13.58s1.11,9.42,3.31,13.47c2.21,4.04,5.23,7.25,9.06,9.6,3.82,2.36,8.2,3.53,13.13,3.53,3.68,0,6.98-.69,9.88-2.1,1.4-.67,2.67-1.46,3.81-2.38v3.27c0,3.83-1.19,6.77-3.58,8.83-2.4,2.06-5.69,3.09-9.88,3.09-3.24,0-6.06-.59-8.45-1.76-2.39-1.18-4.55-2.91-6.46-5.19l-10.49,10.37c2.58,3.68,6.09,6.53,10.55,8.56,4.45,2.02,9.58,3.04,15.4,3.04s10.87-1.13,15.4-3.37c4.52-2.25,8.07-5.43,10.65-9.55s3.86-8.94,3.86-14.46v-50.34h-16.67v3.56Zm-.71,27.73c-.92,1.73-2.25,3.11-3.98,4.14-1.73,1.04-3.77,1.55-6.12,1.55s-4.27-.51-5.97-1.55c-1.69-1.03-3.03-2.44-4.03-4.25-.99-1.8-1.49-3.73-1.49-5.79s.48-4.09,1.44-5.85c.96-1.77,2.32-3.17,4.08-4.2,1.77-1.03,3.79-1.54,6.08-1.54s4.37.51,6.07,1.54c1.69,1.03,3,2.43,3.92,4.2.92,1.76,1.38,3.68,1.38,5.74,0,2.28-.46,4.28-1.38,6.01Z"/><path d="m239.53,79.96c0,2.8-.71,5-2.15,6.62-1.43,1.62-3.4,2.43-5.91,2.43-1.69,0-3.16-.37-4.41-1.1-1.25-.74-2.21-1.79-2.87-3.15-.66-1.36-1-2.96-1-4.8v-30.8h-17v31.02c0,4.63,1.07,8.74,3.2,12.31,2.14,3.57,5.14,6.38,9,8.44,3.87,2.06,8.23,3.09,13.08,3.09s9.39-1.01,13.14-3.03,6.68-4.82,8.78-8.39,3.14-7.71,3.14-12.42v-31.02h-17v30.8Z"/><path d="m299.75,49.21c-1.95-.77-4.21-1.16-6.78-1.16-5.82,0-10.4,1.73-13.75,5.19l-.05.05v-4.13h-17.01v53.65h17.01v-29.37c0-3.46.82-6.05,2.48-7.78,1.66-1.73,3.92-2.59,6.79-2.59,1.4,0,2.65.22,3.75.66,1.11.44,1.99,1.03,2.65,1.77l10.05-12.81c-1.47-1.55-3.19-2.71-5.14-3.48Z"/><path d="m93.61,67.09c-6.22-6.12-13.65-11-21.91-14.25l-13.33-29L47.41,0l-10.74,22.65-14.66,30.93c-7.54,3.23-14.35,7.84-20.11,13.51,3.03,2.98,6.35,5.67,9.91,8.01L0,100h22.26l7.85-16.55c5.61,1.57,11.53,2.41,17.64,2.41s11.55-.77,16.95-2.22l7.52,16.36h21.15l-11.04-24.02c4.08-2.55,7.86-5.53,11.27-8.89Zm-24.48,5.49h0c-3.34,2.08-7,3.69-10.89,4.74-3.34.9-6.85,1.37-10.48,1.37s-7.44-.52-10.9-1.49c-4.07-1.13-7.87-2.89-11.31-5.16-2.2-1.45-4.25-3.11-6.12-4.95,3.56-3.5,7.77-6.35,12.43-8.35,4.7-2.02,9.87-3.17,15.3-3.25.21,0,.41,0,.61,0,.15,0,.3,0,.45,0,5.06.05,9.9,1.04,14.36,2.79,5.1,2.01,9.7,5.03,13.54,8.81-2.11,2.07-4.45,3.92-6.97,5.49Z"/><path d="m46.8,58.42c-1.14,4.23-4.44,7.53-8.67,8.67,4.23,1.14,7.53,4.44,8.67,8.67,1.14-4.23,4.44-7.53,8.67-8.67-4.23-1.14-7.53-4.44-8.67-8.67Z"/></svg></span><span class="pill">Add to your product <span aria-hidden="true">↗</span></span></div>
+  </div></div>
+  <div class="meta"><span>MIT</span><span>Zero dependencies</span><span>github.com/kaezee/Augur</span></div>
 </section>
 
 <script>

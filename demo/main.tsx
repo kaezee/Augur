@@ -1,7 +1,7 @@
 // The live demo: the real augur/ folder, unmodified, inside a sample task app.
 // The "What Augur saved" feed is a thin wrapper around LocalStore that reports each
 // write Augur makes, so every row is something Augur actually recorded. Everything
-// stays in this browser; "Start over" clears it.
+// stays in this browser; "Start over" (top bar) clears it.
 
 import { StrictMode, useEffect, useRef, useState, type FormEvent, type KeyboardEvent as KE, type PointerEvent as PE, type ReactNode } from "react";
 import { createRoot } from "react-dom/client";
@@ -309,6 +309,7 @@ function App() {
       <header className="top">
         <AugurWordmark size={20} /><span className="pill">Demo</span>
         <span className="grow" />
+        <button className="link" type="button" onClick={startOver}><Icon n="reset" /><span>Start over</span></button>
         <a className="link" href={GITHUB} target="_blank" rel="noopener"><Icon n="github" /><span>GitHub</span></a>
         <a className="btn btn-ink btn-sm" href={ADD}>Add it to your app</a>
       </header>
@@ -345,12 +346,11 @@ function App() {
               <div className="finish">
                 <b>That's Augur in under a minute</b>
                 <p>A question at the right moment, feedback with its context, and clicks that went nowhere, all in one place.</p>
-                <div className="row"><a className="btn btn-sm" href={ADD}>Add it to your app</a><a className="glink" href={GITHUB} target="_blank" rel="noopener"><Icon n="github" />View on GitHub</a></div>
+                <div className="row"><a className="btn btn-sm" href={ADD}>Add it to your app</a></div>
               </div>
             )}
             <div className="steps-foot">
               <span className="hint"><Icon n="info" /><span>Runs in your browser with sample data. In your app, you decide what Augur asks and when.</span></span>
-              <button className="btn btn-sm" type="button" style={{ alignSelf: "flex-start" }} onClick={startOver}><Icon n="reset" />Start over</button>
             </div>
           </section>
 

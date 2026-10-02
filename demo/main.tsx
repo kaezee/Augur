@@ -88,7 +88,6 @@ const PATHS: Record<string, ReactNode> = {
   userPlus: <><circle cx="10" cy="8" r="3.5" /><path d="M3.5 19.5c.8-3.3 3.4-5 6.5-5s5.7 1.7 6.5 5M19 8v6M16 11h6" /></>,
   plus: <path d="M12 5v14M5 12h14" />,
   reset: <><path d="M4 12a8 8 0 1 0 2.4-5.7L4 8.5" /><path d="M4 4v4.5h4.5" /></>,
-  github: <path d="M9 19c-4 1.3-4-2-6-2.5M15 21v-3.4a3 3 0 0 0-.8-2.3c2.7-.3 5.5-1.3 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.3 4.3 0 0 0-.1-3.2s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6 0C6.5 2.6 5.5 2.9 5.5 2.9a4.3 4.3 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.3c0 4.6 2.8 5.7 5.5 6a3 3 0 0 0-.8 2.3V21" />,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></>,
   inbox: <><path d="M3 13l3-8h12l3 8v6H3z" /><path d="M3 13h5l1.5 2.5h5L16 13h5" /></>,
   list: <><path d="M10 6h10M10 12h10M10 18h10" /><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11" /><circle cx="5" cy="18" r="1.4" /></>,
@@ -259,7 +258,6 @@ const STEPS = [
 ] as const;
 type StepKey = (typeof STEPS)[number]["k"];
 const clock = (d: Date) => d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-const GITHUB = "https://github.com/kaezee/Augur";
 const ADD = "https://github.com/kaezee/Augur#three-step-integration";
 
 function App() {
@@ -301,7 +299,6 @@ function App() {
         <AugurWordmark size={20} /><span className="pill">Demo</span>
         <span className="grow" />
         <button className="link" type="button" onClick={startOver}><Icon n="reset" /><span>Start over</span></button>
-        <a className="link" href={GITHUB} target="_blank" rel="noopener"><Icon n="github" /><span>GitHub</span></a>
         <a className="btn btn-ink btn-sm" href={ADD}>Add it to your app</a>
       </header>
 

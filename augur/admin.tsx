@@ -85,7 +85,7 @@ export function AugurAdminSection({ store, hostConfig, confirm }: {
       <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 16, flexWrap: "wrap", marginBottom: 4 }}>
         <div>
           <h1 style={{ margin: 0, display: "inline-flex", alignItems: "center" }}><AugurWordmark size={26} /></h1>
-          <p style={{ ...muted, margin: "2px 0 0" }}>{declared} triggers declared, {enabled} enabled · adding or removing a trigger needs a code change.</p>
+          <p style={{ ...muted, margin: "2px 0 0" }}>{declared} trigger{declared === 1 ? "" : "s"} declared, {enabled} enabled · adding or removing a trigger needs a code change.</p>
         </div>
         <select value={preset} onChange={(e) => setPreset(e.target.value as Preset)} style={{ ...btn, cursor: "pointer" }}>
           {PRESETS.map(([k, v]) => <option key={k} value={k}>{v}</option>)}

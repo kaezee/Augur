@@ -3,6 +3,15 @@
 Augur is distributed by copying the `augur/` folder. Each entry says what changed and
 what to run when upgrading.
 
+## Unreleased
+
+- **Admin:** "1 trigger declared" instead of "1 triggers declared".
+- **Live demo** at https://kaezee.github.io/Augur/: a sample task board running the
+  real module, with a live feed of what Augur records. Also new since 0.4.0: README
+  privacy section, gallery frames 3 and 4, SECURITY.md, CONTRIBUTING.md.
+
+No migration.
+
 ## 0.4.0
 
 - **Friction:** label controls with `data-augur="…"`. Three presses on the same label

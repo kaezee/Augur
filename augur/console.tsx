@@ -14,8 +14,8 @@ const bar: React.CSSProperties = { display: "flex", alignItems: "center", justif
 const shell: React.CSSProperties = { maxWidth: 960, margin: "0 auto", padding: "28px 24px 64px" };
 const card: React.CSSProperties = { background: "var(--k-bg-raised, #fff)", border: "1px solid var(--k-border, #E7E2D3)", borderRadius: "var(--k-radius-container, 10px)", padding: 18, marginTop: 20 };
 const muted: React.CSSProperties = { color: "var(--k-text-tertiary, #98917E)", fontSize: 12.5 };
-const input: React.CSSProperties = { font: "inherit", padding: "7px 10px", borderRadius: "var(--k-radius-control, 6px)", border: "1px solid var(--k-border, #E7E2D3)", background: "var(--k-bg-surface, #fff)", color: "inherit" };
-const btn: React.CSSProperties = { font: "inherit", fontWeight: 600, cursor: "pointer", padding: "8px 14px", borderRadius: "var(--k-radius-control, 6px)", border: "1px solid var(--k-border-strong, #D3CCB9)", background: "var(--k-bg-surface, #fff)", color: "var(--k-text-secondary, #5C5647)" };
+const input: React.CSSProperties = { font: "inherit", padding: "7px 10px", minHeight: 44, boxSizing: "border-box", borderRadius: "var(--k-radius-control, 6px)", border: "1px solid var(--k-border, #E7E2D3)", background: "var(--k-bg-surface, #fff)", color: "inherit" };
+const btn: React.CSSProperties = { font: "inherit", fontWeight: 600, cursor: "pointer", padding: "8px 14px", minHeight: 44, minWidth: 44, borderRadius: "var(--k-radius-control, 6px)", border: "1px solid var(--k-border-strong, #D3CCB9)", background: "var(--k-bg-surface, #fff)", color: "var(--k-text-secondary, #5C5647)" };
 const primary: React.CSSProperties = { ...btn, border: "1px solid transparent", background: "var(--k-action-fill, #394293)", color: "var(--k-on-action-fill, #fff)" };
 
 export function AugurConsole({ store, hostConfig, email, onSignOut, onChangePassword, selfUserId }: {

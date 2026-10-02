@@ -12,6 +12,11 @@ what to run when upgrading.
   button (it was lost while the button was hidden). The "by Augur" credit no longer fades its
   text, so it keeps the host's secondary-text contrast. Admin's date-range and purge selects
   have accessible names.
+- **Target size (WCAG 2.5.5, AAA):** every control in the prompt, panel, feedback button,
+  Admin and console is at least 44×44px. The close ✕ is a 44px square; the "Add to your
+  product" pill keeps its size inside a 44px-tall link. In Admin settings the ▲/▼ that opens
+  a question's editor is now a button (it only worked with a mouse), the on/off checkbox on
+  each question has a name, and the editor's labels are tied to their fields.
 - **Admin that holds up as feedback grows:**
   - The Results headline names the question with the highest share of "Not really"
     (e.g. *Most "Not really": "Was recording that moment easy?", 6 of 20 answers (30%)*)

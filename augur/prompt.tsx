@@ -91,10 +91,11 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
     boxShadow: "0 12px 40px rgba(0,0,0,.18)", padding: "14px 16px",
     font: "500 13.5px/1.4 var(--k-font-sans, ui-sans-serif, system-ui, sans-serif)",
   };
-  const qStyle: React.CSSProperties = { margin: "0 0 11px", paddingRight: 18 };
+  const qStyle: React.CSSProperties = { margin: "0 0 11px", paddingRight: 30 };
   const btnRow: React.CSSProperties = { display: "flex", gap: 8, flexWrap: "nowrap" };
   const btn: React.CSSProperties = {
-    font: "inherit", fontWeight: 600, cursor: "pointer", padding: "6px 12px", borderRadius: "var(--k-radius-control, 6px)",
+    // 44px minimum: WCAG 2.5.5 (AAA) target size.
+    font: "inherit", fontWeight: 600, cursor: "pointer", padding: "6px 12px", minHeight: 44, minWidth: 44, borderRadius: "var(--k-radius-control, 6px)",
     border: "1px solid var(--k-border-strong, #D3CCB9)", background: "var(--k-bg-surface, #fff)", color: "var(--k-text-secondary, #5C5647)", whiteSpace: "nowrap",
   };
   const primary: React.CSSProperties = {
@@ -103,11 +104,11 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
   // Send with nothing typed: still in place, visibly unavailable.
   const primaryOff: React.CSSProperties = { ...primary, opacity: 0.45, cursor: "not-allowed" };
   const close: React.CSSProperties = {
-    position: "absolute", top: 10, right: 12, cursor: "pointer", color: "var(--k-text-tertiary, #98917E)",
-    background: "none", border: "none", font: "inherit", fontSize: 16, lineHeight: 1, padding: 2,
+    position: "absolute", top: 0, right: 0, width: 44, height: 44, display: "grid", placeItems: "center", cursor: "pointer", color: "var(--k-text-tertiary, #98917E)",
+    background: "none", border: "none", font: "inherit", fontSize: 16, lineHeight: 1, padding: 0,
   };
   const inputStyle: React.CSSProperties = {
-    flex: 1, font: "inherit", padding: "7px 10px", borderRadius: "var(--k-radius-control, 6px)",
+    flex: 1, font: "inherit", padding: "7px 10px", minHeight: 44, boxSizing: "border-box", borderRadius: "var(--k-radius-control, 6px)",
     border: "1px solid var(--k-border, #E7E2D3)", background: "var(--k-bg-sunken, #F7F6F1)", color: "inherit", minWidth: 0,
   };
   const quiet: React.CSSProperties = { ...btn, border: "none", background: "none" };
@@ -143,7 +144,7 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
         // Free text: the panel's line (after a category, or with none), or a text trigger.
         <>
           {cat ? (
-            <button style={{ ...quiet, padding: "2px 0", margin: "0 0 9px", fontSize: 12.5 }} aria-label={`${strings.back}: ${cat.label}`}
+            <button style={{ ...quiet, padding: "0 4px", margin: "-8px 0 2px -4px", fontSize: 12.5 }} aria-label={`${strings.back}: ${cat.label}`}
               onClick={() => setCat(null)}>‹ {cat.label}</button>
           ) : <p style={qStyle}>{spec.question}</p>}
           <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5}
@@ -182,11 +183,11 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
           Kept on the opposite side from the action buttons so it never sits under them.
           On the category step the optional "Say more" link sits opposite it. */}
       {(byline || (picking && panel?.moreLink)) && (
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginTop: 10 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, marginTop: 2, marginBottom: -8 }}>
           {byline ? <AugurByline /> : <span />}
           {picking && panel?.moreLink && (
             <a href={panel.moreLink.href} target="_blank" rel="noreferrer noopener"
-              style={{ fontSize: 12.5, fontWeight: 600, color: "var(--k-text-secondary, #5C5647)", textDecoration: "none" }}>
+              style={{ display: "inline-flex", alignItems: "center", minHeight: 44, fontSize: 12.5, fontWeight: 600, color: "var(--k-text-secondary, #5C5647)", textDecoration: "none" }}>
               {panel.moreLink.label} <span aria-hidden="true">↗</span>
             </a>
           )}

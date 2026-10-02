@@ -12,13 +12,25 @@ what to run when upgrading.
   button (it was lost while the button was hidden). The "by Augur" credit no longer fades its
   text, so it keeps the host's secondary-text contrast. Admin's date-range and purge selects
   have accessible names.
+- **Admin that holds up as feedback grows:**
+  - The Results headline names the question with the highest share of "Not really"
+    (e.g. *Most "Not really": "Was recording that moment easy?", 6 of 20 answers (30%)*)
+    instead of adding Yes / Not really / Not sure across different questions.
+  - Notes load 50 at a time with **Load more**; category and unread filters run in the
+    store. `readNotes()` takes `{ category, before, limit }`; without `limit` it returns
+    everything, as before.
+  - New optional `readSubmissionStats(range)`: the by-category and by-entry-point tallies
+    are counted by the store, so paging can't undercount them. Local and Supabase
+    stores implement it; stores without it fall back to the loaded notes.
+  - An index on `augur_events (shown_at)` backs the date-range counts.
 - **Friction from the keyboard:** Enter or Space on a labelled control counts as a press, so
   keyboard users' repeated presses are recorded too; a held-down key counts once.
 - **Live demo** at https://kaezee.github.io/Augur/: a sample task board running the
   real module, with a live feed of what Augur records. Also new since 0.4.0: README
   privacy section, gallery frames 3 and 4, SECURITY.md, CONTRIBUTING.md.
 
-No migration.
+Upgrading from 0.4: replace `augur/` and run `sql/migrations/0.5.0.sql`. Callers of
+`augur_admin_notes(p_unread_only)` keep working unchanged.
 
 ## 0.4.0
 

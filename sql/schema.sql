@@ -20,6 +20,7 @@ create table if not exists augur_events (
 );
 create index if not exists augur_events_user_idx on augur_events (user_id, shown_at desc);
 create index if not exists augur_events_trigger_idx on augur_events (trigger_id, shown_at desc);
+create index if not exists augur_events_shown_idx on augur_events (shown_at);   -- admin's date-range counts
 
 create table if not exists augur_notes (
   id         uuid primary key default gen_random_uuid(),
@@ -129,13 +130,31 @@ create or replace function augur_admin_unconfigured()
   group by u.trigger_id order by max(u.seen_at) desc;
 $$;
 
-create or replace function augur_admin_notes(p_unread_only boolean default false)
+-- Notes, newest first, a page at a time; the admin passes p_limit and p_before.
+create or replace function augur_admin_notes(p_unread_only boolean default false, p_category text default null,
+                                             p_before timestamptz default null, p_before_id uuid default null,
+                                             p_limit int default null)
   returns table (id uuid, trigger_id text, answer text, body text, created_at timestamptz, read boolean, category text, context jsonb)
   language sql stable security definer set search_path = public, pg_temp as $$
   select n.id, e.trigger_id, e.answer, n.body, n.created_at, (n.read_at is not null), e.category, e.context
   from augur_notes n join augur_events e on e.id = n.event_id
   where augur_is_admin() and (not p_unread_only or n.read_at is null)
-  order by n.created_at desc;
+    and (p_category is null or e.category = p_category)
+    and (p_before is null or (n.created_at, n.id) < (p_before, coalesce(p_before_id, 'ffffffff-ffff-ffff-ffff-ffffffffffff')))
+  order by n.created_at desc, n.id desc   -- (created_at, id) is the page cursor, so ties are never skipped
+  limit case when p_limit is null then null else least(greatest(p_limit, 1), 200) end;   -- null = all (older callers)
+$$;
+
+-- Button-panel submissions in a range, per entry point and category ("manual" is the
+-- pre-0.3 name for the built-in button).
+create or replace function augur_admin_submissions(p_from timestamptz, p_to timestamptz)
+  returns table (source text, category text, n bigint)
+  language sql stable security definer set search_path = public, pg_temp as $$
+  select case when e.trigger_id = 'manual' then 'button' else e.trigger_id end, e.category, count(*)
+  from augur_events e
+  where augur_is_admin() and (e.category is not null or e.context is not null)
+    and e.shown_at >= p_from and e.shown_at < p_to
+  group by 1, 2;
 $$;
 
 create or replace function augur_admin_mark_note_read(p_note_id uuid) returns void
@@ -261,7 +280,8 @@ revoke execute on function augur_is_admin()                                   fr
 revoke execute on function augur_admin_summary(timestamptz, timestamptz)       from public, anon;
 revoke execute on function augur_admin_trigger_stats(timestamptz, timestamptz) from public, anon;
 revoke execute on function augur_admin_unconfigured()                          from public, anon;
-revoke execute on function augur_admin_notes(boolean)                          from public, anon;
+revoke execute on function augur_admin_notes(boolean, text, timestamptz, uuid, int) from public, anon;
+revoke execute on function augur_admin_submissions(timestamptz, timestamptz)   from public, anon;
 revoke execute on function augur_admin_mark_note_read(uuid)                    from public, anon;
 revoke execute on function public.augur_log_shown(text, int)                   from public, anon;
 revoke execute on function public.augur_log_outcome(uuid, text, text)          from public, anon;
@@ -277,7 +297,8 @@ grant execute on function augur_is_admin()                                   to 
 grant execute on function augur_admin_summary(timestamptz, timestamptz)       to authenticated;
 grant execute on function augur_admin_trigger_stats(timestamptz, timestamptz) to authenticated;
 grant execute on function augur_admin_unconfigured()                          to authenticated;
-grant execute on function augur_admin_notes(boolean)                          to authenticated;
+grant execute on function augur_admin_notes(boolean, text, timestamptz, uuid, int) to authenticated;
+grant execute on function augur_admin_submissions(timestamptz, timestamptz)   to authenticated;
 grant execute on function augur_admin_mark_note_read(uuid)                    to authenticated;
 grant execute on function public.augur_log_shown(text, int)                   to authenticated;
 grant execute on function public.augur_log_outcome(uuid, text, text)          to authenticated;

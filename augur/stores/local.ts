@@ -4,7 +4,7 @@
 // admin reads. Single-device, no auth, no network. Not for real collection.
 
 import type { ConfigOverrides } from "../config";
-import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, Submission, SubmitContext, Summary, TriggerStat, Unconfigured } from "../store";
+import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, NotesQuery, Submission, SubmissionStat, SubmitContext, Summary, TriggerStat, Unconfigured } from "../store";
 
 interface Ev { id: string; userId: string; triggerId: string; triggerVer: number; outcome: "shown" | "ignored" | "answered"; answer?: string; shownAt: number; category?: string; context?: SubmitContext; }
 interface Note { id: string; eventId: string; body: string; createdAt: number; readAt?: number; }
@@ -117,12 +117,16 @@ export class LocalStore implements AugurStore {
     return [...by.values()].sort((a, z) => Date.parse(z.lastSeen) - Date.parse(a.lastSeen));
   }
 
-  async readNotes(opts?: { unreadOnly?: boolean }): Promise<AdminNote[]> {
+  async readNotes(opts?: NotesQuery): Promise<AdminNote[]> {
     const b = load();
     const evById = new Map(b.events.map((e) => [e.id, e]));
+    const bt = opts?.before ? Date.parse(opts.before.createdAt) : Infinity, bid = opts?.before?.id ?? "";
+    const isBefore = (n: Note) => n.createdAt < bt || (n.createdAt === bt && n.id < bid);
     return b.notes
-      .filter((n) => !opts?.unreadOnly || !n.readAt)
-      .sort((a, z) => z.createdAt - a.createdAt)
+      .filter((n) => (!opts?.unreadOnly || !n.readAt) && isBefore(n)
+        && (!opts?.category || evById.get(n.eventId)?.category === opts.category))
+      .sort((a, z) => z.createdAt - a.createdAt || (a.id < z.id ? 1 : a.id > z.id ? -1 : 0))
+      .slice(0, opts?.limit ?? Infinity)
       .map((n) => {
         const e = evById.get(n.eventId);
         const answer = e?.answer;
@@ -130,6 +134,18 @@ export class LocalStore implements AugurStore {
           category: e?.category ?? null, context: (e?.context as unknown as Record<string, unknown>) ?? null };
       });
   }
+  async readSubmissionStats(r: DateRange): Promise<SubmissionStat[]> {
+    const m = new Map<string, SubmissionStat>();
+    for (const e of load().events) {
+      if ((e.category == null && e.context == null) || !within(e.shownAt, r)) continue;
+      const source = e.triggerId === "manual" ? "button" : e.triggerId;
+      const k = `${source}\u0000${e.category ?? ""}`;
+      const row = m.get(k) ?? { source, category: e.category ?? null, count: 0 };
+      row.count++; m.set(k, row);
+    }
+    return [...m.values()];
+  }
+
 
   async markNoteRead(noteId: string): Promise<void> {
     const b = load(); const n = b.notes.find((x) => x.id === noteId);

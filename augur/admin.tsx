@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { lockedInCode, mergeConfig, responseTypeOf, type AugurConfig, type ConfigOverrides, type HostConfig, type TriggerDef } from "./config";
-import type { AdminNote, AugurStore, DateRange, FrictionStat, Summary, TriggerStat, Unconfigured } from "./store";
+import type { AdminNote, AugurStore, DateRange, FrictionStat, SubmissionStat, Summary, TriggerStat, Unconfigured } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
 import { AugurWordmark, AUGUR_REPO_URL } from "./mark";
 
@@ -112,17 +112,63 @@ export function AugurAdminSection({ store, hostConfig, confirm }: {
   );
 }
 
+// The Results headline: where to look first, not a total. Yes/Not really/Not sure
+// answers to different questions don't add up to anything, so the headline names the
+// question with the highest share of "Not really" instead. Exported for tests.
+export interface HeadlineRow { id: string; question?: string; shown: number; answered: number; notReally: number }
+export function resultsHeadline(rows: HeadlineRow[]): string {
+  const shown = rows.reduce((a, r) => a + r.shown, 0);
+  const answered = rows.reduce((a, r) => a + r.answered, 0);
+  const s = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+  if (shown === 0) return "No rating prompts were shown in this range.";
+  if (answered === 0) return `${s(shown, "prompt")} shown, none answered yet.`;
+  const asked = rows.filter((r) => r.answered > 0);
+  const worst = asked.filter((r) => r.notReally > 0)
+    .sort((a, z) => z.notReally / z.answered - a.notReally / a.answered || z.notReally - a.notReally)[0];
+  if (!worst) return `No “Not really” answers in this range: ${s(answered, "answer")} across ${s(asked.length, "question")}.`;
+  const pct = Math.round((worst.notReally / worst.answered) * 100);
+  return `Most “Not really”: “${worst.question ?? worst.id}”, ${worst.notReally} of ${s(worst.answered, "answer")} (${pct}%).`;
+}
+
+const NOTES_PAGE = 50;
+
 // ── RESULTS ───────────────────────────────────────────────────────────────────
 function Results({ store, draft, range, ask }: { store: AugurStore; draft: AugurConfig; range: DateRange; ask: Confirm }) {
   const [statsRange, setStatsRange] = useState<TriggerStat[]>([]);
   const [statsAll, setStatsAll] = useState<TriggerStat[]>([]);
-  const { notes, markRead, reload: reloadNotes } = useAugurNotes(store, false);
   const [unreadOnly, setUnreadOnly] = useState(false);
-
+  const [catFilter, setCatFilter] = useState("all");
+  // Notes come a page at a time, filtered by the store, newest first.
+  const [notes, setNotes] = useState<AdminNote[]>([]);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingNotes, setLoadingNotes] = useState(false);
+  const loadNotes = useCallback(async (after: AdminNote[] = []) => {
+    if (!store.readNotes) return;
+    setLoadingNotes(true);
+    try {
+      const page = await store.readNotes({ unreadOnly, category: catFilter === "all" ? undefined : catFilter, before: after.length ? { createdAt: after[after.length - 1].createdAt, id: after[after.length - 1].id } : undefined, limit: NOTES_PAGE });
+      setNotes([...after, ...page]);
+      setHasMore(page.length === NOTES_PAGE);
+    } catch { if (!after.length) setNotes([]); setHasMore(false); }
+    finally { setLoadingNotes(false); }
+  }, [store, unreadOnly, catFilter]);
+  useEffect(() => { void loadNotes(); }, [loadNotes]);
+  const markRead = async (id: string) => {
+    await store.markNoteRead?.(id);
+    setNotes((ns) => (unreadOnly ? ns.filter((n) => n.id !== id) : ns.map((n) => (n.id === id ? { ...n, read: true } : n))));
+  };
   const deleteNote = async (id: string) => {
     if (!(await ask("Delete this note permanently?"))) return;
-    await store.deleteNote?.(id); reloadNotes();
+    await store.deleteNote?.(id);
+    setNotes((ns) => ns.filter((n) => n.id !== id));
   };
+  // Submission tallies are counted by the store when it can, so paging notes can't
+  // undercount them; older stores fall back to the notes loaded so far.
+  const [subStats, setSubStats] = useState<SubmissionStat[] | null>(null);
+  useEffect(() => {
+    if (!store.readSubmissionStats) { setSubStats(null); return; }
+    store.readSubmissionStats(range).then(setSubStats).catch(() => setSubStats(null));
+  }, [store, range]);
 
   useEffect(() => { store.readTriggerStats?.(range).then(setStatsRange).catch(() => setStatsRange([])); }, [store, range]);
   const [friction, setFriction] = useState<FrictionStat[]>([]);
@@ -131,7 +177,8 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
 
   const byIdRange = useMemo(() => new Map(statsRange.map((s) => [s.triggerId, s])), [statsRange]);
   const everFired = useMemo(() => new Set(statsAll.filter((s) => s.shown > 0).map((s) => s.triggerId)), [statsAll]);
-  const entryPoints = useMemo(() => new Set(["manual", "button", ...notes.filter((n) => n.category != null || n.context != null).map((n) => n.triggerId)]), [notes]);
+  const entryPoints = useMemo(() => new Set(["manual", "button", ...(subStats ?? []).map((s) => s.source),
+    ...notes.filter((n) => n.category != null || n.context != null).map((n) => n.triggerId)]), [notes, subStats]);
   const rt = (id: string): "choice3" | "choice" | "text" => draft.triggers[id] ? responseTypeOf(draft.triggers[id]) : entryPoints.has(id) ? "text" : "choice3";
 
   const rowIds = useMemo(() => {
@@ -139,35 +186,34 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
     return [...ids].sort();
   }, [draft, statsRange, statsAll]);
 
-  // choice3-only summary sentence (§6 rule 4).
-  const sentence = useMemo(() => {
-    const c3 = rowIds.filter((id) => rt(id) === "choice3");
-    let shown = 0, answered = 0, yes = 0, nr = 0, un = 0;
-    for (const id of c3) { const s = byIdRange.get(id); if (!s) continue; shown += s.shown; answered += s.answered; yes += s.byAnswer.yes; nr += s.byAnswer.not_really; un += s.byAnswer.unclear; }
-    if (shown === 0) return "No rating prompts were shown in this range.";
-    if (answered === 0) return `Nobody has answered yet. ${shown} prompt${shown === 1 ? " was" : "s were"} shown and closed without a reply.`;
-    return `${answered} of ${shown} shown prompt${shown === 1 ? "" : "s"} got an answer — ${yes} yes, ${nr} not really, ${un} not sure.`;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rowIds, byIdRange]);
+  // choice3-only headline (§6 rule 4): the question to look at first.
+  const sentence = useMemo(() => resultsHeadline(rowIds.filter((id) => rt(id) === "choice3").flatMap((id) => {
+    const s = byIdRange.get(id);
+    return s ? [{ id, question: draft.triggers[id]?.question, shown: s.shown, answered: s.answered, notReally: s.byAnswer.not_really }] : [];
+  })),
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  [rowIds, byIdRange, draft]);
 
   // Submissions from the button's panel: notes carrying a category or context. Their
   // trigger id is the entry point ("button", or the host's own label; "manual" from
   // before 0.3 counts as the button). Counted within the selected range.
-  const [catFilter, setCatFilter] = useState("all");
   const sourceOf = (n: AdminNote) => (n.triggerId === "manual" ? "button" : n.triggerId);
-  const submissions = useMemo(() => notes.filter((n) => (n.category != null || n.context != null)
-    && n.createdAt >= range.from && n.createdAt < range.to), [notes, range]);
-  const tally = (key: (n: AdminNote) => string) => {
+  const subs: SubmissionStat[] = useMemo(() => subStats ?? notes
+    .filter((n) => (n.category != null || n.context != null) && n.createdAt >= range.from && n.createdAt < range.to)
+    .map((n) => ({ source: sourceOf(n), category: n.category ?? null, count: 1 })), [subStats, notes, range]); // eslint-disable-line react-hooks/exhaustive-deps
+  const subTotal = subs.reduce((a, s) => a + s.count, 0);
+  const tally = (key: (s: SubmissionStat) => string) => {
     const m = new Map<string, number>();
-    for (const n of submissions) m.set(key(n), (m.get(key(n)) ?? 0) + 1);
+    for (const s of subs) m.set(key(s), (m.get(key(s)) ?? 0) + s.count);
     return [...m.entries()].sort((a, z) => z[1] - a[1]);
   };
-  const byCategory = useMemo(() => tally((n) => n.category || DASH), [submissions]); // eslint-disable-line react-hooks/exhaustive-deps
-  const bySource = useMemo(() => tally(sourceOf), [submissions]); // eslint-disable-line react-hooks/exhaustive-deps
+  const byCategory = useMemo(() => tally((s) => s.category || DASH), [subs]); // eslint-disable-line react-hooks/exhaustive-deps
+  const bySource = useMemo(() => tally((s) => s.source), [subs]); // eslint-disable-line react-hooks/exhaustive-deps
   const categoryLabel = (k: string) => draft.categories.find((c) => c.key === k)?.label ?? k;
-  const noteCats = [...new Set(notes.map((n) => n.category).filter((c): c is string => !!c))].sort();
+  const noteCats = [...new Set([...subs.map((s) => s.category), ...notes.map((n) => n.category), catFilter === "all" ? null : catFilter]
+    .filter((c): c is string => !!c))].sort();
 
-  const shownNotes = notes.filter((n) => (!unreadOnly || !n.read) && (catFilter === "all" || n.category === catFilter));
+  const shownNotes = notes;
 
   return (
     <>
@@ -231,9 +277,9 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
         </div>
       )}
 
-      {submissions.length > 0 && (
+      {subTotal > 0 && (
         <div style={{ ...card, display: "flex", gap: 24, flexWrap: "wrap" }}>
-          <p style={{ margin: 0, fontSize: 15, flexBasis: "100%" }}>{submissions.length} submission{submissions.length === 1 ? "" : "s"} from the feedback button in this range.</p>
+          <p style={{ margin: 0, fontSize: 15, flexBasis: "100%" }}>{subTotal} submission{subTotal === 1 ? "" : "s"} from the feedback button in this range.</p>
           <Tally title="By category" rows={byCategory.map(([k, n]) => [k === DASH ? "No category" : categoryLabel(k), n])} />
           <Tally title="By entry point" rows={bySource} />
         </div>
@@ -256,7 +302,7 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
             </label>
           </span>
         </div>
-        {shownNotes.length === 0 ? <p style={muted}>Nothing here.</p> : (
+        {shownNotes.length === 0 ? <p style={muted}>{loadingNotes ? "Loading…" : "Nothing here."}</p> : (
           <ul style={{ listStyle: "none", margin: 0, padding: 0, display: "flex", flexDirection: "column", gap: 10 }}>
             {shownNotes.map((n) => (
               <li key={n.id} style={{ borderLeft: `2px solid ${n.read ? "var(--k-border, #E7E2D3)" : "var(--k-action-fill, #394293)"}`, paddingLeft: 12 }}>
@@ -275,6 +321,11 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
               </li>
             ))}
           </ul>
+        )}
+        {hasMore && (
+          <button onClick={() => void loadNotes(notes)} disabled={loadingNotes} style={{ ...btn, marginTop: 12 }}>
+            {loadingNotes ? "Loading…" : "Load more"}
+          </button>
         )}
       </div>
     </>

@@ -65,6 +65,14 @@ export interface AdminNote {
   context?: Record<string, unknown> | null;   // submissions only; shape varies by version
 }
 
+// Notes are read a page at a time, newest first. `before` is the last note already
+// loaded (its createdAt and id, so notes sharing a timestamp are never skipped); omit
+// `limit` for everything (older callers).
+export interface NotesQuery { unreadOnly?: boolean; category?: string; before?: { createdAt: string; id: string }; limit?: number }
+
+// Button-panel submissions in a range, counted per entry point and category.
+export interface SubmissionStat { source: string; category: string | null; count: number }
+
 // One burst of repeated presses on a labelled element (see friction.ts).
 export interface FrictionEvent { userId: string; label: string; route: string; clicks: number }
 
@@ -86,7 +94,8 @@ export interface AugurStore {
   readTriggerStats?(range: DateRange): Promise<TriggerStat[]>;
   readUnconfigured?(): Promise<Unconfigured[]>;
   readFriction?(range: DateRange): Promise<FrictionStat[]>;
-  readNotes?(opts?: { unreadOnly?: boolean }): Promise<AdminNote[]>;
+  readNotes?(opts?: NotesQuery): Promise<AdminNote[]>;
+  readSubmissionStats?(range: DateRange): Promise<SubmissionStat[]>;   // optional: tallies counted by the store
   markNoteRead?(noteId: string): Promise<void>;
   deleteNote?(noteId: string): Promise<void>;
   purgeData?(beforeDays: number | null): Promise<number>;   // null = everything; returns events removed

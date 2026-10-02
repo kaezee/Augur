@@ -234,8 +234,10 @@ delete from augur_friction     where user_id = :id;
 Replace your `augur/` folder with the new one, then on Supabase run each migration
 newer than the version you had, in order. They're additive and safe to rerun.
 
-- **From 0.3:** [`sql/migrations/0.4.0.sql`](./sql/migrations/0.4.0.sql) (friction).
-- **From 0.2:** [`0.3.0.sql`](./sql/migrations/0.3.0.sql), then `0.4.0.sql`. The
+- **From 0.4 (current `main`):** [`sql/migrations/0.5.0.sql`](./sql/migrations/0.5.0.sql)
+  (paged notes, store-side submission tallies, a date index).
+- **From 0.3:** [`0.4.0.sql`](./sql/migrations/0.4.0.sql) (friction), then `0.5.0.sql`.
+- **From 0.2:** [`0.3.0.sql`](./sql/migrations/0.3.0.sql), then `0.4.0.sql` and `0.5.0.sql`. The
   built-in button now opens the category panel; set `categories: []` to keep plain
   free text.
 

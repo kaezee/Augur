@@ -98,6 +98,7 @@ const PATHS: Record<string, ReactNode> = {
   github: <path d="M9 19c-4 1.3-4-2-6-2.5M15 21v-3.4a3 3 0 0 0-.8-2.3c2.7-.3 5.5-1.3 5.5-6a4.6 4.6 0 0 0-1.3-3.2 4.3 4.3 0 0 0-.1-3.2s-1-.3-3.4 1.3a11.6 11.6 0 0 0-6 0C6.5 2.6 5.5 2.9 5.5 2.9a4.3 4.3 0 0 0-.1 3.2A4.6 4.6 0 0 0 4 9.3c0 4.6 2.8 5.7 5.5 6a3 3 0 0 0-.8 2.3V21" />,
   info: <><circle cx="12" cy="12" r="9" /><path d="M12 11v5M12 8h.01" /></>,
   inbox: <><path d="M3 13l3-8h12l3 8v6H3z" /><path d="M3 13h5l1.5 2.5h5L16 13h5" /></>,
+  list: <><path d="M10 6h10M10 12h10M10 18h10" /><path d="M3.5 6l1.5 1.5L7.5 5M3.5 12l1.5 1.5L7.5 11" /><circle cx="5" cy="18" r="1.4" /></>,
 };
 const Icon = ({ n }: { n: string }) => <svg className="i" viewBox="0 0 24 24" aria-hidden="true">{PATHS[n]}</svg>;
 const Grip = () => <svg className="i" viewBox="0 0 16 16" aria-hidden="true">{[3.5, 8, 12.5].flatMap((y) => [5.5, 10.5].map((x) => <circle key={`${x}${y}`} cx={x} cy={y} r="1.3" />))}</svg>;
@@ -321,10 +322,13 @@ function App() {
 
           <section className="card steps" aria-labelledby="stepsTitle">
             <div className="steps-head">
-              <svg className="ring" viewBox="0 0 24 24" aria-hidden="true">
-                <circle className="bg" cx="12" cy="12" r="10.5" />
-                <circle className="fg" cx="12" cy="12" r="10.5" strokeDasharray="65.97" strokeDashoffset={65.97 * (1 - n / 4)} transform="rotate(-90 12 12)" />
-              </svg>
+              <span className={`ringwrap${n === 4 ? " all" : ""}`} aria-hidden="true">
+                <svg className="ring" viewBox="0 0 24 24">
+                  <circle className="bg" cx="12" cy="12" r="10.5" />
+                  <circle className="fg" cx="12" cy="12" r="10.5" strokeDasharray="65.97" strokeDashoffset={65.97 * (1 - n / 4)} transform="rotate(-90 12 12)" />
+                </svg>
+                <Icon n={n === 4 ? "check" : "list"} />
+              </span>
               <div><h2 id="stepsTitle">Four things to try</h2><span className="sub">About a minute, any order.</span></div>
               <span className={`progress${n === 4 ? " all" : ""}`} aria-label={`${n} of 4 done`}>{n}/4</span>
             </div>

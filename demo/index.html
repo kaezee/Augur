@@ -62,7 +62,10 @@
     .steps-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; padding-inline: 2px; }
     .steps-head h2 { font-size: 14px; font-weight: 600; }
     .steps-head .sub { font-size: 12px; color: var(--ink-3); display: block; }
-    .ring { width: 34px; height: 34px; flex: none; }
+    .ringwrap { position: relative; width: 34px; height: 34px; flex: none; display: grid; place-items: center; color: var(--ink-2); }
+    .ringwrap .ring { position: absolute; inset: 0; width: 34px; height: 34px; }
+    .ringwrap > svg.i { width: 15px; height: 15px; }
+    .ringwrap.all > svg.i { color: var(--green); stroke-width: 2.4; }
     .ring circle { fill: none; stroke-width: 2.4; }
     .ring .bg { stroke: var(--sunken); }
     .ring .fg { stroke: var(--green); stroke-linecap: round; transition: stroke-dashoffset .4s ease; }

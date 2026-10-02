@@ -37,7 +37,8 @@ export function frictionLabel(target: EventTarget | null): string | null {
 
 // Watch presses on labelled elements. pointerdown rather than click, so presses on a
 // disabled button (the classic "it won't save" moment) are still seen where the
-// browser dispatches them. Returns an uninstall.
+// browser dispatches them. Enter and Space count too, so keyboard users' repeated
+// presses are seen; a held-down key (auto-repeat) is one press. Returns an uninstall.
 export function installFrictionWatch(onBurst: (label: string, clicks: number) => void): () => void {
   if (typeof document === "undefined") return () => {};
   const detector = new FrictionDetector();
@@ -48,6 +49,11 @@ export function installFrictionWatch(onBurst: (label: string, clicks: number) =>
     const clicks = detector.press(label, Date.now());
     if (clicks != null && sent < FRICTION_MAX_PER_SESSION) { sent++; onBurst(label, clicks); }
   };
+  const onKey = (e: KeyboardEvent) => { if (!e.repeat && (e.key === "Enter" || e.key === " ")) onPress(e); };
   document.addEventListener("pointerdown", onPress, { capture: true, passive: true });
-  return () => document.removeEventListener("pointerdown", onPress, { capture: true });
+  document.addEventListener("keydown", onKey, { capture: true, passive: true });
+  return () => {
+    document.removeEventListener("pointerdown", onPress, { capture: true });
+    document.removeEventListener("keydown", onKey, { capture: true });
+  };
 }

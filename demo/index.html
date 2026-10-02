@@ -13,9 +13,9 @@
     :root {
       color-scheme: light;
       --bg: #f3f4f8; --surface: #fff; --sunken: #eceef4; --line: #e2e5ec; --line-strong: #cbd0da;
-      --ink: #121419; --ink-2: #545b69; --ink-3: #6b7280;
+      --ink: #121419; --ink-2: #3d4350; --ink-3: #474d5a;
       --accent: #3b4cdb; --accent-tint: #eef0fe; --accent-line: #c9cffb; --accent-ink: #2c3bb8;
-      --teal: #0f766e; --teal-tint: #e1f4f1; --amber: #985a00; --amber-tint: #fdf1dc; --green: #1d7f53; --green-tint: #e2f3ea;
+      --teal: #0f766e; --teal-tint: #e1f4f1; --amber: #985a00; --amber-tint: #fdf1dc; --green: #1d7f53; --green-tint: #e2f3ea; --green-ink: #125236;
       --shadow-1: 0 1px 2px rgba(18,20,25,.06);
       --shadow-2: 0 1px 2px rgba(18,20,25,.06), 0 10px 28px rgba(18,20,25,.08);
       --shadow-lift: 0 2px 4px rgba(18,20,25,.08), 0 18px 40px rgba(18,20,25,.18);
@@ -23,11 +23,12 @@
       --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
       /* Augur reads these, so its prompt and panel match the app */
       --k-bg-raised: #fff; --k-bg-surface: #fff; --k-bg-sunken: #f3f4f8; --k-border: #e2e5ec; --k-border-strong: #cbd0da;
-      --k-text-primary: #121419; --k-text-secondary: #545b69; --k-text-tertiary: #6b7280;
+      --k-text-primary: #121419; --k-text-secondary: #3d4350; --k-text-tertiary: #474d5a;
       --k-action-fill: #121419; --k-on-action-fill: #fff; --k-font-sans: var(--font-ui);
       --k-radius-container: 12px; --k-radius-control: 9px;
     }
     * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
     html, body, #root { height: 100%; }
     body { margin: 0; background: var(--bg); color: var(--ink); font: 14px/1.45 var(--font-ui); -webkit-font-smoothing: antialiased; }
     #root { display: flex; flex-direction: column; }
@@ -71,7 +72,7 @@
     .ring .bg { stroke: var(--sunken); }
     .ring .fg { stroke: var(--green); stroke-linecap: round; transition: stroke-dashoffset .4s ease; }
     .progress { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--ink-2); font-variant-numeric: tabular-nums; padding: 2px 8px; border-radius: 999px; background: var(--sunken); }
-    .progress.all { background: var(--green-tint); color: var(--green); }
+    .progress.all { background: var(--green-tint); color: var(--green-ink); }
     ul.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
     .step { display: grid; grid-template-columns: 20px 1fr 22px; gap: 10px; padding: 9px 6px; align-items: start; border-radius: 8px; }
     .step .num { font-size: 13px; font-weight: 600; color: var(--ink-3); line-height: 20px; text-align: center; }
@@ -84,7 +85,7 @@
     .step.done .box { background: var(--green); border: 1.5px solid var(--green); color: #fff; }
     .step.done .box svg { opacity: 1; transform: none; }
     .step.done b { color: var(--ink-2); font-weight: 500; }
-    .step.done .num { color: var(--green); }
+    .step.done .num { color: var(--green-ink); }
     .step.done .eff, .step.done .d { display: none; }
     .finish { margin-top: 8px; padding: 12px; border-radius: 10px; background: var(--ink); color: #fff; display: flex; flex-direction: column; gap: 10px; }
     .finish b { font-size: 14px; }
@@ -126,6 +127,7 @@
     .tab[aria-selected="true"] { background: var(--surface); color: var(--ink); box-shadow: var(--shadow-1); }
     .bar-row .note { font-size: 12px; color: var(--ink-3); display: flex; align-items: center; gap: 6px; margin-left: auto; }
     .frame { position: relative; flex: 1; min-height: 0; background: var(--surface); border: 1px solid var(--line); border-radius: 16px; box-shadow: var(--shadow-2); overflow: hidden; display: flex; flex-direction: column; }
+    .panel { flex: 1; min-height: 0; display: flex; flex-direction: column; }
     .frame-head { flex: none; display: flex; align-items: center; gap: 10px; padding: 13px 18px; border-bottom: 1px solid var(--line); }
     .frame-head h3 { font-size: 15px; font-weight: 600; }
     .frame-head span { color: var(--ink-2); font-size: 13px; }
@@ -192,7 +194,7 @@
     @media (max-width: 1000px) { .page { grid-template-columns: minmax(0, 1fr); } }
     @media (max-width: 720px) {
       .top { padding-inline: 16px; }
-      .top .link span { display: none; }
+      .top .link span, .top .pill { display: none; }
       .page { padding-inline: 16px; gap: 16px; }
       .board { grid-template-columns: minmax(0, 1fr); padding: 12px 12px 72px; overflow: visible; }
       .bar-row .note { display: none; }

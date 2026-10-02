@@ -148,7 +148,10 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
     const back = active?.manual ? returnFocus.current : null;
     returnFocus.current = null;
     setActive(null);
-    if (back && back.isConnected) window.setTimeout(() => back.focus(), 0);
+    // Opened from the built-in button: that button is hidden while the panel is up, so
+    // the element focus came from is gone; return focus to the re-rendered button.
+    const fab = back?.hasAttribute("data-augur-fab");
+    if (back) window.setTimeout(() => (back.isConnected ? back : fab ? document.querySelector<HTMLElement>("[data-augur-fab]") : null)?.focus(), 0);
   };
   const onAnswer = (answer?: string) => {
     if (!active || active.manual || isTesting()) return;
@@ -203,7 +206,7 @@ function PersistentButton({ position, label, name, onClick }: { position: "botto
     display: "inline-flex", alignItems: "center", gap: 7,
   };
   return createPortal(
-    <button className="augur-ui" style={style} onClick={onClick} aria-label={name} title={name}><style>{FAB_FOCUS_CSS}</style><AugurMark size={15} /> {label}</button>,
+    <button className="augur-ui" data-augur-fab="" style={style} onClick={onClick} aria-label={name} title={name}><style>{FAB_FOCUS_CSS}</style><AugurMark size={15} /> {label}</button>,
     document.body,
   );
 }

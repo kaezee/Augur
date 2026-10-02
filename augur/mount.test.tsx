@@ -78,6 +78,19 @@ describe("emit API", () => {
     expect(document.activeElement).toBe(outside);
     outside.remove();
   });
+
+  it("closing the panel opened from the built-in button returns focus to that button", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    await mount(CFG, fakeStore());
+    const fab = () => document.querySelector<HTMLButtonElement>("[data-augur-fab]");
+    fab()!.focus();
+    await act(async () => { fab()!.click(); });
+    expect(fab()).toBeNull();                                  // hidden while the panel is up
+    await act(async () => { augur.close(); });                 // the button renders again…
+    await act(async () => { await vi.runOnlyPendingTimersAsync(); });   // …then takes focus
+    expect(fab()).not.toBeNull();
+    expect(document.activeElement).toBe(fab());
+  });
 });
 
 describe("the button's panel", () => {
@@ -175,6 +188,18 @@ describe("friction", () => {
     press(btn.firstChild as Element); press(btn); press(btn); press(btn);
     expect(store.logFriction).toHaveBeenCalledTimes(1);
     expect(store.logFriction).toHaveBeenCalledWith({ userId: "u1", label: "save-entity", route: "/", clicks: 3 });
+    btn.remove();
+  });
+
+  it("counts Enter/Space presses from the keyboard, but not a held-down key", async () => {
+    const store = storeWithFriction();
+    await mount(CFG, store);
+    const btn = document.createElement("button"); btn.dataset.augur = "assign"; document.body.appendChild(btn);
+    const key = (k: string, repeat = false) => btn.dispatchEvent(new KeyboardEvent("keydown", { key: k, repeat, bubbles: true }));
+    key("Enter"); key("Enter", true); key("Enter", true);   // one press held down
+    expect(store.logFriction).not.toHaveBeenCalled();
+    key(" "); key("Enter");
+    expect(store.logFriction).toHaveBeenCalledWith({ userId: "u1", label: "assign", route: "/", clicks: 3 });
     btn.remove();
   });
 

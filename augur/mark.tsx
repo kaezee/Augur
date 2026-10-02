@@ -40,8 +40,8 @@ export const AUGUR_REPO_URL = "https://github.com/kaezee/Augur";
 export function AugurByline({ style }: { style?: React.CSSProperties }) {
   return (
     <span style={{ display: "inline-flex", alignItems: "center", gap: 10, ...style }}>
-      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, opacity: 0.85, fontSize: 11.5, fontWeight: 700 }}>
-        <span style={{ opacity: 0.65 }}>by</span> <AugurWordmark size={14} />
+      <span style={{ display: "inline-flex", alignItems: "center", gap: 5, fontSize: 11.5, fontWeight: 700, color: "var(--k-text-secondary, #5C5647)" }}>
+        <span>by</span> <AugurWordmark size={14} />
       </span>
       {AUGUR_REPO_URL && <AugurProjectLink />}
     </span>

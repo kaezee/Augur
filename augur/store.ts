@@ -65,6 +65,12 @@ export interface AdminNote {
   context?: Record<string, unknown> | null;   // submissions only; shape varies by version
 }
 
+// One burst of repeated presses on a labelled element (see friction.ts).
+export interface FrictionEvent { userId: string; label: string; route: string; clicks: number }
+
+// Admin view: bursts per label within a range.
+export interface FrictionStat { label: string; bursts: number; people: number; topRoute: string | null; lastSeen: string }
+
 export interface AugurStore {
   // ── collection (required) ──
   logShown(e: { userId: string; triggerId: string; triggerVer: number }): Promise<string>; // returns eventId
@@ -73,11 +79,13 @@ export interface AugurStore {
   logUnconfigured(triggerId: string, userId: string): Promise<void>;   // §5 — emit with no config
   submit(s: Submission): Promise<void>;                                 // the button's panel
   readConfig(): Promise<ConfigOverrides>;
+  logFriction?(e: FrictionEvent): Promise<void>;                        // optional: friction (0.4)
 
   // ── admin reads (optional) ──
   readSummary?(range: DateRange): Promise<Summary>;
   readTriggerStats?(range: DateRange): Promise<TriggerStat[]>;
   readUnconfigured?(): Promise<Unconfigured[]>;
+  readFriction?(range: DateRange): Promise<FrictionStat[]>;
   readNotes?(opts?: { unreadOnly?: boolean }): Promise<AdminNote[]>;
   markNoteRead?(noteId: string): Promise<void>;
   deleteNote?(noteId: string): Promise<void>;

@@ -127,6 +127,16 @@ AGENTS.md tells it how.
   headings, placeholders, accessible labels) and merges per key, so you can
   override one without restating the rest. Translate `followup`, `manualQuestion`
   and the `answers` labels alongside it.
+- **Friction, without asking** — label the controls that matter with
+  `data-augur="save-entity"`. When someone presses the same labelled control 3 times
+  within a second (the "is this thing working?" moment), Augur records it quietly:
+  the label, the page path and the press count. No prompt, no element text, nothing
+  typed, at most 20 per session. Admin shows which labels people fight with most.
+  Unlabelled elements are never watched; `friction: false` turns it off.
+
+  ```tsx
+  <button data-augur="save-entity" onClick={save}>Save</button>
+  ```
 - **Accessible** — prompts are announced politely, triggered prompts never take focus, the
   panel takes focus when someone opens it and gives it back when it closes, Esc
   closes in every state, and every control has a visible focus ring.
@@ -164,14 +174,17 @@ caps: { perSession: 1, perUserDays: 7, suppressAfterAnswerDays: 7 },
 
 Go back to the defaults when you launch.
 
-## Upgrading from 0.2
+## Upgrading
 
-1. Replace your `augur/` folder with the new one.
-2. On Supabase, run [`sql/migrations/0.3.0.sql`](./sql/migrations/0.3.0.sql) once.
-   It's additive and safe to rerun.
+Replace your `augur/` folder with the new one, then on Supabase run each migration
+newer than the version you had, in order. They're additive and safe to rerun.
 
-Your triggers keep working unchanged. The built-in button now opens the category
-panel; set `categories: []` to keep plain free text. See [CHANGELOG.md](./CHANGELOG.md).
+- **From 0.3:** [`sql/migrations/0.4.0.sql`](./sql/migrations/0.4.0.sql) (friction).
+- **From 0.2:** [`0.3.0.sql`](./sql/migrations/0.3.0.sql), then `0.4.0.sql`. The
+  built-in button now opens the category panel; set `categories: []` to keep plain
+  free text.
+
+Your triggers keep working unchanged. See [CHANGELOG.md](./CHANGELOG.md).
 
 ## Attribution
 

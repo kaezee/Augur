@@ -76,6 +76,9 @@ export interface AugurConfig {
   // viewport, browser, recent errors). false = no listeners, nothing sent.
   context: boolean;
   ignoreErrorSources: string[];                    // error source prefixes to drop
+  // Friction: 3+ presses within a second on an element labelled data-augur="…" is
+  // recorded quietly (label + page path only). false = no listener at all.
+  friction: boolean;
   triggers: Record<string, TriggerDef>;            // host-supplied
 }
 
@@ -116,6 +119,7 @@ export const AUGUR_BASE_DEFAULTS: Omit<AugurConfig, "triggers"> = {
   },
   context: true,
   ignoreErrorSources: [],
+  friction: true,
 };
 
 // 0 or 2–5 categories with unique keys. One category is meaningless (a one-option

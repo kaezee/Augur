@@ -4,12 +4,13 @@
 // admin reads. Single-device, no auth, no network. Not for real collection.
 
 import type { ConfigOverrides } from "../config";
-import type { AdminNote, AugurStore, DateRange, Submission, SubmitContext, Summary, TriggerStat, Unconfigured } from "../store";
+import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, Submission, SubmitContext, Summary, TriggerStat, Unconfigured } from "../store";
 
 interface Ev { id: string; userId: string; triggerId: string; triggerVer: number; outcome: "shown" | "ignored" | "answered"; answer?: string; shownAt: number; category?: string; context?: SubmitContext; }
 interface Note { id: string; eventId: string; body: string; createdAt: number; readAt?: number; }
 interface Unc { triggerId: string; userId: string; seenAt: number; }
-interface Bag { events: Ev[]; notes: Note[]; unconfigured: Unc[]; overrides: ConfigOverrides; }
+interface Fr { userId: string; label: string; route: string; clicks: number; at: number; }
+interface Bag { events: Ev[]; notes: Note[]; unconfigured: Unc[]; friction: Fr[]; overrides: ConfigOverrides; }
 
 const KEY = "augur.local";
 
@@ -17,8 +18,8 @@ function load(): Bag {
   try {
     const raw = localStorage.getItem(KEY);
     const b = raw ? (JSON.parse(raw) as Partial<Bag>) : {};
-    return { events: b.events ?? [], notes: b.notes ?? [], unconfigured: b.unconfigured ?? [], overrides: b.overrides ?? {} };
-  } catch { return { events: [], notes: [], unconfigured: [], overrides: {} }; }
+    return { events: b.events ?? [], notes: b.notes ?? [], unconfigured: b.unconfigured ?? [], friction: b.friction ?? [], overrides: b.overrides ?? {} };
+  } catch { return { events: [], notes: [], unconfigured: [], friction: [], overrides: {} }; }
 }
 function save(b: Bag) { try { localStorage.setItem(KEY, JSON.stringify(b)); } catch { /* private mode */ } }
 const within = (t: number, r: DateRange) => t >= Date.parse(r.from) && t < Date.parse(r.to);
@@ -86,6 +87,24 @@ export class LocalStore implements AugurStore {
     return [...by.values()].sort((a, z) => a.triggerId.localeCompare(z.triggerId));
   }
 
+  async logFriction(e: FrictionEvent): Promise<void> {
+    const b = load(); b.friction.push({ ...e, at: Date.now() }); save(b);
+  }
+
+  async readFriction(range: DateRange): Promise<FrictionStat[]> {
+    const by = new Map<string, { bursts: number; people: Set<string>; routes: Map<string, number>; last: number }>();
+    for (const f of load().friction) {
+      if (!within(f.at, range)) continue;
+      const s = by.get(f.label) ?? { bursts: 0, people: new Set<string>(), routes: new Map<string, number>(), last: 0 };
+      s.bursts++; s.people.add(f.userId); s.routes.set(f.route, (s.routes.get(f.route) ?? 0) + 1); s.last = Math.max(s.last, f.at);
+      by.set(f.label, s);
+    }
+    return [...by.entries()].map(([label, s]) => ({
+      label, bursts: s.bursts, people: s.people.size, lastSeen: new Date(s.last).toISOString(),
+      topRoute: [...s.routes.entries()].sort((a, z) => z[1] - a[1])[0]?.[0] ?? null,
+    })).sort((a, z) => z.bursts - a.bursts);
+  }
+
   async readUnconfigured(): Promise<Unconfigured[]> {
     const b = load();
     const by = new Map<string, Unconfigured>();
@@ -130,6 +149,7 @@ export class LocalStore implements AugurStore {
     b.events = keep;
     b.notes = b.notes.filter((n) => !removedIds.has(n.eventId));
     b.unconfigured = beforeDays == null ? [] : b.unconfigured.filter((u) => u.seenAt >= cutoff);
+    b.friction = beforeDays == null ? [] : b.friction.filter((f) => f.at >= cutoff);
     save(b);
     return removed;
   }

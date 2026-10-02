@@ -3,6 +3,23 @@
 Augur is distributed by copying the `augur/` folder. Each entry says what changed and
 what to run when upgrading.
 
+## 0.4.0
+
+- **Friction:** label controls with `data-augur="…"`. Three presses on the same label
+  within a second is recorded quietly (label, page path, press count; never element
+  text or input; at most 20 per session). Admin's Results gains a Friction table: bursts,
+  people, most common page, last seen. `friction: false` turns it off. No listener runs
+  when Augur is off, and testing mode records nothing.
+- **Store:** optional `logFriction()` and `readFriction()`; Local, Supabase and HTTP
+  stores implement them. Stores without them simply skip friction.
+- **Database:** new `augur_friction` table and `augur_log_friction()` /
+  `augur_admin_friction()`, not callable by signed-out visitors. `augur_admin_purge()`
+  also clears old friction rows.
+- **Words:** the automatic prompts are called triggers / triggered prompts throughout
+  (no more "moments"). README gallery images use a card per text block.
+
+Upgrading from 0.3: replace `augur/` and run `sql/migrations/0.4.0.sql`.
+
 ## 0.3.0
 
 Augur can now be your product's only feedback button.

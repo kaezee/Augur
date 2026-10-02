@@ -188,3 +188,18 @@ is only ever plain English ("at a real moment in your product"), never a term.
 the word leaked into Augur's docs as the name for its prompts. In any other product
 it's unexplained jargon, and in Kronicler it reads as if Augur only asks about
 Kronicler moments. Using the name the code already uses keeps docs and API in step.
+
+## Friction is recorded, not asked
+
+**Decision.** Augur watches only elements the host labels with `data-augur`. Three
+presses on the same label within a second is one friction burst, recorded quietly with
+the label, page path and press count. No prompt appears, and nothing about the element
+(its text, value, position) or the person's input is read.
+
+**Why.** Repeated pressing is the clearest sign something isn't responding, and it
+happens at exactly the moment a question would be most irritating, so Augur listens
+instead of asking. Labelling is opt-in so the host decides what is worth watching and
+names it in its own terms; watching every element would mean guessing at intent and
+risk capturing text. The threshold (3 in 1 second) is a common default with few false
+positives, and a per-session cap keeps a stuck page from flooding the table.
+

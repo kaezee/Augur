@@ -157,3 +157,33 @@ describe("LocalStore.submit", () => {
     expect(await store.readNotes()).toEqual([]);
   });
 });
+
+describe("friction", () => {
+  const press = (el: Element) => el.dispatchEvent(new Event("pointerdown", { bubbles: true }));
+  const storeWithFriction = () => Object.assign(fakeStore(), { logFriction: vi.fn(async () => {}) });
+
+  it("records one burst for 3 quick presses on a labelled element, label and path only", async () => {
+    const store = storeWithFriction();
+    await mount(CFG, store);
+    const btn = document.createElement("button"); btn.dataset.augur = "save-entity";
+    btn.innerHTML = "<span>Save “Private draft”</span>"; document.body.appendChild(btn);
+    press(btn.firstChild as Element); press(btn); press(btn); press(btn);
+    expect(store.logFriction).toHaveBeenCalledTimes(1);
+    expect(store.logFriction).toHaveBeenCalledWith({ userId: "u1", label: "save-entity", route: "/", clicks: 3 });
+    btn.remove();
+  });
+
+  it("ignores unlabelled elements, testing mode, and friction: false", async () => {
+    for (const cfg of [CFG, { ...CFG, mode: "testing" as const }, { ...CFG, friction: false }]) {
+      const store = storeWithFriction();
+      await mount(cfg, store);
+      const plain = document.createElement("button"); document.body.appendChild(plain);
+      const labelled = document.createElement("button"); labelled.dataset.augur = "x"; document.body.appendChild(labelled);
+      for (let i = 0; i < 3; i++) press(plain);
+      if (cfg !== CFG) for (let i = 0; i < 3; i++) press(labelled);
+      expect(store.logFriction).not.toHaveBeenCalled();
+      plain.remove(); labelled.remove();
+      await act(async () => root.render(<></>));
+    }
+  });
+});

@@ -3,7 +3,8 @@ import { createPortal } from "react-dom";
 import { augur, onClose, setPanelOpen } from "./emit";
 import { canShow, recordShown, recordAnswered, recordIgnored } from "./caps";
 import { effectiveCategories, mergeConfig, responseTypeOf, type AugurConfig, type HostConfig, type TriggerDef } from "./config";
-import { captureContext, installErrorCapture } from "./context";
+import { captureContext, installErrorCapture, stripUrl } from "./context";
+import { installFrictionWatch } from "./friction";
 import type { AugurStore, Submission } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
 import { AugurMark } from "./mark";
@@ -58,6 +59,18 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
   useEffect(() => () => setPanelOpen(false), []);
 
   // Error capture for diagnostic context, only while context is on.
+  // Friction: quiet recording of repeated presses on labelled elements. No listener
+  // when the module or friction is off; nothing written in testing mode.
+  useEffect(() => {
+    if (!cfg.enabled || !cfg.friction || !store.logFriction) return;
+    return installFrictionWatch((label, clicks) => {
+      if (isTesting()) return;
+      const route = typeof location !== "undefined" ? stripUrl(location.pathname) : "";
+      store.logFriction?.({ userId, label, route, clicks }).catch(() => {});
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cfg.enabled, cfg.friction, store, userId]);
+
   const ignoreKey = cfg.ignoreErrorSources.join("\n");
   useEffect(() => (cfg.context ? installErrorCapture(cfg.ignoreErrorSources) : undefined),
     // eslint-disable-next-line react-hooks/exhaustive-deps

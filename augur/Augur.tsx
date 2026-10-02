@@ -8,7 +8,7 @@ import type { AugurStore, Submission } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
 import { AugurMark } from "./mark";
 
-// The mount. One instance, high in the host tree. Two ways in: moments (the host's
+// The mount. One instance, high in the host tree. Two ways in: triggers (the host's
 // augur.emit, gated by the local cap engine, logged per trigger) and the button's
 // panel (the built-in button or the host's own via augur.open(), one submit() on
 // Send). Nothing here knows the backend or the host's product — userId, store and
@@ -16,8 +16,8 @@ import { AugurMark } from "./mark";
 //   <Augur userId={session.user.id} store={store} config={MY_TRIGGERS} />
 
 interface Active {
-  triggerId: string;      // a moment's trigger id, or the panel's entry point
-  eventId: string;        // moments only ("" for the panel: nothing is logged until Send)
+  triggerId: string;      // a trigger's id, or the panel's entry point
+  eventId: string;        // triggers only ("" for the panel: nothing is logged until Send)
   spec: PromptSpec;
   manual: boolean;
 }
@@ -50,7 +50,7 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
   const [active, setActive] = useState<Active | null>(null);
   const activeRef = useRef(false);
   activeRef.current = active !== null;
-  const answered = useRef(false);                       // the current moment got an answer
+  const answered = useRef(false);                       // the current triggered prompt got an answer
   const returnFocus = useRef<HTMLElement | null>(null); // where focus was before open()
 
   // Hosts can listen (augur.onPanelState) to hide their own button while Augur shows.
@@ -114,7 +114,7 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
   }, [userId, store, autoTriggers]);
 
   // The button's panel: person-initiated. Bypasses every cap and never touches the
-  // cap ledger — it must not consume a moment's budget. Nothing is written on open;
+  // cap ledger — it must not consume a trigger's budget. Nothing is written on open;
   // one submit() on Send, nothing at all if the person closes without sending.
   const openManual = (source: string) => {
     if (!cfgRef.current.enabled) return;
@@ -162,7 +162,7 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
     });
   };
 
-  // augur.close(): close whatever is showing. An unanswered moment counts as ignored.
+  // augur.close(): close whatever is showing. An unanswered triggered prompt counts as ignored.
   const closeRef = useRef(() => {});
   closeRef.current = () => { if (!active) return; if (!active.manual && !answered.current) onIgnore(); else clear(); };
   useEffect(() => onClose(() => closeRef.current()), []);

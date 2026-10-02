@@ -109,7 +109,7 @@ AGENTS.md tells it how.
   `Something's missing` by default. Set your own (2 to 5, each `{ key, label }` with
   an optional `placeholder`), or `categories: []` for plain free text. Optional
   `moreLink: { label, href }` adds a quiet "Say more ↗" link. Categories are only
-  for feedback people start themselves; moments keep their own question.
+  for feedback people start themselves; triggered prompts keep their own question.
 - **Diagnostic context with each button submission**, on by default, so a report is
   fixable. It collects places, never words:
   - the page path (`location.pathname` only: never the query string or `#` fragment,
@@ -127,7 +127,7 @@ AGENTS.md tells it how.
   headings, placeholders, accessible labels) and merges per key, so you can
   override one without restating the rest. Translate `followup`, `manualQuestion`
   and the `answers` labels alongside it.
-- **Accessible** — prompts are announced politely, moments never take focus, the
+- **Accessible** — prompts are announced politely, triggered prompts never take focus, the
   panel takes focus when someone opens it and gives it back when it closes, Esc
   closes in every state, and every control has a visible focus ring.
 

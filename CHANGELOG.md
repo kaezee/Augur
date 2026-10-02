@@ -17,7 +17,7 @@ Augur can now be your product's only feedback button.
 - **Your own button:** `augur.open(source)` (default `"button"`), `augur.close()`
   and `augur.onPanelState()`.
 - **Every string configurable** through `strings`, merged per key.
-- **Accessibility:** announced prompts, moments never take focus, the panel takes
+- **Accessibility:** announced prompts, triggered prompts never take focus, the panel takes
   focus and returns it, Esc everywhere, visible focus rings.
 - **Security:** Augur's database functions are no longer callable by signed-out
   visitors.
@@ -27,7 +27,7 @@ Augur can now be your product's only feedback button.
   (`manual`) are counted with `button`.
 - **Admin:** submissions by category and entry point, a category filter, and each
   submission's context in plain words.
-- The button's panel no longer auto-closes after 20 seconds (moments still do).
+- The button's panel no longer auto-closes after 20 seconds (triggered prompts still do).
 - Dev: `package.json`, `tsconfig.json` and CI (typecheck + tests). `augur/` itself
   still has no dependencies.
 
@@ -45,6 +45,6 @@ Upgrading from 0.2: replace `augur/` and run `sql/migrations/0.3.0.sql`.
 
 ## 0.1.0
 
-- First release, under the original Augur License: moments with `choice3`,
+- First release, under the original Augur License: triggered prompts with `choice3`,
   `choice` and `text` responses, local caps, testing mode, unconfigured-emit
   logging, the admin section, and Local, Supabase and HTTP stores.

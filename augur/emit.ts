@@ -27,7 +27,7 @@ export const augur = {
     openers.add(l);
     return () => { openers.delete(l); };
   },
-  // Close whatever Augur is showing (a moment's prompt or the panel).
+  // Close whatever Augur is showing (a triggered prompt or the panel).
   close(): void {
     for (const l of [...closers]) l();
   },

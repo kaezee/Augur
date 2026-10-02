@@ -25,7 +25,7 @@ export interface Presentation {
 
 export interface AnswerOption { key: Answer; label: string; aria?: string }
 
-// The button's panel (person-initiated feedback only; moments keep their own
+// The button's panel (person-initiated feedback only; triggered prompts keep their own
 // question). 0 categories = plain free text; otherwise 2–5 with unique keys.
 // `placeholder` is optional per category and falls back to strings.textPlaceholder.
 export interface Category { key: string; label: string; placeholder?: string }

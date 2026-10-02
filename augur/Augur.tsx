@@ -199,7 +199,7 @@ function PersistentButton({ position, label, name, onClick }: { position: "botto
   const side = position === "bottom-left" ? { left: 24 } : { right: 24 };
   const style: React.CSSProperties = {
     position: "fixed", bottom: 24, ...side, zIndex: 2147482000,
-    cursor: "pointer", padding: "8px 14px", borderRadius: 999,
+    cursor: "pointer", padding: "0 16px", minHeight: 44, borderRadius: 999,
     border: "1px solid var(--k-border-strong, #D3CCB9)", background: "var(--k-bg-raised, #ffffff)",
     color: "var(--k-text-secondary, #5C5647)", boxShadow: "0 4px 16px rgba(0,0,0,.12)",
     font: "600 12.5px/1 var(--k-font-sans, ui-sans-serif, system-ui, sans-serif)",

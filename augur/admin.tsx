@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { lockedInCode, mergeConfig, responseTypeOf, type AugurConfig, type ConfigOverrides, type HostConfig, type TriggerDef } from "./config";
 import type { AdminNote, AugurStore, DateRange, FrictionStat, SubmissionStat, Summary, TriggerStat, Unconfigured } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
@@ -12,8 +12,9 @@ import { AugurWordmark, AUGUR_REPO_URL } from "./mark";
 const card: React.CSSProperties = { background: "var(--k-bg-raised, #fff)", border: "1px solid var(--k-border, #E7E2D3)", borderRadius: "var(--k-radius-container, 10px)", padding: 18, marginBottom: 16 };
 const muted: React.CSSProperties = { color: "var(--k-text-tertiary, #98917E)", fontSize: 12.5 };
 const lbl: React.CSSProperties = { display: "block", ...muted, marginBottom: 4, fontWeight: 600 };
-const input: React.CSSProperties = { font: "inherit", padding: "7px 10px", borderRadius: "var(--k-radius-control, 6px)", width: "100%", border: "1px solid var(--k-border, #E7E2D3)", background: "var(--k-bg-surface, #fff)", color: "inherit", boxSizing: "border-box" };
-const btn: React.CSSProperties = { font: "inherit", fontWeight: 600, cursor: "pointer", padding: "7px 12px", borderRadius: "var(--k-radius-control, 6px)", border: "1px solid var(--k-border-strong, #D3CCB9)", background: "var(--k-bg-surface, #fff)", color: "var(--k-text-secondary, #5C5647)" };
+const input: React.CSSProperties = { font: "inherit", padding: "7px 10px", minHeight: 44, borderRadius: "var(--k-radius-control, 6px)", width: "100%", border: "1px solid var(--k-border, #E7E2D3)", background: "var(--k-bg-surface, #fff)", color: "inherit", boxSizing: "border-box" };
+// 44px minimum: WCAG 2.5.5 (AAA) target size.
+const btn: React.CSSProperties = { font: "inherit", fontWeight: 600, cursor: "pointer", padding: "7px 12px", minHeight: 44, minWidth: 44, borderRadius: "var(--k-radius-control, 6px)", border: "1px solid var(--k-border-strong, #D3CCB9)", background: "var(--k-bg-surface, #fff)", color: "var(--k-text-secondary, #5C5647)" };
 const primary: React.CSSProperties = { ...btn, border: "1px solid transparent", background: "var(--k-action-fill, #394293)", color: "var(--k-on-action-fill, #fff)" };
 const DASH = "—";
 // How each response type reads to a human (the raw ids — choice3/choice/text —
@@ -291,13 +292,13 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
           <span style={{ display: "inline-flex", gap: 14, alignItems: "center" }}>
             {noteCats.length > 0 && (
               <label style={{ ...muted, display: "flex", gap: 6, alignItems: "center" }}>category
-                <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} style={{ font: "inherit", fontSize: 12.5 }}>
+                <select value={catFilter} onChange={(e) => setCatFilter(e.target.value)} style={{ font: "inherit", fontSize: 12.5, minHeight: 44 }}>
                   <option value="all">all</option>
                   {noteCats.map((c) => <option key={c} value={c}>{categoryLabel(c)}</option>)}
                 </select>
               </label>
             )}
-            <label style={{ ...muted, display: "flex", gap: 6, alignItems: "center", cursor: "pointer" }}>
+            <label style={{ ...muted, display: "flex", gap: 6, alignItems: "center", minHeight: 44, cursor: "pointer" }}>
               <input type="checkbox" checked={unreadOnly} onChange={(e) => setUnreadOnly(e.target.checked)} /> unread only
             </label>
           </span>
@@ -312,9 +313,9 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
                   <span style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{n.triggerId}</span>
                   {n.answer && <span>· {n.answer}</span>}
                   <span>· {new Date(n.createdAt).toLocaleDateString()}</span>
-                  <span style={{ marginLeft: "auto", display: "inline-flex", gap: 12 }}>
-                    {!n.read && <button onClick={() => markRead(n.id)} style={{ cursor: "pointer", font: "inherit", fontSize: 12, background: "none", border: "none", color: "var(--k-action-fill, #394293)", padding: 0 }}>mark read</button>}
-                    <button onClick={() => deleteNote(n.id)} style={{ cursor: "pointer", font: "inherit", fontSize: 12, background: "none", border: "none", color: "var(--k-danger, #B4453B)", padding: 0 }}>delete</button>
+                  <span style={{ marginLeft: "auto", display: "inline-flex", gap: 4 }}>
+                    {!n.read && <button onClick={() => markRead(n.id)} style={{ cursor: "pointer", font: "inherit", fontSize: 12, background: "none", border: "none", color: "var(--k-action-fill, #394293)", padding: "0 6px", minHeight: 44, minWidth: 44 }}>mark read</button>}
+                    <button onClick={() => deleteNote(n.id)} style={{ cursor: "pointer", font: "inherit", fontSize: 12, background: "none", border: "none", color: "var(--k-danger, #B4453B)", padding: "0 6px", minHeight: 44, minWidth: 44 }}>delete</button>
                   </span>
                 </div>
                 {n.context && <ContextBlock ctx={n.context} />}
@@ -569,6 +570,7 @@ function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft, locked }: {
   // A pure preview — it renders the real prompt but logs NOTHING, so previews
   // never show up in the counts.
   const [preview, setPreview] = useState(false);
+  const uid = useId();
   const type = responseTypeOf(t);
   const spec: PromptSpec = { question: t.question, followup: t.followup ?? draft.followup, responseType: type, answers: draft.answers, options: t.options, position: draft.presentation.position };
 
@@ -583,16 +585,19 @@ function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft, locked }: {
           {/* stopPropagation only on the toggle, so it doesn't also expand the row;
               the chevron stays part of the header's open/close click. */}
           <span onClick={(e) => e.stopPropagation()} style={{ display: "inline-flex" }}>
-            <Toggle checked={t.enabled} onChange={(v) => patch({ enabled: v })} title="" hint="" compact disabled={locked}
+            <Toggle checked={t.enabled} onChange={(v) => patch({ enabled: v })} title="" hint="" name={`Ask ${id}`} compact disabled={locked}
               labelTitle={locked ? "Turned off in code" : undefined} />
           </span>
-          <span style={muted} aria-hidden>{isOpen ? "▲" : "▼"}</span>
+          {/* No onClick of its own: the click bubbles to the header row, so mouse and keyboard share one handler. */}
+          <button type="button" aria-expanded={isOpen} aria-label={`Edit ${id}`} style={{ ...btn, border: "none", background: "none", padding: 0, ...muted }}>
+            <span aria-hidden>{isOpen ? "▲" : "▼"}</span>
+          </button>
         </span>
       </div>
       {isOpen && (
         <div style={{ padding: "0 0 16px", opacity: t.enabled ? 1 : 0.6 }}>
-          <label style={lbl}>Question</label>
-          <textarea value={t.question} onChange={(e) => patch({ question: e.target.value })} rows={2} style={{ ...input, resize: "vertical" }} />
+          <label style={lbl} htmlFor={`${uid}-q`}>Question</label>
+          <textarea id={`${uid}-q`} value={t.question} onChange={(e) => patch({ question: e.target.value })} rows={2} style={{ ...input, resize: "vertical" }} />
           <div style={{ display: "flex", gap: 16, flexWrap: "wrap", margin: "10px 0" }}>
             <Field label="Delay (seconds)" v={Math.round(t.delayMs / 1000)} onChange={(n) => patch({ delayMs: n * 1000 })} />
             <Field label="Max asks (lifetime)" v={t.maxAsks} onChange={(n) => patch({ maxAsks: n })} />
@@ -607,23 +612,24 @@ function TriggerRow({ id, t, isOpen, onToggleOpen, patch, draft, locked }: {
   );
 }
 
-function Toggle({ checked, onChange, title, hint, compact, disabled, labelTitle }: {
-  checked: boolean; onChange: (v: boolean) => void; title: string; hint: string; compact?: boolean;
+function Toggle({ checked, onChange, title, hint, name, compact, disabled, labelTitle }: {
+  checked: boolean; onChange: (v: boolean) => void; title: string; hint: string; name?: string; compact?: boolean;
   disabled?: boolean; labelTitle?: string;
 }) {
   return (
-    <label title={labelTitle} style={{ display: "flex", alignItems: compact ? "center" : "flex-start", gap: 10, cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.55 : 1, padding: compact ? 0 : "8px 0" }}>
-      <input type="checkbox" checked={checked} disabled={disabled} onChange={(e) => { if (!disabled) onChange(e.target.checked); }} style={{ marginTop: compact ? 0 : 3, width: 16, height: 16, accentColor: "var(--k-action-fill, #394293)" }} />
+    <label title={labelTitle} style={{ display: "flex", alignItems: compact ? "center" : "flex-start", gap: 10, cursor: disabled ? "default" : "pointer", opacity: disabled ? 0.55 : 1, padding: compact ? 0 : "8px 0", minHeight: 44, minWidth: 44, justifyContent: compact ? "center" : undefined }}>
+      <input type="checkbox" aria-label={name} checked={checked} disabled={disabled} onChange={(e) => { if (!disabled) onChange(e.target.checked); }} style={{ marginTop: compact ? 0 : 3, width: 16, height: 16, accentColor: "var(--k-action-fill, #394293)" }} />
       {title && <span><span style={{ fontWeight: 600 }}>{title}</span><br /><span style={muted}>{hint}</span></span>}
     </label>
   );
 }
 
 function Field({ label: text, v, onChange }: { label: string; v: number; onChange: (n: number) => void }) {
+  const id = useId();
   return (
     <div style={{ minWidth: 120 }}>
-      <label style={lbl}>{text}</label>
-      <input type="number" min={0} value={v} onChange={(e) => onChange(Math.max(0, Number(e.target.value) || 0))} style={{ ...input, width: 150 }} />
+      <label style={lbl} htmlFor={id}>{text}</label>
+      <input id={id} type="number" min={0} value={v} onChange={(e) => onChange(Math.max(0, Number(e.target.value) || 0))} style={{ ...input, width: 150 }} />
     </div>
   );
 }

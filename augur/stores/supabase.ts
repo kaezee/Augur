@@ -7,7 +7,7 @@
 // @supabase/supabase-js. Pass a real SupabaseClient and it fits.
 
 import type { ConfigOverrides } from "../config";
-import type { AdminNote, AugurStore, DateRange, Submission, Summary, TriggerStat, Unconfigured } from "../store";
+import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, Submission, Summary, TriggerStat, Unconfigured } from "../store";
 
 type Result<T> = Promise<{ data: T | null; error: unknown }>;
 interface Filter<T> { eq(col: string, val: unknown): Result<T>; }
@@ -76,6 +76,20 @@ export class SupabaseStore implements AugurStore {
       triggerId: String(r.trigger_id),
       shown: Number(r.shown), answered: Number(r.answered), ignored: Number(r.ignored),
       byAnswer: { yes: Number(r.yes), not_really: Number(r.not_really), unclear: Number(r.unclear) },
+    }));
+  }
+
+  async logFriction(e: FrictionEvent): Promise<void> {
+    const { error } = await this.sb.rpc("augur_log_friction", { p_label: e.label, p_route: e.route, p_clicks: e.clicks });
+    if (error) throw error;
+  }
+
+  async readFriction(range: DateRange): Promise<FrictionStat[]> {
+    const { data } = await this.sb.rpc("augur_admin_friction", { p_from: range.from, p_to: range.to });
+    const rows = (data as Array<Record<string, unknown>>) ?? [];
+    return rows.map((r) => ({
+      label: String(r.label), bursts: Number(r.bursts), people: Number(r.people),
+      topRoute: (r.top_route as string | null) ?? null, lastSeen: String(r.last_seen),
     }));
   }
 

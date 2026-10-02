@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { lockedInCode, mergeConfig, responseTypeOf, type AugurConfig, type ConfigOverrides, type HostConfig, type TriggerDef } from "./config";
-import type { AdminNote, AugurStore, DateRange, Summary, TriggerStat, Unconfigured } from "./store";
+import type { AdminNote, AugurStore, DateRange, FrictionStat, Summary, TriggerStat, Unconfigured } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
 import { AugurWordmark, AUGUR_REPO_URL } from "./mark";
 
@@ -125,6 +125,8 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
   };
 
   useEffect(() => { store.readTriggerStats?.(range).then(setStatsRange).catch(() => setStatsRange([])); }, [store, range]);
+  const [friction, setFriction] = useState<FrictionStat[]>([]);
+  useEffect(() => { store.readFriction?.(range).then(setFriction).catch(() => setFriction([])); }, [store, range]);
   useEffect(() => { store.readTriggerStats?.(rangeFor("all")).then(setStatsAll).catch(() => setStatsAll([])); }, [store]);
 
   const byIdRange = useMemo(() => new Map(statsRange.map((s) => [s.triggerId, s])), [statsRange]);
@@ -204,6 +206,30 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
           </tbody>
         </table>
       </div>
+
+      {friction.length > 0 && (
+        <div style={{ ...card, padding: 0, overflowX: "auto" }}>
+          <div style={{ padding: "12px 12px 0" }}>
+            <strong>Friction</strong>
+            <p style={{ ...muted, margin: "2px 0 0" }}>Labelled elements people pressed 3+ times within a second, in this range.</p>
+          </div>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13, marginTop: 6 }}>
+            <thead><tr>{["Label", "Bursts", "People", "Most often on", "Last seen"].map((h, i) => (
+              <th key={h} style={{ textAlign: i === 0 || i === 3 ? "left" : "right", padding: "10px 12px", ...muted, fontWeight: 600, borderBottom: "1px solid var(--k-border, #E7E2D3)" }}>{h}</th>
+            ))}</tr></thead>
+            <tbody>
+              {friction.map((f) => (
+                <tr key={f.label} style={{ borderTop: "1px solid var(--k-border, #E7E2D3)" }}>
+                  <td style={{ padding: "9px 12px" }}><code style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{f.label}</code></td>
+                  <Num v={f.bursts} /><Num v={f.people} />
+                  <td style={{ padding: "9px 12px", wordBreak: "break-word" }}>{f.topRoute ? <code>{f.topRoute}</code> : DASH}</td>
+                  <td style={{ padding: "9px 12px", textAlign: "right", whiteSpace: "nowrap" }}>{new Date(f.lastSeen).toLocaleDateString()}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
 
       {submissions.length > 0 && (
         <div style={{ ...card, display: "flex", gap: 24, flexWrap: "wrap" }}>

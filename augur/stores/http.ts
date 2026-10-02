@@ -7,7 +7,7 @@
 // authenticates however the host chooses (a token header passed in at construction).
 
 import type { ConfigOverrides } from "../config";
-import type { AugurStore, Submission } from "../store";
+import type { AugurStore, FrictionEvent, Submission } from "../store";
 
 export class HttpStore implements AugurStore {
   constructor(private readonly opts: { endpoint: string; headers?: Record<string, string> }) {}
@@ -34,6 +34,9 @@ export class HttpStore implements AugurStore {
   }
   async submit(s: Submission): Promise<void> {
     await this.post<void>("submit", { ...s });
+  }
+  async logFriction(e: FrictionEvent): Promise<void> {
+    await this.post<void>("friction", { ...e });
   }
   async logUnconfigured(triggerId: string, userId: string): Promise<void> {
     await this.post<void>("unconfigured", { triggerId, userId });

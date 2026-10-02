@@ -19,6 +19,10 @@ browser, recent errors; never query strings or anything typed) unless
 `context: false`. `categories: []` gives plain free text. Every visible word is in
 `strings`.
 
+**Friction:** label a control with `data-augur="save-entity"` and three presses on it
+within a second is recorded quietly (label, page path, count; no prompt, no text).
+`friction: false` turns it off.
+
 **Store** (`store.ts`) is the one persistence seam — `logShown` · `logOutcome` ·
 `logNote` · `logUnconfigured` · `submit` · `readConfig`, plus optional admin reads. Pick one:
 `LocalStore` (zero backend), `SupabaseStore(client)` (run the migrations), or

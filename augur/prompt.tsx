@@ -100,6 +100,8 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
   const primary: React.CSSProperties = {
     ...btn, border: "1px solid transparent", background: "var(--k-action-fill, #394293)", color: "var(--k-on-action-fill, #fff)",
   };
+  // Send with nothing typed: still in place, visibly unavailable.
+  const primaryOff: React.CSSProperties = { ...primary, opacity: 0.45, cursor: "not-allowed" };
   const close: React.CSSProperties = {
     position: "absolute", top: 10, right: 12, cursor: "pointer", color: "var(--k-text-tertiary, #98917E)",
     background: "none", border: "none", font: "inherit", fontSize: 16, lineHeight: 1, padding: 2,
@@ -149,7 +151,7 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
             placeholder={cat?.placeholder || strings.textPlaceholder} style={{ ...inputStyle, width: "100%", minHeight: 108, resize: "vertical", marginBottom: 10 }} />
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
             <button style={quiet} onClick={ignore}>{strings.cancel}</button>
-            <button style={primary} disabled={!text.trim()} onClick={send}>{strings.send}</button>
+            <button style={text.trim() ? primary : primaryOff} disabled={!text.trim()} onClick={send}>{strings.send}</button>
           </div>
         </>
       ) : step === "q" ? (

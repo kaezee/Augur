@@ -87,12 +87,17 @@ describe("the button's panel", () => {
     await act(async () => { augur.open("fab"); });
     expect(store.logShown).not.toHaveBeenCalled();            // nothing written on open
     await act(async () => { buttonByText("Something’s confusing").click(); });
+    const send = () => buttonByText("Send") as HTMLButtonElement;
+    expect(send().disabled).toBe(true);                       // nothing typed: unavailable, and looks it
+    expect(send().style.opacity).toBe("0.45");
     const ta = q("textarea") as HTMLTextAreaElement;
     await act(async () => {
       const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!;
       set.call(ta, "The strip's dots"); ta.dispatchEvent(new Event("input", { bubbles: true }));
     });
-    await act(async () => { buttonByText("Send").click(); });
+    expect(send().disabled).toBe(false);
+    expect(send().style.opacity).toBe("");
+    await act(async () => { send().click(); });
     expect(store.submitted).toHaveLength(1);
     const s = store.submitted[0];
     expect(s).toMatchObject({ userId: "u1", category: "confusing", body: "The strip's dots", source: "fab" });

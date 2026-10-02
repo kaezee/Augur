@@ -6,6 +6,8 @@ what to run when upgrading.
 ## Unreleased
 
 - **Admin:** "1 trigger declared" instead of "1 triggers declared".
+- **Panel:** Send looks unavailable (faded, not-allowed cursor) until something is typed; it was
+  already disabled but looked clickable.
 - **Live demo** at https://kaezee.github.io/Augur/: a sample task board running the
   real module, with a live feed of what Augur records. Also new since 0.4.0: README
   privacy section, gallery frames 3 and 4, SECURITY.md, CONTRIBUTING.md.

@@ -23,10 +23,12 @@ interface Active {
   manual: boolean;
 }
 
-// Send one panel submission, unless testing. Exported for tests.
-export function submitFeedback(store: AugurStore, cfg: AugurConfig, s: Submission): boolean {
+// Send one panel submission, unless testing. Resolves true once stored, false in
+// testing mode; rejects if the store fails, so the panel never thanks for a lost note.
+// Exported for tests.
+export async function submitFeedback(store: AugurStore, cfg: AugurConfig, s: Submission): Promise<boolean> {
   if (cfg.mode === "testing") return false;
-  store.submit(s).catch(() => {});
+  await store.submit(s);
   return true;
 }
 
@@ -159,7 +161,7 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
     store.logOutcome(active.eventId, "answered", answer).catch(() => {});
     recordAnswered(userId);
   };
-  const onNote = (body: string) => { if (active && !active.manual && !isTesting()) store.logNote(active.eventId, body).catch(() => {}); };
+  const onNote = async (body: string) => { if (active && !active.manual && !isTesting()) await store.logNote(active.eventId, body); };
   const onIgnore = () => {
     if (!active) return;
     if (!active.manual && !isTesting()) {
@@ -169,10 +171,10 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
     clear();
   };
   const onDone = () => clear();
-  const onSubmit = (category: string | undefined, body: string) => {
+  const onSubmit = async (category: string | undefined, body: string) => {
     if (!active?.manual) return;
     const c = cfgRef.current;
-    submitFeedback(store, c, {
+    await submitFeedback(store, c, {
       userId, category, body, source: active.triggerId,
       context: c.context ? captureContext(active.triggerId, appVersion) : undefined,
     });

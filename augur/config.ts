@@ -51,6 +51,8 @@ export interface AugurStrings {
   skip: string;
   cancel: string;
   sent: string;
+  sending: string;           // Send while the write is in flight
+  sendFailed: string;        // shown when the write fails; the text stays so it can be resent
   notePlaceholder: string;   // the optional line after an answer
   textPlaceholder: string;   // the free-text box
   close: string;             // accessible name of ×
@@ -112,6 +114,8 @@ export const AUGUR_BASE_DEFAULTS: Omit<AugurConfig, "triggers"> = {
     skip: "Skip",
     cancel: "Cancel",
     sent: "Thanks — that’s logged.",
+    sending: "Sending…",
+    sendFailed: "That didn’t send. Check your connection and try again.",
     notePlaceholder: "one line, optional",
     textPlaceholder: "Type your feedback…",
     close: "Dismiss",

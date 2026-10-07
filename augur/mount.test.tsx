@@ -129,6 +129,48 @@ describe("the button's panel", () => {
     expect(store.logShown).not.toHaveBeenCalled();
   });
 
+  it("only thanks once the note is stored; a failed save keeps the text and says so", async () => {
+    const store = fakeStore();
+    let fail = true;
+    store.submit = vi.fn(async (x: Submission) => { if (fail) throw new Error("offline"); store.submitted.push(x); });
+    await mount(CFG, store);
+    await act(async () => { augur.open(); });
+    await act(async () => { buttonByText("Something broke").click(); });
+    const ta = q("textarea") as HTMLTextAreaElement;
+    await act(async () => {
+      const set = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!;
+      set.call(ta, "Export hangs"); ta.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => { buttonByText("Send").click(); });
+    const region = () => q('[role="region"]')?.textContent ?? "";
+    expect(region()).not.toContain("Thanks");
+    expect(q('[role="alert"]')?.textContent).toContain("didn’t send");
+    expect((q("textarea") as HTMLTextAreaElement).value).toBe("Export hangs");
+    fail = false;
+    await act(async () => { buttonByText("Send").click(); });
+    expect(store.submitted).toHaveLength(1);
+    expect(region()).toContain("Thanks");
+    expect(q('[role="alert"]')).toBeNull();
+  });
+
+  it("a trigger's follow-up line is thanked only once stored", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const store = fakeStore();
+    store.logNote = vi.fn(async () => { throw new Error("offline"); });
+    await mount(CFG, store);
+    await act(async () => { augur.emit("t.done"); await vi.runOnlyPendingTimersAsync(); });
+    await act(async () => { buttonByText("Not really").click(); });
+    const input = q('[role="region"] input') as HTMLInputElement;
+    await act(async () => {
+      const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+      set.call(input, "Too slow"); input.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => { buttonByText("Send").click(); });
+    expect(store.logNote).toHaveBeenCalledWith("ev1", "Too slow");
+    expect(q('[role="region"]')?.textContent).not.toContain("that’s logged");
+    expect(q('[role="alert"]')).not.toBeNull();
+  });
+
   it("with categories: [] goes straight to the free-text box", async () => {
     await mount({ ...CFG, categories: [] }, fakeStore());
     await act(async () => { augur.open(); });
@@ -204,7 +246,7 @@ describe("LocalStore.submit", () => {
 
   it("records nothing in testing mode", async () => {
     const store = new LocalStore();
-    const sent = submitFeedback(store, mergeConfig({ ...CFG, mode: "testing" }, {}), { userId: "u1", body: "x", source: "button" });
+    const sent = await submitFeedback(store, mergeConfig({ ...CFG, mode: "testing" }, {}), { userId: "u1", body: "x", source: "button" });
     expect(sent).toBe(false);
     expect(await store.readNotes()).toEqual([]);
   });

@@ -12,6 +12,19 @@ what to run when upgrading.
   button (it was lost while the button was hidden). The "by Augur" credit no longer fades its
   text, so it keeps the host's secondary-text contrast. Admin's date-range and purge selects
   have accessible names.
+- **Send only says thanks when the note is stored.** The panel and a prompt's follow-up
+  line show "Sending…", then "Thanks" once the store's write resolves. If it fails, the
+  text stays, an error says it didn't send, and Send tries again. Before, "Thanks"
+  showed even when the write failed and the note was lost. Custom stores: let
+  `submit()` and `logNote()` reject on failure (AGENTS.md §3). New strings: `sending`,
+  `sendFailed`.
+- **AGENTS.md: the agent proposes placements.** §2 now has the agent audit the app:
+  map the jobs, find the success paths, pick one to three moments, write questions
+  that name the action with Yes as the good answer, suggest friction labels, and place
+  the Feedback button around tab bars and floating buttons on phones. It brings one
+  plan to approve, instead of asking the developer to come up with the moments.
+- **README: Get told when feedback lands.** Server-side pings for Supabase (Database
+  Webhook + Edge Function), Firestore (Cloud Function) and HttpStore.
 - **Target size (WCAG 2.5.5, AAA):** every control in the prompt, panel, feedback button,
   Admin and console is at least 44×44px. The close ✕ is a 44px square; the "Add to your
   product" pill keeps its size inside a 44px-tall link. In Admin settings the ▲/▼ that opens

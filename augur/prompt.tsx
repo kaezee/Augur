@@ -33,10 +33,10 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
   strings: AugurStrings;
   byline?: boolean;
   onAnswer: (answer?: string) => void;   // triggers: marks the row answered
-  onNote: (body: string) => void;        // triggers: the optional line
+  onNote: (body: string) => Promise<void> | void;   // triggers: the optional line; rejects if not stored
   onIgnore: () => void;                  // closed without answering/sending (×, Esc, Cancel, timeout)
   onDone: () => void;                    // closed after answering/sending
-  onSubmit?: (category: string | undefined, body: string) => void;   // the panel's Send
+  onSubmit?: (category: string | undefined, body: string) => Promise<void> | void;   // the panel's Send; rejects if not stored
 }) {
   const isPanel = !!panel;
   const cats = panel?.categories ?? [];
@@ -47,12 +47,20 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
   const closed = useRef(false);
   const rootRef = useRef<HTMLDivElement>(null);
   const [sent, setSent] = useState(false);
+  const [sending, setSending] = useState(false);
+  const [failed, setFailed] = useState(false);
   const picking = isPanel && cats.length > 0 && !cat;
 
   const ignore = () => { if (closed.current) return; closed.current = true; onIgnore(); };
   const done = () => { if (closed.current) return; closed.current = true; onDone(); };
-  // A short thank-you so a Send visibly lands, then close (the write already happened).
+  // A short thank-you so a Send visibly lands, then close.
   const finish = () => { if (closed.current || sent) return; setSent(true); window.setTimeout(done, 1500); };
+  // Thank only once the write is stored. On failure keep the text and say so.
+  const write = async (w: () => Promise<void> | void) => {
+    if (sending) return;
+    setSending(true); setFailed(false);
+    try { await w(); finish(); } catch { setFailed(true); } finally { setSending(false); }
+  };
   const dismiss = () => (sent ? done() : step === "q" ? ignore() : done());
 
   // 20s no-interaction auto-dismiss — triggered prompts only, and only on the first step.
@@ -116,9 +124,11 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
   const choices = spec.responseType === "choice" && spec.options ? spec.options : spec.answers;
   const send = () => {
     if (!text.trim()) return;
-    if (isPanel) onSubmit?.(cat?.key, text.trim()); else { onAnswer(); onNote(text.trim()); }
-    finish();
+    if (isPanel) void write(() => onSubmit?.(cat?.key, text.trim()));
+    else { onAnswer(); void write(() => onNote(text.trim())); }
   };
+  const sendNote = () => { if (text.trim()) void write(() => onNote(text.trim())); else finish(); };
+  const error = failed && <p role="alert" style={{ margin: "0 0 10px", color: "var(--k-danger, #B4453B)", fontSize: 12.5 }}>{strings.sendFailed}</p>;
 
   return createPortal(
     <div ref={rootRef} className="augur-ui" style={wrap} role="region" aria-label={strings.promptLabel}>
@@ -150,9 +160,10 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
           <textarea value={text} onChange={(e) => setText(e.target.value)} rows={5}
             aria-label={cat ? cat.label : spec.question}
             placeholder={cat?.placeholder || strings.textPlaceholder} style={{ ...inputStyle, width: "100%", minHeight: 108, resize: "vertical", marginBottom: 10 }} />
+          {error}
           <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
             <button style={quiet} onClick={ignore}>{strings.cancel}</button>
-            <button style={text.trim() ? primary : primaryOff} disabled={!text.trim()} onClick={send}>{strings.send}</button>
+            <button style={text.trim() && !sending ? primary : primaryOff} disabled={!text.trim() || sending} onClick={send}>{sending ? strings.sending : strings.send}</button>
           </div>
         </>
       ) : step === "q" ? (
@@ -168,12 +179,13 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
       ) : (
         <>
           <p style={qStyle}>{spec.followup}</p>
+          {error}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             {/* Focus here is fine: the person just chose to answer. */}
             <input autoFocus value={text} onChange={(e) => setText(e.target.value)} aria-label={spec.followup}
-              onKeyDown={(e) => { if (e.key === "Enter" && text.trim()) { onNote(text.trim()); finish(); } }}
+              onKeyDown={(e) => { if (e.key === "Enter" && text.trim()) sendNote(); }}
               placeholder={strings.notePlaceholder} style={inputStyle} />
-            <button style={primary} onClick={() => { if (text.trim()) onNote(text.trim()); finish(); }}>{strings.send}</button>
+            <button style={sending ? primaryOff : primary} disabled={sending} onClick={sendNote}>{sending ? strings.sending : strings.send}</button>
             <button style={{ ...quiet, padding: "6px 4px" }} onClick={done}>{strings.skip}</button>
           </div>
         </>

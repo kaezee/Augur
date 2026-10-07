@@ -74,8 +74,9 @@ Paste this into Claude Code, Cursor, or your AI app builder:
 
 ```text
 Add Augur (in-app feedback) to this app: https://github.com/kaezee/Augur
-Read AGENTS.md in that repo first and follow it exactly. Ask me about which moments
-to prompt on before you write any code. If you can't open the link, stop and tell me.
+Read AGENTS.md in that repo first and follow it exactly. Audit this app and propose
+where Augur should ask, and check the plan with me before you write any code.
+If you can't open the link, stop and tell me.
 ```
 
 Later, you can ask the same tool to turn Augur off, pause a prompt, or remove it.
@@ -168,6 +169,56 @@ Results also counts button submissions by category and by entry point, filters
 notes by category, and shows each submission's context in plain words.
 
 Skip the admin import entirely and collection still works, with a smaller bundle.
+
+## Get told when feedback lands
+
+Augur stores feedback; it doesn't page you. Admin shows the unread notes, but if
+nobody opens it, a "this is broken" note can sit for weeks. Have the backend send you
+a ping when a note is saved. It must come from the server: a webhook URL in browser
+code is public.
+
+Keep the ping short: the category, the screen, and a link to your admin. Put the
+note itself, or who wrote it, in Slack or email only if your privacy notice says
+feedback goes there.
+
+**Supabase.** Dashboard → Database → Webhooks → *Create a new hook*: table
+`augur_notes`, event *Insert*, type *Supabase Edge Function*. The function posts to
+Slack (set `SLACK_WEBHOOK_URL` as a function secret):
+
+```ts
+// supabase/functions/augur-ping/index.ts
+Deno.serve(async (req) => {
+  const { record } = await req.json();                 // the new augur_notes row
+  await fetch(Deno.env.get("SLACK_WEBHOOK_URL")!, {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text: `New Augur feedback (note ${record.id}). Open admin to read it.` }),
+  });
+  return new Response("ok");
+});
+```
+
+**Firestore** (your own adapter). A Cloud Function on the collection your adapter
+writes to:
+
+```ts
+import { onDocumentCreated } from "firebase-functions/v2/firestore";
+export const augurPing = onDocumentCreated("feedback/{id}", async (e) => {
+  const d = e.data?.data();
+  await fetch(process.env.SLACK_WEBHOOK_URL!, {
+    method: "POST", headers: { "content-type": "application/json" },
+    body: JSON.stringify({ text: `New feedback: ${d?.category ?? "general"} on ${d?.context?.route ?? "?"}` }),
+  });
+});
+```
+
+For email instead of Slack, have the function add a document to the `mail` collection
+used by Firebase's *Trigger Email* extension.
+
+**HttpStore.** Send the ping from your endpoint, after the note is stored.
+
+If a ping per note is too much, run the same function on a schedule and send one
+digest a day. Or ask your coding agent to go through the feedback each week: AGENTS.md
+§6 covers it.
 
 ## For a beta
 

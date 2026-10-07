@@ -2,8 +2,8 @@
 
 # Augur
 
-**A portable, in-product feedback module.**
-One well-timed question, three answers, an optional line.
+**In-app feedback for React apps.**
+One well-timed question, three answers, an optional line. Your coding agent picks where it asks.
 
 [![CI](https://github.com/kaezee/Augur/actions/workflows/ci.yml/badge.svg)](https://github.com/kaezee/Augur/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
@@ -17,9 +17,10 @@ One well-timed question, three answers, an optional line.
   <img src=".github/assets/gallery/gallery-1-light.png" alt="Augur asking one question in an order-management app, a few seconds after a shipping label printed" width="100%">
 </p>
 
-Augur asks the user a single question at a real moment in your product — *"Did that
-go the way you expected?"* — takes one of three answers and an optional line, then
-gets out of the way. It is not a form builder, not an NPS widget, not a survey tool.
+Augur is in-app user feedback for React and TypeScript. It asks one question at a
+real moment in your product (*"Was it easy to export that report?"*), takes one of
+three answers and an optional line, then gets out of the way. It is not a form
+builder, not an NPS widget, not a survey tool.
 It exists to catch honest reactions at the moment they happen, without ceremony.
 
 **Already have a help or bug button? Augur can be it.** Its feedback button opens a

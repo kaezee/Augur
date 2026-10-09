@@ -3,6 +3,7 @@ import { lockedInCode, mergeConfig, responseTypeOf, type AugurConfig, type Confi
 import type { AdminNote, AugurStore, DateRange, FrictionStat, SubmissionStat, Summary, TriggerStat, Unconfigured } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
 import { AugurWordmark, AUGUR_REPO_URL } from "./mark";
+import { AUGUR_VERSION } from "./version";
 
 // The Augur admin surface (AUGUR-HANDOFF §7, replaced by Patch 2 §6). A section, not
 // a route: the host mounts it behind its own guard. Two tabs — Results (read, the
@@ -109,6 +110,7 @@ export function AugurAdminSection({ store, hostConfig, confirm }: {
       {!draft ? <p style={muted}>Loading…</p>
         : tab === "results" ? <Results store={store} draft={draft} range={range} ask={ask} />
         : <Settings store={store} draft={draft} setDraft={setDraft} loadedRef={loadedRef} storedRef={storedRef} locks={locks} ask={ask} />}
+      <footer style={{ ...muted, marginTop: 24, fontSize: 12.5 }}>Augur {AUGUR_VERSION}</footer>
     </section>
   );
 }
@@ -356,6 +358,7 @@ function ContextBlock({ ctx }: { ctx: Record<string, unknown> }) {
   const rows: [string, React.ReactNode][] = [
     ["Page", ctx.route ? <code>{String(ctx.route)}</code> : DASH],
     ["App version", ctx.appVersion ? String(ctx.appVersion) : DASH],
+    ["Augur version", ctx.augurVersion ? String(ctx.augurVersion) : DASH],
     ["Opened from", ctx.source ? String(ctx.source) : DASH],
     ["Screen size", vp?.w ? `${vp.w} × ${vp.h}` : DASH],
     ["Browser", ctx.userAgent ? String(ctx.userAgent) : DASH],

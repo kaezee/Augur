@@ -23,5 +23,8 @@ npm run demo        # the live demo against your local augur/ folder
 - A database change needs both `sql/schema.sql` and a new file in
   `sql/migrations/`. Migrations are additive and safe to rerun.
 - Note user-facing changes in [CHANGELOG.md](./CHANGELOG.md).
+- When a CHANGELOG release gets its version heading, bump `AUGUR_VERSION` in
+  `augur/version.ts` to match. It's shown at the bottom of the admin panel and sent
+  with each report, and a test fails if the two disagree.
 
 By contributing you agree your work is released under the [MIT license](./LICENSE).

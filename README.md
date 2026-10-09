@@ -120,7 +120,7 @@ AGENTS.md tells it how.
   fixable. It collects places, never words:
   - the page path (`location.pathname` only: never the query string or `#` fragment,
     which often carry tokens and emails),
-  - your app version, if you pass `appVersion` to `<Augur>`,
+  - your app version, if you pass `appVersion` to `<Augur>`, and Augur's own version,
   - the window size, the browser's user agent, the time, where it was opened from,
     and a per-tab session id,
   - the last 5 uncaught errors, each as its type, script URL (query stripped), line

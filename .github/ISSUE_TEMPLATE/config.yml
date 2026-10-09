@@ -1,0 +1,11 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Question
+    url: https://github.com/kaezee/Augur/discussions/categories/q-a
+    about: Ask how to fit Augur into your app.
+  - name: Idea
+    url: https://github.com/kaezee/Augur/discussions/categories/ideas
+    about: Suggest a change. Augur is deliberately small, so ideas start as a discussion.
+  - name: Security problem
+    url: https://github.com/kaezee/Augur/security/policy
+    about: Report it privately. Please don't open a public issue.

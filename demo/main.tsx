@@ -1,5 +1,5 @@
 // The live demo: the real augur/ folder, unmodified, inside a sample task app.
-// The "What Augur saved" feed is a thin wrapper around LocalStore that reports each
+// The "Saved this visit" feed is a thin wrapper around LocalStore that reports each
 // write Augur makes, so every row is something Augur actually recorded. Everything
 // stays in this browser; "Start over" (top bar) clears it.
 
@@ -279,6 +279,10 @@ function App() {
   const [adminKey, setAdminKey] = useState(0);
   const [done, setDone] = useState<Record<StepKey, boolean>>({ move: false, feedback: false, signal: false, admin: false });
   const [saved, setSaved] = useState<Saved[]>([]);
+  // The feed lists this visit only; anything stored before it is still in Admin.
+  const [earlier] = useState(() => {
+    try { return (JSON.parse(localStorage.getItem("augur.local") || "{}").events ?? []).length > 0; } catch { return false; }
+  });
   const [toast, setToast] = useState<string | null>(null);
   const [live, setLive] = useState("");
   const seq = useRef(0);
@@ -364,10 +368,12 @@ function App() {
           </section>
 
           <section className="card feed" aria-labelledby="feedTitle">
-            <div className="feed-head"><span className="dot" aria-hidden="true" /><h2 id="feedTitle">What Augur saved</h2>{saved.length > 0 && <span className="count">{saved.length}</span>}</div>
+            <div className="feed-head"><span className="dot" aria-hidden="true" /><h2 id="feedTitle">Saved this visit</h2>{saved.length > 0 && <span className="count">{saved.length}</span>}</div>
             <div className="feed-body">
               {saved.length === 0
-                ? <div className="empty"><span className="ico"><Icon n="inbox" /></span><span>Nothing yet. Each step shows up here the moment Augur records it.</span></div>
+                ? <div className="empty"><span className="ico"><Icon n="inbox" /></span><span>{earlier
+                  ? "Nothing yet this visit. What you saved earlier is in Admin."
+                  : "Nothing yet. Each step shows up here the moment Augur records it."}</span></div>
                 : <ul>{saved.map((e) => (
                     <li key={e.id} className={`ev${e.id === latest ? " fresh" : ""}`}>
                       <span className={`ico k-${e.kind}`}><Icon n={KIND[e.kind].i} /></span>

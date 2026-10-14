@@ -3,7 +3,8 @@ import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react-dom/test-utils";
 import { createRoot, type Root } from "react-dom/client";
 import { Augur, submitFeedback } from "./Augur";
-import { resultsHeadline } from "./admin";
+import { AugurAdminSection, resultsHeadline } from "./admin";
+import { AUGUR_VERSION } from "./version";
 import { augur } from "./emit";
 import * as publicApi from "./index";
 import { mergeConfig, type HostConfig } from "./config";
@@ -115,7 +116,7 @@ describe("the button's panel", () => {
     expect(store.submitted).toHaveLength(1);
     const s = store.submitted[0];
     expect(s).toMatchObject({ userId: "u1", category: "confusing", body: "The strip's dots", source: "fab" });
-    expect(s.context).toMatchObject({ source: "fab", appVersion: "1.2.3", route: "/" });
+    expect(s.context).toMatchObject({ source: "fab", appVersion: "1.2.3", augurVersion: AUGUR_VERSION, route: "/" });
     expect(Array.isArray(s.context?.errors)).toBe(true);
   });
 
@@ -231,6 +232,13 @@ describe("admin reads that hold up as feedback grows", () => {
       { id: "import.done", question: "Did the import land?", shown: 20, answered: 10, notReally: 2 },
       { id: "moment.recorded", question: "Was recording that moment easy?", shown: 12, answered: 6, notReally: 3 },
     ])).toBe("Most “Not really”: “Was recording that moment easy?”, 3 of 6 answers (50%).");
+  });
+});
+
+describe("admin footer", () => {
+  it("shows AUGUR_VERSION", async () => {
+    await act(async () => { root.render(<AugurAdminSection store={new LocalStore()} hostConfig={CFG} />); });
+    expect(document.body.querySelector("footer")?.textContent).toBe(`Augur ${AUGUR_VERSION}`);
   });
 });
 

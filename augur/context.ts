@@ -1,4 +1,5 @@
 import type { ErrorEntry, SubmitContext } from "./store";
+import { AUGUR_VERSION } from "./version";
 
 // Diagnostic context attached to person-initiated submissions. It collects places,
 // never words: the page path (no query string or fragment, which routinely carry
@@ -84,6 +85,7 @@ export function captureContext(source: string, appVersion?: string): SubmitConte
     source,
     sessionId: getSessionId(),
     errors: [...errors],
+    augurVersion: AUGUR_VERSION,
   };
   if (appVersion) ctx.appVersion = appVersion;
   return ctx;

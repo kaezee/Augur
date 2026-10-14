@@ -36,6 +36,7 @@ export interface ErrorEntry { type: string; source: string; line: number; messag
 export interface SubmitContext {
   route: string;                     // location.pathname only
   appVersion?: string;
+  augurVersion?: string;             // AUGUR_VERSION; absent on reports sent before Augur carried it
   viewport: { w: number; h: number };
   userAgent: string;
   timestamp: string;                 // ISO

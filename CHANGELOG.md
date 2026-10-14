@@ -5,6 +5,9 @@ what to run when upgrading.
 
 ## Unreleased
 
+- **`AUGUR_VERSION`**, exported from `augur/`, is shown at the bottom of the admin
+  panel and sent as `augurVersion` in each report's diagnostic context, so a bug
+  report can say which Augur it came from.
 - **Admin:** "1 trigger declared" instead of "1 triggers declared".
 - **Panel:** Send looks unavailable (faded, not-allowed cursor) until something is typed; it was
   already disabled but looked clickable.

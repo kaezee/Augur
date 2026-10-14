@@ -17,6 +17,7 @@
   "include": [
     "augur",
     "example",
-    "demo"
+    "demo",
+    "test"
   ]
 }

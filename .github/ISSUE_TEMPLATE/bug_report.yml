@@ -1,0 +1,43 @@
+name: Bug report
+description: Something in Augur doesn't work the way the docs say it should.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting. Security problems go through the [security policy](https://github.com/kaezee/Augur/security/policy), not a public issue.
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you did, what you expected, and what happened instead. Steps to reproduce help most.
+    validations:
+      required: true
+  - type: input
+    id: augur-version
+    attributes:
+      label: Augur version
+      description: AUGUR_VERSION, shown at the bottom of the admin panel.
+      placeholder: "0.4.0"
+  - type: dropdown
+    id: store
+    attributes:
+      label: Store
+      description: Which store your app passes to `<Augur>`.
+      options:
+        - Supabase
+        - HttpStore
+        - LocalStore
+        - Custom
+    validations:
+      required: true
+  - type: input
+    id: react
+    attributes:
+      label: React version and framework
+      placeholder: "React 18.3, Next.js 14 (App Router)"
+  - type: textarea
+    id: errors
+    attributes:
+      label: Errors or screenshots
+      description: Console errors, failed network requests, or a screenshot. Remove tokens, emails and anything personal first.

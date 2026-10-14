@@ -9,6 +9,7 @@
 // AugurStore interface). Remove = delete the folder + one mount + drop the tables.
 
 export { Augur } from "./Augur";
+export { AUGUR_VERSION } from "./version";
 export { augur } from "./emit";
 export { AUGUR_BASE_DEFAULTS, mergeConfig, lockedInCode, responseTypeOf, effectiveCategories } from "./config";
 export type { Answer, AugurConfig, HostConfig, ConfigOverrides, TriggerDef, Presentation, ResponseType, AnswerOption, Category, MoreLink, AugurStrings } from "./config";

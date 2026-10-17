@@ -34,6 +34,11 @@ export function AugurWordmark({ size = 15 }: { size?: number }) {
 // to the project. Shown by default; the host can hide it with <Augur byline={false} />.
 // The name and mark are covered by TRADEMARKS.md, not the MIT license.
 export const AUGUR_REPO_URL = "https://github.com/kaezee/Augur";
+// The byline opens the live demo: most people who click it use someone else's app,
+// and a working demo shows them more than code. On the demo itself it opens the repo.
+export const AUGUR_DEMO_URL = "https://kaezee.github.io/Augur/";
+const bylineHref = () =>
+  typeof location !== "undefined" && location.href.startsWith(AUGUR_DEMO_URL) ? AUGUR_REPO_URL : AUGUR_DEMO_URL;
 
 // "by Augur" as branding, and a distinct pill that reads as a real link — kept
 // separate so the credit stands on its own and the call-to-action is unmistakable.
@@ -52,7 +57,7 @@ function AugurProjectLink() {
   const [hover, setHover] = useState(false);
   // The pill stays small; the link around it is 44px tall (WCAG 2.5.5 AAA target size).
   return (
-    <a href={AUGUR_REPO_URL} target="_blank" rel="noreferrer noopener"
+    <a href={bylineHref()} target="_blank" rel="noreferrer noopener"
        title="Add Augur to your product — a portable, drop-in feedback module. It's free."
        onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
        style={{ display: "inline-flex", alignItems: "center", minHeight: 44, textDecoration: "none", cursor: "pointer" }}>

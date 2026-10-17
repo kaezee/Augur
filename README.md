@@ -11,7 +11,7 @@ One well-timed question, three answers, an optional line. Your coding agent pick
 
 **[Try the live demo →](https://kaezee.github.io/Augur/)**
 
-Stable and maintained. Issues get an answer within a week.
+Stable and maintained. Issues get an answer within two weeks.
 
 </div>
 

@@ -5,6 +5,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { Augur, submitFeedback } from "./Augur";
 import { AugurAdminSection, resultsHeadline } from "./admin";
 import { AUGUR_VERSION } from "./version";
+import { AUGUR_DEMO_URL } from "./mark";
 import { augur } from "./emit";
 import * as publicApi from "./index";
 import { mergeConfig, type HostConfig } from "./config";
@@ -170,6 +171,13 @@ describe("the button's panel", () => {
     expect(store.logNote).toHaveBeenCalledWith("ev1", "Too slow");
     expect(q('[role="region"]')?.textContent).not.toContain("that’s logged");
     expect(q('[role="alert"]')).not.toBeNull();
+  });
+
+  it("the byline opens the live demo", async () => {
+    await mount(CFG, fakeStore());
+    await act(async () => { augur.open(); });
+    const link = [...document.body.querySelectorAll("a")].find((a) => a.textContent?.includes("Add to your product"));
+    expect(link?.getAttribute("href")).toBe(AUGUR_DEMO_URL);
   });
 
   it("with categories: [] goes straight to the free-text box", async () => {

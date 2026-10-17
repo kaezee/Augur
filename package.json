@@ -7,7 +7,7 @@
     "typecheck": "tsc -p .",
     "test": "vitest run",
     "demo": "vite demo",
-    "build:demo": "vite build demo --base ./"
+    "build:demo": "vite build demo --base ./ && node scripts/build-registry.mjs"
   },
   "devDependencies": {
     "@types/react": "^18.3.31",

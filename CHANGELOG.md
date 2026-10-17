@@ -5,6 +5,12 @@ what to run when upgrading.
 
 ## Unreleased
 
+- **Install with the shadcn CLI:** `npx shadcn@latest add https://kaezee.github.io/Augur/r/augur.json`
+  puts the whole folder in `src/augur/` (or `augur/`) and prints a pointer to AGENTS.md.
+  Built from `registry.json` with the demo; the database setup is still a separate step.
+- **The byline opens the live demo** instead of the repo (`AUGUR_DEMO_URL`); on the
+  demo itself it opens the repo.
+- **`llms.txt`** on the Pages site, so coding agents can find and describe Augur.
 - **`AUGUR_VERSION`**, exported from `augur/`, is shown at the bottom of the admin
   panel and sent as `augurVersion` in each report's diagnostic context, so a bug
   report can say which Augur it came from.

@@ -38,7 +38,11 @@ run. Drop `augur/` into your React app, pick where the data goes, mount it once.
 
 ## Three-step integration
 
-**1. Copy** the [`augur/`](./augur) folder into your `src/`.
+**1. Copy** the [`augur/`](./augur) folder into your `src/`, or install it with the shadcn CLI:
+
+```sh
+npx shadcn@latest add https://kaezee.github.io/Augur/r/augur.json
+```
 
 **2. Pick a store** — the one seam between Augur and your database:
 
@@ -299,7 +303,7 @@ Your triggers keep working unchanged. See [CHANGELOG.md](./CHANGELOG.md).
 
 Augur is MIT-licensed. Use it, change it, ship it, commercially or not.
 
-Each prompt carries a small **"by Augur"** byline linking back here. It's on by
+Each prompt carries a small **"by Augur"** byline linking to the [live demo](https://kaezee.github.io/Augur/). It's on by
 default, and it's how other builders find Augur. If it doesn't fit your product,
 turn it off in code:
 

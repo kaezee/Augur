@@ -1,0 +1,25 @@
+# Augur
+
+> In-app feedback for React and TypeScript apps. Augur asks one well-timed question after a person finishes something ("Was it easy to export that report?"), takes Yes / Not really / Not sure and an optional line, then gets out of the way. A Feedback button opens a category panel (broke / confusing / missing) that sends the note with diagnostic context. It also counts repeated clicks on elements you label, to show where people get stuck. MIT licensed, no runtime dependencies.
+
+Augur is distributed by copying the `augur/` folder into an app (or installing it with the shadcn CLI), not as an npm package. Data goes through one store: `SupabaseStore` (run `sql/schema.sql` once), `HttpStore` (your own API), or `LocalStore` (demo only). A custom store implements the `AugurStore` interface; its writes must reject on failure, because Augur only says "Thanks" once a note is stored.
+
+Coding agents adding Augur should read AGENTS.md first and follow it: audit the app, propose where Augur asks (one to three moments right after a completed action, with a question that names the action and has Yes as the good answer), and get the developer's yes before writing code.
+
+## Docs
+
+- [AGENTS.md](https://raw.githubusercontent.com/kaezee/Augur/main/AGENTS.md): the install and operating guide for coding agents
+- [README](https://raw.githubusercontent.com/kaezee/Augur/main/README.md): what Augur does, configuration, privacy, upgrading
+- [Example](https://raw.githubusercontent.com/kaezee/Augur/main/example/usage.tsx): a complete host integration in one file
+- [Supabase schema](https://raw.githubusercontent.com/kaezee/Augur/main/sql/schema.sql): tables and functions for SupabaseStore
+
+## Install
+
+- [shadcn registry item](https://kaezee.github.io/Augur/r/augur.json): `npx shadcn@latest add https://kaezee.github.io/Augur/r/augur.json`
+- [Repository](https://github.com/kaezee/Augur): or copy the `augur/` folder by hand
+
+## Optional
+
+- [Live demo](https://kaezee.github.io/Augur/): Augur running inside a sample task board
+- [CHANGELOG](https://raw.githubusercontent.com/kaezee/Augur/main/CHANGELOG.md): versions and upgrade steps
+- [DECISIONS.md](https://raw.githubusercontent.com/kaezee/Augur/main/DECISIONS.md): what Augur deliberately doesn't do, and why

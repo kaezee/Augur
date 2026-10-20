@@ -243,6 +243,8 @@ Go back to the defaults when you launch.
 
 Augur has no server and calls nothing outside your app. Everything it records goes
 to the store you chose: your Supabase project, your API, or the browser in local mode.
+For who can read and write what, and how the Supabase schema enforces it, see
+[SECURITY.md → How Augur protects your data](./SECURITY.md#how-augur-protects-your-data).
 
 **What it records**
 

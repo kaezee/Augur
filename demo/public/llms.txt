@@ -12,6 +12,7 @@ Coding agents adding Augur should read AGENTS.md first and follow it: audit the 
 - [README](https://raw.githubusercontent.com/kaezee/Augur/main/README.md): what Augur does, configuration, privacy, upgrading
 - [Example](https://raw.githubusercontent.com/kaezee/Augur/main/example/usage.tsx): a complete host integration in one file
 - [Supabase schema](https://raw.githubusercontent.com/kaezee/Augur/main/sql/schema.sql): tables and functions for SupabaseStore
+- [Plain Postgres schema](https://raw.githubusercontent.com/kaezee/Augur/main/sql/postgres.sql) and [example endpoint](https://raw.githubusercontent.com/kaezee/Augur/main/example/postgres-route.ts): HttpStore without Supabase
 
 ## Install
 

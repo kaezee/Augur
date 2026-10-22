@@ -139,7 +139,7 @@ none.
 | Store | Backend | When |
 |---|---|---|
 | `SupabaseStore(client)` | Supabase | run [`sql/schema.sql`](./sql/schema.sql) once, then pass the client |
-| `HttpStore({ endpoint })` | your API | you implement the routes the store calls |
+| `HttpStore({ endpoint })` | your API or plain Postgres | one endpoint: copy `example/postgres-route.ts`, run `sql/postgres.sql` (README → Plain Postgres). Take the user from the session, never the request body |
 | `LocalStore` | `localStorage` | demo / dev only — single device, no analytics worth reading |
 
 All three implement the `AugurStore` interface in [`augur/store.ts`](./augur/store.ts).

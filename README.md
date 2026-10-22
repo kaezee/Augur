@@ -52,7 +52,7 @@ npx shadcn@latest add https://kaezee.github.io/Augur/r/augur.json
 |---|---|---|
 | `LocalStore` | `localStorage` | demo / dev, single device |
 | `SupabaseStore(client)` | Supabase | run [`sql/schema.sql`](./sql/schema.sql) once |
-| `HttpStore({endpoint})` | your API | you implement the routes |
+| `HttpStore({endpoint})` | your API, e.g. plain Postgres | one endpoint; see [Plain Postgres](#plain-postgres-or-your-own-api) |
 
 Or write your own to the `AugurStore` interface in [`augur/store.ts`](./augur/store.ts).
 
@@ -179,6 +179,57 @@ Results also counts button submissions by category and by entry point, filters
 notes by category, and shows each submission's context in plain words.
 
 Skip the admin import entirely and collection still works, with a smaller bundle.
+
+## Plain Postgres (or your own API)
+
+Augur runs in the browser, so it never talks to a database directly. Without
+Supabase, use `HttpStore`: it sends small JSON messages to one endpoint on your
+server, and your server writes them to Postgres (or anything else).
+
+1. Run [`sql/postgres.sql`](./sql/postgres.sql) once (Postgres 13+). It's the same
+   tables as the Supabase schema, without the Supabase-only parts.
+2. Add the endpoint. [`example/postgres-route.ts`](./example/postgres-route.ts) is a
+   complete one in about 90 lines, as a Next.js route using `pg`; it ports to any
+   framework with `Request`/`Response`.
+3. Mount Augur with it: `store={new HttpStore({ endpoint: "/api/augur" })}`.
+
+What Augur sends (`POST`, JSON body `{ kind, ...fields }`):
+
+| `kind` | Fields | Your endpoint |
+|---|---|---|
+| `shown` | `triggerId`, `triggerVer` | inserts an event, returns `{ "id": "<event id>" }` |
+| `outcome` | `eventId`, `outcome` (`answered` or `ignored`), `answer` | updates that event, if it's the user's own |
+| `note` | `eventId`, `body` | adds a note to that event, if it's the user's own |
+| `submit` | `source`, `category`, `body`, `context` | inserts an answered event with the context, plus the note |
+| `friction` | `label`, `route`, `clicks` | inserts a friction row |
+| `unconfigured` | `triggerId` | inserts an unconfigured row |
+
+Plus `GET ?kind=config`, which returns the saved admin overrides (`{}` if none).
+Reply `204` for the rest, and a non-2xx status on failure: Augur then tells the
+person it didn't send and keeps their text.
+
+**Two rules make it safe.** Take the user from your own session on the server and
+ignore the `userId` in the body, which comes from the browser. And only let people
+touch their own events. The example does both.
+
+**Reading results.** `HttpStore` collects; Augur's admin screen needs the Supabase
+store. With plain Postgres, query the tables directly:
+
+```sql
+-- Answers per question, last 30 days
+select trigger_id, answer, count(*) from augur_events
+where outcome = 'answered' and answer is not null and shown_at > now() - interval '30 days'
+group by 1, 2 order by 1, 3 desc;
+
+-- Newest notes, with the category and page they came from
+select n.created_at, e.trigger_id, e.category, e.context->>'route' as page, n.body
+from augur_notes n join augur_events e on e.id = n.event_id
+order by n.created_at desc limit 50;
+
+-- Where people press repeatedly
+select label, count(*) as bursts, count(distinct user_id) as people
+from augur_friction group by 1 order by 2 desc;
+```
 
 ## Get told when feedback lands
 

@@ -74,7 +74,9 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
   }, [cfg.enabled, cfg.friction, store, userId]);
 
   const ignoreKey = cfg.ignoreErrorSources.join("\n");
-  useEffect(() => (cfg.context ? installErrorCapture(cfg.ignoreErrorSources) : undefined),
+  // Read through the ref so an inline redactError doesn't reinstall the listeners each render.
+  const redact = (m: string) => cfgRef.current.redactError?.(m) ?? m;
+  useEffect(() => (cfg.context ? installErrorCapture(cfg.ignoreErrorSources, redact) : undefined),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [cfg.context, ignoreKey]);
 

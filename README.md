@@ -130,8 +130,11 @@ AGENTS.md tells it how.
   - the window size, the browser's user agent, the time, where it was opened from,
     and a per-tab session id,
   - the last 5 uncaught errors, each as its type, script URL (query stripped), line
-    and the first line of the message cut to 120 characters. Browser-extension errors
-    are dropped, and so is any source you list in `ignoreErrorSources`.
+    and the first line of the message cut to 120 characters, never the stack trace.
+    Emails, tokens (JWTs, `Bearer …`), long key-like strings and long numbers in that
+    line are replaced with `[redacted]`; add your own masking with `redactError`
+    (e.g. `redactError: (m) => m.replace(/ORD-\d+/g, "[order]")`). Browser-extension
+    errors are dropped, and so is any source you list in `ignoreErrorSources`.
 
   It never reads the page, form fields, or anything the person typed elsewhere.
   `context: false` turns it off entirely: no listeners, nothing sent.

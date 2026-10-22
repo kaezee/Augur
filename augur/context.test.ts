@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cleanMessage, normalizeError, stripUrl } from "./context";
+import { cleanMessage, maskSecrets, normalizeError, stripUrl } from "./context";
 
 describe("diagnostic context limits", () => {
   it("strips query strings and fragments", () => {
@@ -28,5 +28,31 @@ describe("diagnostic context limits", () => {
     }
     expect(normalizeError({ filename: "https://cloud.umami.is/script.js", message: "x" }, ["https://cloud.umami.is"])).toBeNull();
     expect(normalizeError({ filename: "https://app.example.com/a.js", message: "x" }, ["https://cloud.umami.is"])).not.toBeNull();
+  });
+});
+
+describe("masking secrets in error messages", () => {
+  it("masks emails, JWTs, auth headers, key-like strings and long numbers", () => {
+    expect(maskSecrets("Failed to load profile for jane.doe+test@example.co.uk")).toBe("Failed to load profile for [redacted]");
+    expect(maskSecrets("Invalid token eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.abc_DEF-123")).toBe("Invalid token [redacted]");
+    expect(maskSecrets("401 for Bearer abc.def123")).toBe("401 for [redacted]");
+    expect(maskSecrets("bad key k9F2mQ7xL4pR8tZ1vB6nW3yH5j")).toBe("bad key [redacted]");
+    expect(maskSecrets("card 4242424242424242 declined")).toBe("card [redacted] declined");
+  });
+
+  it("leaves ordinary messages alone", () => {
+    for (const m of ["Cannot read properties of undefined (reading 'members')", "Failed to fetch", "Request failed with status code 500", "Minified React error #418"])
+      expect(maskSecrets(m)).toBe(m);
+  });
+
+  it("masks before cutting to 120 characters, so a token at the cut is still caught", () => {
+    const m = "x".repeat(105) + " eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiIxMjMifQ.sig";
+    expect(cleanMessage(m)).toBe("x".repeat(105) + " [redacted]");
+  });
+
+  it("applies the host's redactError first, and falls back if it throws", () => {
+    expect(cleanMessage("order ORD-77 failed for jane@x.io", (s) => s.replace(/ORD-\d+/g, "[order]"))).toBe("order [order] failed for [redacted]");
+    expect(cleanMessage("for jane@x.io", () => { throw new Error("oops"); })).toBe("for [redacted]");
+    expect(normalizeError({ name: "Error", message: "acct 12 jane@x.io" }, [], (s) => s.replace("acct 12", "acct ?"))?.message).toBe("acct ? [redacted]");
   });
 });

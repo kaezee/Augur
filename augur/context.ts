@@ -14,8 +14,26 @@ const MAX_MESSAGE = 120;
 // Drop the query string and fragment from a URL or path.
 export const stripUrl = (u: string): string => u.replace(/[?#].*$/, "");
 
-// First line only, cut to 120 characters.
-export const cleanMessage = (m: string): string => String(m ?? "").split(/\r?\n/, 1)[0].slice(0, MAX_MESSAGE);
+// Things that turn up in error messages and must never be stored: emails, JWTs
+// (whole or cut short), auth headers, long key-like strings (API keys, session ids),
+// and long digit runs (card, phone and account numbers).
+const SECRETS = [
+  /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g,
+  /\beyJ[\w-]{8,}(?:\.[\w-]*){0,2}/g,
+  /\b(?:bearer|basic)\s+[\w.~+/=-]+/gi,
+  /\b(?=[\w-]*\d)(?=[\w-]*[A-Za-z])[\w-]{24,}/g,
+  /\b\d{9,}\b/g,
+];
+export const maskSecrets = (m: string): string => SECRETS.reduce((s, re) => s.replace(re, "[redacted]"), m);
+
+// First line only, masked (the host's redactError first, then the built-in patterns),
+// then cut to 120 characters. Masking runs before the cut so a token straddling it
+// is still caught. A redactError that throws falls back to the built-in masking.
+export const cleanMessage = (m: string, redact?: (message: string) => string): string => {
+  let line = String(m ?? "").split(/\r?\n/, 1)[0];
+  if (redact) { try { line = String(redact(line)); } catch { /* keep the built-in masking */ } }
+  return maskSecrets(line).slice(0, MAX_MESSAGE);
+};
 
 let sessionId = "";
 export function getSessionId(): string {
@@ -34,6 +52,7 @@ export function getSessionId(): string {
 export function normalizeError(
   raw: { name?: string; filename?: string; lineno?: number; message?: string; stack?: string },
   ignore: string[] = [],
+  redact?: (message: string) => string,
 ): ErrorEntry | null {
   let source = raw.filename ?? "";
   let line = raw.lineno ?? 0;
@@ -43,7 +62,7 @@ export function normalizeError(
   }
   source = stripUrl(source);
   if ([...EXTENSION_PREFIXES, ...ignore].some((p) => p && source.startsWith(p))) return null;
-  return { type: raw.name || "Error", source, line, message: cleanMessage(raw.message ?? "") };
+  return { type: raw.name || "Error", source, line, message: cleanMessage(raw.message ?? "", redact) };
 }
 
 const errors: ErrorEntry[] = [];
@@ -55,17 +74,17 @@ function push(e: ErrorEntry | null) {
 
 // Install the two window listeners. Returns an uninstall. Called only when
 // config.context is true; with context off nothing is ever attached.
-export function installErrorCapture(ignore: string[]): () => void {
+export function installErrorCapture(ignore: string[], redact?: (message: string) => string): () => void {
   if (typeof window === "undefined") return () => {};
   const onError = (e: ErrorEvent) => push(normalizeError({
     name: (e.error as Error | undefined)?.name, filename: e.filename, lineno: e.lineno,
     message: e.message || (e.error as Error | undefined)?.message, stack: (e.error as Error | undefined)?.stack,
-  }, ignore));
+  }, ignore, redact));
   const onRejection = (e: PromiseRejectionEvent) => {
     const r = e.reason as { name?: string; message?: string; stack?: string } | undefined;
     push(normalizeError(r && typeof r === "object"
       ? { name: r.name, message: r.message, stack: r.stack }
-      : { name: "UnhandledRejection", message: String(e.reason) }, ignore));
+      : { name: "UnhandledRejection", message: String(e.reason) }, ignore, redact));
   };
   window.addEventListener("error", onError);
   window.addEventListener("unhandledrejection", onRejection);

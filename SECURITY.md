@@ -78,6 +78,11 @@ ships empty, so nobody can read results until you add yourself.
   future function that forgot its own check still wouldn't be open.
 - **Bounded friction input.** Labels are cut to 80 characters, paths to 300, and the
   press count is clamped to 1–1000.
+- **Secrets are masked out of error messages.** Only the first line of each error
+  is kept, never the stack trace. Before it's stored, emails, JWTs, `Bearer`/`Basic`
+  credentials, long key-like strings and long numbers are replaced with `[redacted]`,
+  and your own `redactError` runs first for anything specific to your app. It's set
+  in code only; admin settings can't change it.
 - **Stored text is shown as text.** Admin renders notes and context through React,
   never as HTML, so a note can't run script in your admin.
 

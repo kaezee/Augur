@@ -92,3 +92,12 @@ describe("categories and strings", () => {
     expect(c.categories.map((k) => k.key)).toEqual(["x", "y"]);
   });
 });
+
+describe("redactError", () => {
+  it("comes from code only; admin settings can't set or replace it", () => {
+    const fn = (s: string) => s;
+    expect(mergeConfig({ triggers: {}, redactError: fn }, {}).redactError).toBe(fn);
+    expect(mergeConfig({ triggers: {} }, { redactError: "nope" } as never).redactError).toBeUndefined();
+    expect(mergeConfig({ triggers: {}, redactError: fn }, { redactError: "nope" } as never).redactError).toBe(fn);
+  });
+});

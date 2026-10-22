@@ -256,6 +256,7 @@ admin Settings tab. Never write to Augur's database tables to change settings.
 | Change or remove the categories | Edit `categories` in the host config. `[]` for plain free text. 2 to 5 entries. |
 | Hide our own button while Augur is open | Subscribe with `augur.onPanelState(open => …)` in the button component. |
 | Turn off diagnostic context | `context: false` in the host config. |
+| Hide something specific from error messages (order ids, customer numbers) | `redactError: (m) => m.replace(/…/g, "[…]")` in the host config. Emails, tokens, keys and long numbers are already masked. |
 | Find where people get stuck / track a slow button | Add `data-augur="<short-label>"` to that element in the host's markup (e.g. `data-augur="save-entity"`). Labels are kebab-case, describe the action, never contain user data. Admin's Results shows repeated-press bursts per label. |
 | Turn off friction | `friction: false` in the host config. |
 | Translate Augur | Override keys in `strings`, plus `followup`, `manualQuestion` and the `answers` labels. |

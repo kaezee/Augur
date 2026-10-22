@@ -78,6 +78,9 @@ export interface AugurConfig {
   // viewport, browser, recent errors). false = no listeners, nothing sent.
   context: boolean;
   ignoreErrorSources: string[];                    // error source prefixes to drop
+  // Extra masking for error messages, run before the built-in masking of emails,
+  // tokens, keys and long numbers. Code only: admin settings can't set it.
+  redactError?: (message: string) => string;
   // Friction: 3+ presses within a second on an element labelled data-augur="…" is
   // recorded quietly (label + page path only). false = no listener at all.
   friction: boolean;
@@ -171,6 +174,7 @@ export function mergeConfig(
     presentation: { ...AUGUR_BASE_DEFAULTS.presentation, ...host.presentation, ...overrides.presentation },
     strings: { ...AUGUR_BASE_DEFAULTS.strings, ...host.strings, ...overrides.strings },
     answers: overrides.answers ?? host.answers ?? AUGUR_BASE_DEFAULTS.answers,
+    redactError: typeof host.redactError === "function" ? host.redactError : undefined,
     triggers,
   };
 }

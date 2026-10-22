@@ -131,7 +131,8 @@ select pg_get_functiondef('augur_is_admin'::regproc);
 
 ### If you use your own backend
 
-Whatever stores Augur's data should, at a minimum:
+[`example/postgres-route.ts`](./example/postgres-route.ts) does all of this for plain
+Postgres. Whatever stores Augur's data should, at a minimum:
 
 - take the user from your own session on the server, never from the request body;
 - let users write only their own rows, and let only admins read;

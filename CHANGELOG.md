@@ -5,6 +5,10 @@ what to run when upgrading.
 
 ## Unreleased
 
+- **Plain Postgres guide.** `sql/postgres.sql` (the same tables without the Supabase
+  parts), `example/postgres-route.ts` (a complete `HttpStore` endpoint using `pg`),
+  and README → Plain Postgres: the message format, the two safety rules, and SQL for
+  reading results.
 - **Secrets are masked out of error messages.** Before an error's first line is
   stored with a report, emails, JWTs, `Bearer`/`Basic` credentials, long key-like
   strings and long numbers become `[redacted]`. New `redactError` host option for

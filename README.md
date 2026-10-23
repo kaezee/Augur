@@ -36,7 +36,46 @@ run. Drop `augur/` into your React app, pick where the data goes, mount it once.
 **Works with** React 18+: Vite, Next.js (as a client component), Remix. The engine
 (triggers, caps, stores) is plain TypeScript; only the visible layer is React.
 
+**How heavy is it?** No dependencies. About 11 KB gzipped for the prompts, the
+Feedback button and the stores; the admin screen adds about 8 KB, only if you import
+it. Setting it up in a small app takes about ten minutes: copy the folder, run one SQL
+file if you use Supabase, mount it once, and add an `emit()` where something finishes.
+
 ---
+
+## Try it in a minute
+
+Copy the folder (or run the shadcn command below), then paste this into any React
+component. No backend, no SQL: `LocalStore` keeps everything in your browser.
+
+```tsx
+import { Augur, augur, LocalStore, type HostConfig } from "./augur";
+
+const store = new LocalStore();   // saves in this browser; swap in SupabaseStore or HttpStore later
+
+const MY_AUGUR: HostConfig = {
+  triggers: {
+    "report.exported": {
+      enabled: true, version: 1, delayMs: 1500, maxAsks: 3, dismissKill: 2,
+      question: "Was it easy to export that report?",
+    },
+  },
+};
+
+export function App() {
+  return (
+    <>
+      {/* In your app, emit after the export actually finishes. */}
+      <button onClick={() => augur.emit("report.exported")}>Export report</button>
+      <Augur userId="try-it" store={store} config={MY_AUGUR} />
+    </>
+  );
+}
+```
+
+Click **Export report**: the question appears a moment later, and the Feedback button
+sits in the corner. To see what was saved, render
+`<AugurAdminSection store={store} hostConfig={MY_AUGUR} />` anywhere.
 
 ## Three-step integration
 
@@ -59,13 +98,19 @@ Or write your own to the `AugurStore` interface in [`augur/store.ts`](./augur/st
 **3. Mount once and emit** — the whole integration is two lines:
 
 ```tsx
-import { Augur, augur } from "./augur";
+import { Augur, augur, type HostConfig } from "./augur";
 
-// declare the trigger in your config…
-"checkout.done": { enabled: true, version: 1, delayMs: 3000,
-  maxAsks: 1, dismissKill: 2, question: "Did that go through as expected?" }
+// Declare the moment, in your own code (not inside augur/)…
+export const MY_TRIGGERS: HostConfig = {
+  triggers: {
+    "checkout.done": {
+      enabled: true, version: 1, delayMs: 3000, maxAsks: 1, dismissKill: 2,
+      question: "Did your order go through okay?",
+    },
+  },
+};
 
-// …mount once, high in the tree…
+// …mount once, high in the tree, with the store from step 2…
 <Augur userId={session.user.id} store={store} config={MY_TRIGGERS} />
 
 // …and emit where the action completes. Fire-and-forget; caps decide if it shows.

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { augur, onClose, setPanelOpen } from "./emit";
+import { augur, onClose, setPanelOpen, onConfigChanged } from "./emit";
 import { canShow, recordShown, recordAnswered, recordIgnored } from "./caps";
 import { effectiveCategories, mergeConfig, responseTypeOf, type AugurConfig, type HostConfig, type TriggerDef } from "./config";
 import { captureContext, installErrorCapture, stripUrl } from "./context";
@@ -85,10 +85,17 @@ export function Augur({ userId, store, config, autoTriggers = true, byline = tru
   // without a remount.
   const isTesting = () => cfgRef.current.mode === "testing";
 
+  // Admin's saved settings: read on mount, again as soon as admin saves in this page,
+  // and when the tab comes back into view (admin may have saved in another tab;
+  // at most once every 30s).
   useEffect(() => {
-    let live = true;
-    store.readConfig().then((o) => { if (live && o) setOverrides(o); }).catch(() => {});
-    return () => { live = false; };
+    let live = true, lastRead = 0;
+    const read = () => { lastRead = Date.now(); store.readConfig().then((o) => { if (live && o) setOverrides(o); }).catch(() => {}); };
+    const onVisible = () => { if (document.visibilityState === "visible" && Date.now() - lastRead > 30_000) read(); };
+    read();
+    const off = onConfigChanged(read);
+    document.addEventListener("visibilitychange", onVisible);
+    return () => { live = false; off(); document.removeEventListener("visibilitychange", onVisible); };
   }, [store]);
 
   // Build the snackbar spec from a trigger def + the merged config.

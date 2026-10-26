@@ -5,6 +5,16 @@ what to run when upgrading.
 
 ## Unreleased
 
+- **Admin changes apply at once.** Saving settings in admin (Testing mode included)
+  now reaches an `<Augur>` already mounted in the same page immediately, and other
+  tabs pick it up when they come back into view. Before, Testing mode only took
+  effect after a reload, so test answers were counted.
+- **Results count only the current wording.** After a question is reworded, its row
+  and the headline count answers to the new wording only, and say how many answers
+  went to earlier wordings. Stores gain an optional `readTriggerVersionStats`;
+  Supabase needs the new `augur_admin_trigger_version_stats` in `0.5.0.sql`.
+- **Caps label:** "Max prompts per session" (it read "1 prompt / session" whatever
+  the value).
 - **Plain Postgres guide.** `sql/postgres.sql` (the same tables without the Supabase
   parts), `example/postgres-route.ts` (a complete `HttpStore` endpoint using `pg`),
   and README → Plain Postgres: the message format, the two safety rules, and SQL for

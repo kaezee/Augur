@@ -33,7 +33,25 @@ create or replace function augur_admin_submissions(p_from timestamptz, p_to time
   group by 1, 2;
 $$;
 
+-- Answer counts per trigger and question version, so Results can count only answers
+-- to the current wording of a reworded question.
+create or replace function augur_admin_trigger_version_stats(p_from timestamptz, p_to timestamptz)
+  returns table (trigger_id text, trigger_ver int, shown bigint, answered bigint, ignored bigint, yes bigint, not_really bigint, unclear bigint)
+  language sql stable security definer set search_path = public, pg_temp as $$
+  select e.trigger_id, e.trigger_ver, count(*),
+    count(*) filter (where e.outcome = 'answered'),
+    count(*) filter (where e.outcome = 'ignored'),
+    count(*) filter (where e.answer = 'yes'),
+    count(*) filter (where e.answer = 'not_really'),
+    count(*) filter (where e.answer = 'unclear')
+  from augur_events e
+  where augur_is_admin() and e.shown_at >= p_from and e.shown_at < p_to
+  group by e.trigger_id, e.trigger_ver order by e.trigger_id, e.trigger_ver;
+$$;
+
 revoke execute on function augur_admin_notes(boolean, text, timestamptz, uuid, int) from public, anon;
 revoke execute on function augur_admin_submissions(timestamptz, timestamptz)   from public, anon;
 grant  execute on function augur_admin_notes(boolean, text, timestamptz, uuid, int) to authenticated;
 grant  execute on function augur_admin_submissions(timestamptz, timestamptz)   to authenticated;
+revoke execute on function augur_admin_trigger_version_stats(timestamptz, timestamptz) from public, anon;
+grant  execute on function augur_admin_trigger_version_stats(timestamptz, timestamptz) to authenticated;

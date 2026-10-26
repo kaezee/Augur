@@ -48,3 +48,13 @@ export function onClose(l: () => void): () => void {
 export function setPanelOpen(open: boolean): void {
   for (const l of [...panelListeners]) l(open);
 }
+// Admin saved settings: a mounted <Augur> re-reads them so a change such as Testing
+// mode applies at once, not after a reload.
+const configListeners = new Set<() => void>();
+export function onConfigChanged(l: () => void): () => void {
+  configListeners.add(l);
+  return () => { configListeners.delete(l); };
+}
+export function configChanged(): void {
+  for (const l of [...configListeners]) l();
+}

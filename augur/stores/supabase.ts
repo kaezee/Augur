@@ -7,7 +7,7 @@
 // @supabase/supabase-js. Pass a real SupabaseClient and it fits.
 
 import type { ConfigOverrides } from "../config";
-import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, NotesQuery, Submission, SubmissionStat, Summary, TriggerStat, Unconfigured } from "../store";
+import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, NotesQuery, Submission, SubmissionStat, Summary, TriggerStat, TriggerVersionStat, Unconfigured } from "../store";
 
 type Result<T> = Promise<{ data: T | null; error: unknown }>;
 interface Filter<T> { eq(col: string, val: unknown): Result<T>; }
@@ -67,6 +67,16 @@ export class SupabaseStore implements AugurStore {
     const { data } = await this.sb.rpc("augur_admin_summary", { p_from: range.from, p_to: range.to });
     const s = (data as Partial<Summary>) ?? {};
     return { shown: s.shown ?? 0, answered: s.answered ?? 0, ignored: s.ignored ?? 0, notes: s.notes ?? 0, unread: s.unread ?? 0 };
+  }
+
+  async readTriggerVersionStats(range: DateRange): Promise<TriggerVersionStat[]> {
+    const { data, error } = await this.sb.rpc("augur_admin_trigger_version_stats", { p_from: range.from, p_to: range.to });
+    if (error) throw error;   // e.g. migration not run yet: Results falls back to readTriggerStats
+    return ((data as Array<Record<string, number | string>>) ?? []).map((r) => ({
+      triggerId: String(r.trigger_id), triggerVer: Number(r.trigger_ver),
+      shown: Number(r.shown), answered: Number(r.answered), ignored: Number(r.ignored),
+      byAnswer: { yes: Number(r.yes), not_really: Number(r.not_really), unclear: Number(r.unclear) },
+    }));
   }
 
   async readTriggerStats(range: DateRange): Promise<TriggerStat[]> {

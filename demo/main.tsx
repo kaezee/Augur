@@ -328,11 +328,12 @@ function App() {
       </header>
 
       <main className="page">
+        <div className="thesis">
+          <h1>See what your users never tell you</h1>
+          <p className="facts">Free and open source · React component · answers stay in your own database</p>
+          <p>Augur is running inside the sample app. Try the four things below and watch it record each one.</p>
+        </div>
         <aside className="guide" aria-label="How to try Augur">
-          <div className="thesis">
-            <h1>See what your users never tell you</h1>
-            <p>Augur is running inside the sample app. Try the four things below and watch it record each one.</p>
-          </div>
 
           <section className="card steps" aria-labelledby="stepsTitle">
             <div className="steps-head">
@@ -406,6 +407,7 @@ function App() {
             </div>
             <div className="panel" role="tabpanel" id="panel-admin" aria-labelledby="tab-admin" hidden={tab !== "admin"}>
               <div className="frame-head"><h3>Augur admin</h3><span>Acme Tasks · what your team sees</span></div>
+              <p className="demo-note">This demo raises the caps so you can try it more than once. In your app the defaults apply: one prompt per session, then 21 days of quiet.</p>
               {tab === "admin" && <div className="admin-wrap"><AugurAdminSection key={adminKey} store={store} hostConfig={DEMO_AUGUR} /></div>}
             </div>
             {toast && <div className="toast" aria-hidden="true"><span className="tic"><Icon n="check" /></span>{toast}</div>}

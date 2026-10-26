@@ -56,10 +56,15 @@
     .btn-sm { height: 44px; padding: 0 12px; font-size: 13px; border-radius: 8px; }
 
     /* page */
-    .page { flex: 1; min-height: 0; display: grid; grid-template-columns: 340px minmax(0, 1fr); gap: 24px; padding: 20px 24px; max-width: 1440px; width: 100%; margin: 0 auto; }
+    .page { flex: 1; min-height: 0; display: grid; grid-template-columns: 340px minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); column-gap: 24px; row-gap: 14px; padding: 20px 24px; max-width: 1440px; width: 100%; margin: 0 auto; }
+    .thesis { grid-column: 1; grid-row: 1; }
+    .guide { grid-column: 1; grid-row: 2; }
+    .sandbox { grid-column: 2; grid-row: 1 / span 2; }
     .guide { min-height: 0; display: flex; flex-direction: column; gap: 14px; }
     .thesis h1 { font-size: 24px; line-height: 1.15; letter-spacing: -.025em; font-weight: 650; }
     .thesis p { color: var(--ink-2); margin-top: 6px; font-size: 13.5px; }
+    .thesis .facts { color: var(--ink); font-weight: 600; font-size: 13px; }
+    .demo-note { flex: none; margin: 0; padding: 9px 18px; border-bottom: 1px solid var(--line); background: var(--sunken); color: var(--ink-2); font-size: 12.5px; }
     .card { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; }
 
     .steps { padding: 14px 14px 12px; }
@@ -180,10 +185,10 @@
     .admin-wrap { flex: 1; min-height: 0; overflow: auto; padding: 18px 20px 76px; }
 
     @media (max-height: 840px) and (min-width: 1001px) {
-      .page { padding-block: 14px; gap: 20px; }
+      .page { padding-block: 14px; column-gap: 20px; row-gap: 10px; }
       .guide { gap: 10px; }
       .thesis h1 { font-size: 21px; }
-      .thesis p { display: none; }
+      .thesis p:not(.facts) { display: none; }
       .step { padding: 6px 8px; }
       .feed { min-height: 96px; }
     }
@@ -193,7 +198,12 @@
       .frame { min-height: 620px; }
       .feed { min-height: 200px; max-height: 320px; }
     }
-    @media (max-width: 1000px) { .page { grid-template-columns: minmax(0, 1fr); } }
+    /* One column: the sample app comes right after the heading, so on a phone you see Augur at work first. */
+    @media (max-width: 1000px) {
+      .page { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; }
+      .thesis, .guide, .sandbox { grid-column: 1; grid-row: auto; }
+      .sandbox { order: 1; } .guide { order: 2; }
+    }
     @media (max-width: 720px) {
       .top { padding-inline: 16px; }
       .top .link span, .top .pill { display: none; }
@@ -201,6 +211,7 @@
       .board { grid-template-columns: minmax(0, 1fr); padding: 12px 12px 72px; overflow: visible; }
       .bar-row .note { display: none; }
       .frame { min-height: 0; }
+      .toast { position: fixed; top: 12px; left: 50%; right: auto; transform: translateX(-50%); z-index: 50; white-space: nowrap; }
     }
     @media (prefers-reduced-motion: reduce) { * { animation: none !important; transition: none !important; } .ghost { transform: none; } }
   </style>

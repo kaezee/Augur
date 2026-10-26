@@ -14,6 +14,8 @@ export interface Summary {
   unread: number;   // total unread notes (range-independent)
 }
 
+export interface TriggerVersionStat extends TriggerStat { triggerVer: number }
+
 export interface TriggerStat {
   triggerId: string;
   shown: number;
@@ -93,6 +95,9 @@ export interface AugurStore {
   // ── admin reads (optional) ──
   readSummary?(range: DateRange): Promise<Summary>;
   readTriggerStats?(range: DateRange): Promise<TriggerStat[]>;
+  // The same counts split by question version, so Results can count only answers to
+  // the current wording. Optional: without it, Results counts every version together.
+  readTriggerVersionStats?(range: DateRange): Promise<TriggerVersionStat[]>;
   readUnconfigured?(): Promise<Unconfigured[]>;
   readFriction?(range: DateRange): Promise<FrictionStat[]>;
   readNotes?(opts?: NotesQuery): Promise<AdminNote[]>;

@@ -4,7 +4,7 @@
 // admin reads. Single-device, no auth, no network. Not for real collection.
 
 import type { ConfigOverrides } from "../config";
-import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, NotesQuery, Submission, SubmissionStat, SubmitContext, Summary, TriggerStat, Unconfigured } from "../store";
+import type { AdminNote, AugurStore, DateRange, FrictionEvent, FrictionStat, NotesQuery, Submission, SubmissionStat, SubmitContext, Summary, TriggerStat, TriggerVersionStat, Unconfigured } from "../store";
 
 interface Ev { id: string; userId: string; triggerId: string; triggerVer: number; outcome: "shown" | "ignored" | "answered"; answer?: string; shownAt: number; category?: string; context?: SubmitContext; }
 interface Note { id: string; eventId: string; body: string; createdAt: number; readAt?: number; }
@@ -72,6 +72,19 @@ export class LocalStore implements AugurStore {
       notes: b.notes.filter((n) => within(n.createdAt, range)).length,
       unread: b.notes.filter((n) => !n.readAt).length,
     };
+  }
+
+  async readTriggerVersionStats(range: DateRange): Promise<TriggerVersionStat[]> {
+    const by = new Map<string, TriggerVersionStat>();
+    for (const e of load().events.filter((x) => within(x.shownAt, range))) {
+      const k = `${e.triggerId}\u0000${e.triggerVer}`;
+      const s = by.get(k) ?? { triggerId: e.triggerId, triggerVer: e.triggerVer, shown: 0, answered: 0, ignored: 0, byAnswer: { yes: 0, not_really: 0, unclear: 0 } };
+      s.shown += 1;
+      if (e.outcome === "answered") { s.answered += 1; if (e.answer && e.answer in s.byAnswer) s.byAnswer[e.answer as keyof typeof s.byAnswer] += 1; }
+      if (e.outcome === "ignored") s.ignored += 1;
+      by.set(k, s);
+    }
+    return [...by.values()];
   }
 
   async readTriggerStats(range: DateRange): Promise<TriggerStat[]> {

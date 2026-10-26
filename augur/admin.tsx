@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { lockedInCode, mergeConfig, responseTypeOf, type AugurConfig, type ConfigOverrides, type HostConfig, type TriggerDef } from "./config";
-import type { AdminNote, AugurStore, DateRange, FrictionStat, SubmissionStat, Summary, TriggerStat, Unconfigured } from "./store";
+import type { AdminNote, AugurStore, DateRange, FrictionStat, SubmissionStat, Summary, TriggerStat, Unconfigured, TriggerVersionStat } from "./store";
 import { AugurPrompt, type PromptSpec } from "./prompt";
 import { AugurWordmark, AUGUR_REPO_URL } from "./mark";
 import { AUGUR_VERSION } from "./version";
+import { configChanged } from "./emit";
 
 // The Augur admin surface (AUGUR-HANDOFF §7, replaced by Patch 2 §6). A section, not
 // a route: the host mounts it behind its own guard. Two tabs — Results (read, the
@@ -174,11 +175,29 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
   }, [store, range]);
 
   useEffect(() => { store.readTriggerStats?.(range).then(setStatsRange).catch(() => setStatsRange([])); }, [store, range]);
+  // Per-version counts, when the store has them: a reworded question then counts only
+  // answers to its current wording (null = store can't split, count every version).
+  const [versionStats, setVersionStats] = useState<TriggerVersionStat[] | null>(null);
+  useEffect(() => {
+    if (!store.readTriggerVersionStats) { setVersionStats(null); return; }
+    store.readTriggerVersionStats(range).then(setVersionStats).catch(() => setVersionStats(null));
+  }, [store, range]);
   const [friction, setFriction] = useState<FrictionStat[]>([]);
   useEffect(() => { store.readFriction?.(range).then(setFriction).catch(() => setFriction([])); }, [store, range]);
   useEffect(() => { store.readTriggerStats?.(rangeFor("all")).then(setStatsAll).catch(() => setStatsAll([])); }, [store]);
 
-  const byIdRange = useMemo(() => new Map(statsRange.map((s) => [s.triggerId, s])), [statsRange]);
+  const { byIdRange, earlierById } = useMemo(() => {
+    if (!versionStats) return { byIdRange: new Map(statsRange.map((s) => [s.triggerId, s])), earlierById: new Map<string, number>() };
+    const cur = new Map<string, TriggerStat>(), earlier = new Map<string, number>();
+    for (const v of versionStats) {
+      const def = draft.triggers[v.triggerId];
+      if (def && v.triggerVer !== def.version) { earlier.set(v.triggerId, (earlier.get(v.triggerId) ?? 0) + v.answered); continue; }
+      const s = cur.get(v.triggerId) ?? { triggerId: v.triggerId, shown: 0, answered: 0, ignored: 0, byAnswer: { yes: 0, not_really: 0, unclear: 0 } };
+      cur.set(v.triggerId, { ...s, shown: s.shown + v.shown, answered: s.answered + v.answered, ignored: s.ignored + v.ignored,
+        byAnswer: { yes: s.byAnswer.yes + v.byAnswer.yes, not_really: s.byAnswer.not_really + v.byAnswer.not_really, unclear: s.byAnswer.unclear + v.byAnswer.unclear } });
+    }
+    return { byIdRange: cur, earlierById: earlier };
+  }, [statsRange, versionStats, draft]);
   const everFired = useMemo(() => new Set(statsAll.filter((s) => s.shown > 0).map((s) => s.triggerId)), [statsAll]);
   const entryPoints = useMemo(() => new Set(["manual", "button", ...(subStats ?? []).map((s) => s.source),
     ...notes.filter((n) => n.category != null || n.context != null).map((n) => n.triggerId)]), [notes, subStats]);
@@ -231,7 +250,11 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
             {rowIds.map((id) => {
               const s = byIdRange.get(id);
               const c3 = rt(id) === "choice3";
-              const name = <code style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{id}{entryPoints.has(id) && !draft.triggers[id] ? " ·button" : ""}</code>;
+              const earlier = earlierById.get(id) ?? 0;
+              const name = <>
+                <code style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{id}{entryPoints.has(id) && !draft.triggers[id] ? " ·button" : ""}</code>
+                {earlier > 0 && s && <div style={{ ...muted, fontSize: 12 }}>Current wording only; {earlier} earlier {earlier === 1 ? "answer" : "answers"} not counted</div>}
+              </>;
               if (!everFired.has(id)) return (
                 <tr key={id} style={{ borderTop: "1px solid var(--k-border, #E7E2D3)" }}>
                   <td style={{ padding: "9px 12px" }}>{name}</td>
@@ -241,7 +264,9 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
               if (!s) return (
                 <tr key={id} style={{ borderTop: "1px solid var(--k-border, #E7E2D3)" }}>
                   <td style={{ padding: "9px 12px" }}>{name}</td>
-                  <td colSpan={6} style={{ padding: "9px 12px", ...muted }}>not shown in this range</td>
+                  <td colSpan={6} style={{ padding: "9px 12px", ...muted }}>{earlier > 0
+                    ? `Reworded: no answers to the new wording yet (${earlier} to earlier wording${earlier === 1 ? "" : "s"})`
+                    : "not shown in this range"}</td>
                 </tr>
               );
               return (
@@ -444,7 +469,7 @@ function Settings({ store, draft, setDraft, loadedRef, storedRef, locks, ask }: 
       return [id, { ...t, version }];
     }));
     const overrides = unlockedOnly({ enabled: draft.enabled, mode: draft.mode, persistentButton: draft.persistentButton, answers: draft.answers, caps: draft.caps, triggers });
-    try { await store.writeConfig?.(overrides); storedRef.current = overrides; const next = { ...draft, triggers } as AugurConfig; setDraft(next); loadedRef.current = next; }
+    try { await store.writeConfig?.(overrides); storedRef.current = overrides; const next = { ...draft, triggers } as AugurConfig; setDraft(next); loadedRef.current = next; configChanged(); }
     finally { setSaving(false); }
   }
 
@@ -457,7 +482,7 @@ function Settings({ store, draft, setDraft, loadedRef, storedRef, locks, ask }: 
     const base = loadedRef.current; if (!base) return;
     setModeSaving(true);
     const overrides = unlockedOnly({ enabled: base.enabled, mode, persistentButton: base.persistentButton, answers: base.answers, caps: base.caps, triggers: base.triggers });
-    try { await store.writeConfig?.(overrides); storedRef.current = overrides; loadedRef.current = { ...base, mode }; }
+    try { await store.writeConfig?.(overrides); storedRef.current = overrides; loadedRef.current = { ...base, mode }; configChanged(); }
     finally { setModeSaving(false); }
   }
 
@@ -490,7 +515,7 @@ function Settings({ store, draft, setDraft, loadedRef, storedRef, locks, ask }: 
       <div style={card}>
         <h2 style={{ margin: "0 0 10px", fontSize: 16 }}>Caps</h2>
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
-          <Field label="1 prompt / session" v={draft.caps.perSession} onChange={(n) => setDraft({ ...draft, caps: { ...draft.caps, perSession: n } })} />
+          <Field label="Max prompts per session" v={draft.caps.perSession} onChange={(n) => setDraft({ ...draft, caps: { ...draft.caps, perSession: n } })} />
           <Field label="Min days between prompts" v={draft.caps.perUserDays} onChange={(n) => setDraft({ ...draft, caps: { ...draft.caps, perUserDays: n } })} />
           <Field label="Quiet days after an answer" v={draft.caps.suppressAfterAnswerDays} onChange={(n) => setDraft({ ...draft, caps: { ...draft.caps, suppressAfterAnswerDays: n } })} />
         </div>

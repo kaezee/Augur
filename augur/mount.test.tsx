@@ -6,7 +6,7 @@ import { Augur, submitFeedback } from "./Augur";
 import { AugurAdminSection, resultsHeadline } from "./admin";
 import { AUGUR_VERSION } from "./version";
 import { AUGUR_DEMO_URL } from "./mark";
-import { augur } from "./emit";
+import { augur, configChanged } from "./emit";
 import * as publicApi from "./index";
 import { mergeConfig, type HostConfig } from "./config";
 import { LocalStore } from "./stores/local";
@@ -30,6 +30,7 @@ let host: HTMLDivElement, root: Root;
 async function mount(config: HostConfig, store: AugurStore) {
   await act(async () => { root.render(<Augur userId="u1" store={store} config={config} appVersion="1.2.3" />); });
 }
+const rangeAll = () => ({ from: new Date(0).toISOString(), to: new Date(Date.now() + 864e5).toISOString() });
 const q = (sel: string) => document.body.querySelector<HTMLElement>(sel);
 const buttonByText = (t: string) => [...document.body.querySelectorAll("button")].find((b) => b.textContent?.trim() === t) as HTMLButtonElement;
 
@@ -240,6 +241,36 @@ describe("admin reads that hold up as feedback grows", () => {
       { id: "import.done", question: "Did the import land?", shown: 20, answered: 10, notReally: 2 },
       { id: "moment.recorded", question: "Was recording that moment easy?", shown: 12, answered: 6, notReally: 3 },
     ])).toBe("Most “Not really”: “Was recording that moment easy?”, 3 of 6 answers (50%).");
+  });
+});
+
+describe("admin changes reach a mounted <Augur>", () => {
+  it("Testing mode saved in admin stops recording without a reload", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    const store = new LocalStore();
+    await mount(CFG, store);
+    await store.writeConfig({ mode: "testing" });
+    await act(async () => { configChanged(); await Promise.resolve(); });
+    await act(async () => { augur.emit("t.done"); await vi.runOnlyPendingTimersAsync(); });
+    expect(q('[role="region"]')?.textContent).toContain("Did that work?");   // still shown, so it can be checked
+    await act(async () => { buttonByText("Yes").click(); });
+    expect(await store.readTriggerStats(rangeAll())).toEqual([]);              // but nothing recorded
+  });
+});
+
+describe("Results after a question is reworded", () => {
+  it("counts only answers to the current wording and says how many came before", async () => {
+    const store = new LocalStore();
+    for (const [ver, answer] of [[1, "not_really"], [1, "not_really"], [2, "yes"]] as const) {
+      const id = await store.logShown({ userId: "u", triggerId: "t.done", triggerVer: ver });
+      await store.logOutcome(id, "answered", answer);
+    }
+    const cfg: HostConfig = { triggers: { "t.done": { ...CFG.triggers!["t.done"], version: 2, question: "Was it smooth?" } } };
+    await act(async () => { root.render(<AugurAdminSection store={store} hostConfig={cfg} />); });
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    const text = document.body.textContent ?? "";
+    expect(text).toContain("No “Not really” answers in this range: 1 answer across 1 question.");
+    expect(text).toContain("2 earlier answers not counted");
   });
 });
 

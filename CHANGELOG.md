@@ -23,8 +23,8 @@ what to run when upgrading.
   stored with a report, emails, JWTs, `Bearer`/`Basic` credentials, long key-like
   strings and long numbers become `[redacted]`. New `redactError` host option for
   app-specific masking, run first; code only, never from admin settings.
-- **Install with the shadcn CLI:** `npx shadcn@latest add https://kaezee.github.io/Augur/r/augur.json`
-  puts the whole folder in `src/augur/` (or `augur/`) and prints a pointer to AGENTS.md.
+- **Install with the shadcn CLI:** `npx shadcn@latest add kaezee/Augur/augur` (or the
+  hosted `https://kaezee.github.io/Augur/r/augur.json`) puts the whole folder in `src/augur/` (or `augur/`) and prints a pointer to AGENTS.md.
   Built from `registry.json` with the demo; the database setup is still a separate step.
 - **The byline opens the live demo** instead of the repo (`AUGUR_DEMO_URL`); on the
   demo itself it opens the repo.

@@ -82,8 +82,11 @@ sits in the corner. To see what was saved, render
 **1. Copy** the [`augur/`](./augur) folder into your `src/`, or install it with the shadcn CLI:
 
 ```sh
-npx shadcn@latest add https://kaezee.github.io/Augur/r/augur.json
+npx shadcn@latest add kaezee/Augur/augur
 ```
+
+The CLI reads it straight from this repo. The older address,
+`https://kaezee.github.io/Augur/r/augur.json`, still works.
 
 **2. Pick a store** — the one seam between Augur and your database:
 

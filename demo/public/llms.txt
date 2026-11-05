@@ -16,7 +16,7 @@ Coding agents adding Augur should read AGENTS.md first and follow it: audit the 
 
 ## Install
 
-- [shadcn registry item](https://kaezee.github.io/Augur/r/augur.json): `npx shadcn@latest add https://kaezee.github.io/Augur/r/augur.json`
+- [shadcn registry](https://github.com/kaezee/Augur/blob/main/registry.json): `npx shadcn@latest add kaezee/Augur/augur` (also served at https://kaezee.github.io/Augur/r/augur.json)
 - [Repository](https://github.com/kaezee/Augur): or copy the `augur/` folder by hand
 
 ## Optional

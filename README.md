@@ -191,10 +191,18 @@ AGENTS.md tells it how.
     and a per-tab session id,
   - the last 5 uncaught errors, each as its type, script URL (query stripped), line
     and the first line of the message cut to 120 characters, never the stack trace.
-    Emails, tokens (JWTs, `Bearer …`), long key-like strings and long numbers in that
+    Emails, tokens (JWTs, `Bearer …`), long key-like strings, long numbers and URL
+    parameters (`?token=…`) in that
     line are replaced with `[redacted]`; add your own masking with `redactError`
     (e.g. `redactError: (m) => m.replace(/ORD-\d+/g, "[order]")`). Browser-extension
     errors are dropped, and so is any source you list in `ignoreErrorSources`.
+  - failures your app handled itself, if you report them. A failed request (a 401, a
+    500) isn't an uncaught error, so Augur can't see it on its own. Call
+    `augur.error()` where you handle it, usually once in your fetch wrapper:
+    ```ts
+    if (!res.ok) augur.error(`${res.status} on ${new URL(res.url).pathname}`);
+    ```
+    It goes into the same list of 5, masked and cut the same way.
 
   It never reads the page, form fields, or anything the person typed elsewhere.
   `context: false` turns it off entirely: no listeners, nothing sent.

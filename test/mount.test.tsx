@@ -122,6 +122,24 @@ describe("the button's panel", () => {
     expect(Array.isArray(s.context?.errors)).toBe(true);
   });
 
+  it("includes failures the app reported with augur.error(), masked", async () => {
+    const store = fakeStore();
+    await mount({ ...CFG, categories: [] }, store);
+    augur.error("401 on /api/upload?token=abc123");
+    augur.error(new TypeError("Upload rejected for jane@example.com"));
+    await act(async () => { augur.open(); });
+    const ta = q("textarea") as HTMLTextAreaElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(ta, "upload failed");
+      ta.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    await act(async () => { buttonByText("Send").click(); });
+    expect(store.submitted[0].context?.errors.map((e) => [e.type, e.message])).toEqual([
+      ["Reported", "401 on /api/upload[redacted]"],
+      ["TypeError", "Upload rejected for [redacted]"],
+    ]);
+  });
+
   it("writes nothing if closed without sending", async () => {
     const store = fakeStore();
     await mount(CFG, store);
@@ -207,6 +225,7 @@ describe("the button's panel", () => {
       Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(ta, "hi");
       ta.dispatchEvent(new Event("input", { bubbles: true }));
     });
+    augur.error("401 on /api/upload");                        // not recorded anywhere
     await act(async () => { buttonByText("Send").click(); });
     expect(store.submitted[0].context).toBeUndefined();
   });

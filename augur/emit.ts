@@ -8,6 +8,7 @@ type OpenListener = (source: string) => void;
 const openers = new Set<OpenListener>();
 const closers = new Set<() => void>();
 const panelListeners = new Set<(open: boolean) => void>();
+const errorListeners = new Set<(e: unknown) => void>();
 
 export const augur = {
   emit(triggerId: string): void {
@@ -30,6 +31,13 @@ export const augur = {
   // Close whatever Augur is showing (a triggered prompt or the panel).
   close(): void {
     for (const l of [...closers]) l();
+  },
+  // Report a failure your app handled itself, such as a request that came back 401 or
+  // 500, so it shows under "recent errors" if the person then sends feedback. Pass an
+  // Error or a short line ("401 on /api/upload"): it's masked and cut like any other
+  // error. Records nothing when context is off or <Augur> isn't mounted.
+  error(e: unknown): void {
+    for (const l of [...errorListeners]) l(e);
   },
   // true when any prompt or panel appears, false when it closes — so a host's own
   // button can hide while Augur is on screen.
@@ -57,4 +65,9 @@ export function onConfigChanged(l: () => void): () => void {
 }
 export function configChanged(): void {
   for (const l of [...configListeners]) l();
+}
+// augur.error() reports: the mount's error capture listens while context is on.
+export function onReportedError(l: (e: unknown) => void): () => void {
+  errorListeners.add(l);
+  return () => { errorListeners.delete(l); };
 }

@@ -1,10 +1,11 @@
 import type { ErrorEntry, SubmitContext } from "./store";
 import { AUGUR_VERSION } from "./version";
+import { onReportedError } from "./emit";
 
 // Diagnostic context attached to person-initiated submissions. It collects places,
 // never words: the page path (no query string or fragment, which routinely carry
 // tokens and emails), the app version, the viewport, the browser, and short lines
-// from the last few uncaught errors. It never reads the DOM, form fields, or
+// from the last few uncaught errors and failures the host reported with augur.error(). It never reads the DOM, form fields, or
 // anything the person typed elsewhere in the app.
 
 const EXTENSION_PREFIXES = ["chrome-extension://", "moz-extension://", "safari-extension://"];
@@ -16,8 +17,10 @@ export const stripUrl = (u: string): string => u.replace(/[?#].*$/, "");
 
 // Things that turn up in error messages and must never be stored: emails, JWTs
 // (whole or cut short), auth headers, long key-like strings (API keys, session ids),
-// and long digit runs (card, phone and account numbers).
+// long digit runs (card, phone and account numbers), and query or fragment
+// parameters in a URL inside the message (?token=…, #access_token=…).
 const SECRETS = [
+  /[?#&][\w.-]+=[^\s"')]*/g,
   /[\w.+-]+@[\w-]+(?:\.[\w-]+)+/g,
   /\beyJ[\w-]{8,}(?:\.[\w-]*){0,2}/g,
   /\b(?:bearer|basic)\s+[\w.~+/=-]+/gi,
@@ -72,10 +75,20 @@ function push(e: ErrorEntry | null) {
   while (errors.length > MAX_ERRORS) errors.shift();
 }
 
-// Install the two window listeners. Returns an uninstall. Called only when
-// config.context is true; with context off nothing is ever attached.
+// A failure the host reported itself (augur.error): a failed request is handled, so
+// it never reaches the window listeners. Exported for tests.
+export function reportedError(e: unknown, redact?: (message: string) => string): ErrorEntry | null {
+  if (e instanceof Error) return normalizeError({ name: e.name, message: e.message, stack: e.stack }, [], redact);
+  const message = cleanMessage(String(e ?? ""), redact);
+  return message ? { type: "Reported", source: "", line: 0, message } : null;
+}
+
+// Install the two window listeners and accept augur.error() reports. Returns an
+// uninstall. Called only when config.context is true; with context off nothing is
+// ever attached and augur.error() records nothing.
 export function installErrorCapture(ignore: string[], redact?: (message: string) => string): () => void {
   if (typeof window === "undefined") return () => {};
+  const offReported = onReportedError((e) => push(reportedError(e, redact)));
   const onError = (e: ErrorEvent) => push(normalizeError({
     name: (e.error as Error | undefined)?.name, filename: e.filename, lineno: e.lineno,
     message: e.message || (e.error as Error | undefined)?.message, stack: (e.error as Error | undefined)?.stack,
@@ -89,6 +102,7 @@ export function installErrorCapture(ignore: string[], redact?: (message: string)
   window.addEventListener("error", onError);
   window.addEventListener("unhandledrejection", onRejection);
   return () => {
+    offReported();
     window.removeEventListener("error", onError);
     window.removeEventListener("unhandledrejection", onRejection);
     errors.length = 0;

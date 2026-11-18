@@ -38,6 +38,8 @@ describe("masking secrets in error messages", () => {
     expect(maskSecrets("401 for Bearer abc.def123")).toBe("401 for [redacted]");
     expect(maskSecrets("bad key k9F2mQ7xL4pR8tZ1vB6nW3yH5j")).toBe("bad key [redacted]");
     expect(maskSecrets("card 4242424242424242 declined")).toBe("card [redacted] declined");
+    expect(maskSecrets("GET /api/me?session=abc&x=1 failed")).toBe("GET /api/me[redacted] failed");
+    expect(maskSecrets("redirect to /cb#access_token=xyz")).toBe("redirect to /cb[redacted]");
   });
 
   it("leaves ordinary messages alone", () => {

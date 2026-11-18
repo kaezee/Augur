@@ -5,6 +5,11 @@ what to run when upgrading.
 
 ## Unreleased
 
+- **Report failures your app handled:** `augur.error(e)` adds an Error or a short line
+  ("401 on /api/upload") to the recent errors sent with feedback. A failed request
+  isn't an uncaught error, so it never showed up before. Masked and cut like the
+  rest; records nothing when `context: false`.
+- **URL parameters are masked in error messages** (`?token=…`, `#access_token=…`).
 - **The follow-up shows the answer you picked** (✓ Not really) above "Anything you'd
   change?", so the question's context isn't lost.
 - **Results lists triggers only.** Feedback-button submissions no longer appear as a

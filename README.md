@@ -13,6 +13,8 @@ One well-timed question, three answers, an optional line. Your coding agent pick
 
 Stable and maintained. Issues get an answer within two weeks.
 
+Tested by indie developers: [verified feedback on IndieAppCircle](https://www.indieappcircle.com/apps/j57d2bejn1nyjdxj20j0y4a4zh8jb7kw).
+
 </div>
 
 <p align="center">

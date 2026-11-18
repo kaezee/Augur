@@ -95,6 +95,14 @@ const PATHS: Record<string, ReactNode> = {
 };
 const Icon = ({ n }: { n: string }) => <svg className="i" viewBox="0 0 24 24" aria-hidden="true">{PATHS[n]}</svg>;
 // A link that leaves the demo: opens in a new tab, says so, and shows it.
+// IndieAppCircle's testimonial widget (script in index.html). Without the script the
+// link inside it is what shows.
+const IAC = "https://www.indieappcircle.com/apps/j57d2bejn1nyjdxj20j0y4a4zh8jb7kw";
+declare global {
+  // eslint-disable-next-line @typescript-eslint/no-namespace
+  namespace JSX { interface IntrinsicElements { "indieappcircle-testimonials": { app: string; theme?: string; children?: ReactNode } } }
+}
+
 const ExternalLink = ({ href, className, children }: { href: string; className: string; children: ReactNode }) => (
   <a className={className} href={href} target="_blank" rel="noopener noreferrer">
     {children}<Icon n="external" /><span className="sr"> (opens GitHub in a new tab)</span>
@@ -360,7 +368,7 @@ function App() {
               <div className="finish">
                 <b>That's Augur in under a minute</b>
                 <p>A question at the right moment, feedback with its context, and clicks that went nowhere, all in one place.</p>
-                <div className="row"><ExternalLink className="btn btn-sm" href={ADD}>Add it to your app</ExternalLink></div>
+                <div className="row"><ExternalLink className="btn btn-sm" href={ADD}>Add it to your app</ExternalLink><a className="glink" href="#testers">What testers said</a></div>
               </div>
             )}
             <div className="steps-foot">
@@ -414,6 +422,13 @@ function App() {
           </div>
         </section>
       </main>
+
+      <section className="testers" id="testers" aria-labelledby="testersTitle">
+        <h2 id="testersTitle">What testers said</h2>
+        <indieappcircle-testimonials app="j57d2bejn1nyjdxj20j0y4a4zh8jb7kw" theme="light">
+          <a href={IAC} target="_blank" rel="noreferrer noopener">Verified feedback on IndieAppCircle</a>
+        </indieappcircle-testimonials>
+      </section>
 
       <div className="sr" aria-live="polite">{live}</div>
       <Augur userId={userId()} store={store} config={DEMO_AUGUR} appVersion="demo" />

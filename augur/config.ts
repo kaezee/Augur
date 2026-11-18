@@ -116,7 +116,7 @@ export const AUGUR_BASE_DEFAULTS: Omit<AugurConfig, "triggers"> = {
     send: "Send",
     skip: "Skip",
     cancel: "Cancel",
-    sent: "Thanks — that’s logged.",
+    sent: "Thanks, that’s logged.",
     sending: "Sending…",
     sendFailed: "That didn’t send. Check your connection and try again.",
     notePlaceholder: "one line, optional",

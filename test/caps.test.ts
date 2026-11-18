@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { canShow, recordShown, recordAnswered, recordIgnored, __resetSession } from "./caps";
-import { AUGUR_BASE_DEFAULTS, type AugurConfig } from "./config";
+import { canShow, recordShown, recordAnswered, recordIgnored, __resetSession } from "../augur/caps";
+import { AUGUR_BASE_DEFAULTS, type AugurConfig } from "../augur/config";
 
 // Map-backed localStorage stub for the node test env.
 const store = new Map<string, string>();

@@ -203,10 +203,12 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
     ...notes.filter((n) => n.category != null || n.context != null).map((n) => n.triggerId)]), [notes, subStats]);
   const rt = (id: string): "choice3" | "choice" | "text" => draft.triggers[id] ? responseTypeOf(draft.triggers[id]) : entryPoints.has(id) ? "text" : "choice3";
 
+  // Declared triggers, plus undeclared ids that fired. Feedback-button entry points
+  // aren't triggers: they have their own section below.
   const rowIds = useMemo(() => {
     const ids = new Set<string>([...Object.keys(draft.triggers), ...statsRange.map((s) => s.triggerId), ...statsAll.map((s) => s.triggerId)]);
-    return [...ids].sort();
-  }, [draft, statsRange, statsAll]);
+    return [...ids].filter((id) => draft.triggers[id] || !entryPoints.has(id)).sort();
+  }, [draft, statsRange, statsAll, entryPoints]);
 
   // choice3-only headline (§6 rule 4): the question to look at first.
   const sentence = useMemo(() => resultsHeadline(rowIds.filter((id) => rt(id) === "choice3").flatMap((id) => {
@@ -252,7 +254,7 @@ function Results({ store, draft, range, ask }: { store: AugurStore; draft: Augur
               const c3 = rt(id) === "choice3";
               const earlier = earlierById.get(id) ?? 0;
               const name = <>
-                <code style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{id}{entryPoints.has(id) && !draft.triggers[id] ? " ·button" : ""}</code>
+                <code style={{ fontFamily: "var(--k-font-mono, ui-monospace, monospace)" }}>{id}</code>
                 {earlier > 0 && s && <div style={{ ...muted, fontSize: 12 }}>Current wording only; {earlier} earlier {earlier === 1 ? "answer" : "answers"} not counted</div>}
               </>;
               if (!everFired.has(id)) return (

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { FrictionDetector, FRICTION_CLICKS } from "./friction";
+import { FrictionDetector, FRICTION_CLICKS } from "../augur/friction";
 
 describe("friction detector", () => {
   it("fires once when 3 presses land within a second", () => {

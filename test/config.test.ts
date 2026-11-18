@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
-import { mergeConfig, lockedInCode, effectiveCategories, type HostConfig, type TriggerDef } from "./config";
+import { mergeConfig, lockedInCode, effectiveCategories, type HostConfig, type TriggerDef } from "../augur/config";
 
 const trig = (over: Partial<TriggerDef> = {}): TriggerDef =>
   ({ enabled: true, version: 1, delayMs: 0, maxAsks: 1, dismissKill: 2, question: "?", ...over });

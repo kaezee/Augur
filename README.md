@@ -77,6 +77,12 @@ Click **Export report**: the question appears a moment later, and the Feedback b
 sits in the corner. To see what was saved, render
 `<AugurAdminSection store={store} hostConfig={MY_AUGUR} />` anywhere.
 
+**Make it fit your app.** Every visible word can be changed through `strings`
+([what you get](#what-you-get)). The small "by Augur" credit on each prompt turns off
+with `byline={false}` ([attribution](#attribution)). The button moves to the other
+corner with `presentation: { position: "bottom-left" }`, or hides with
+`persistentButton: false` if you'd rather open the panel from your own menu.
+
 ## Three-step integration
 
 **1. Copy** the [`augur/`](./augur) folder into your `src/`, or install it with the shadcn CLI:
@@ -120,6 +126,12 @@ export const MY_TRIGGERS: HostConfig = {
 await placeOrder(cart);
 augur.emit("checkout.done");
 ```
+
+Emit when the person sees the action is done, not when it starts. For work that
+finishes in the background (an upload processed minutes later), emit when the "ready"
+state shows while they're still there, and skip it if they've moved on. Using an AI
+coding tool? It should propose these moments and wait for your yes before adding them
+([below](#install-with-an-ai-coding-tool)).
 
 See [`example/usage.tsx`](./example/usage.tsx) for a complete file.
 

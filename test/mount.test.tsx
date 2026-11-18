@@ -2,16 +2,16 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { act } from "react-dom/test-utils";
 import { createRoot, type Root } from "react-dom/client";
-import { Augur, submitFeedback } from "./Augur";
-import { AugurAdminSection, resultsHeadline } from "./admin";
-import { AUGUR_VERSION } from "./version";
-import { AUGUR_DEMO_URL } from "./mark";
-import { augur, configChanged } from "./emit";
-import * as publicApi from "./index";
-import { mergeConfig, type HostConfig } from "./config";
-import { LocalStore } from "./stores/local";
-import { __resetSession } from "./caps";
-import type { AugurStore, Submission } from "./store";
+import { Augur, submitFeedback } from "../augur/Augur";
+import { AugurAdminSection, resultsHeadline } from "../augur/admin";
+import { AUGUR_VERSION } from "../augur/version";
+import { AUGUR_DEMO_URL } from "../augur/mark";
+import { augur, configChanged } from "../augur/emit";
+import * as publicApi from "../augur/index";
+import { mergeConfig, type HostConfig } from "../augur/config";
+import { LocalStore } from "../augur/stores/local";
+import { __resetSession } from "../augur/caps";
+import type { AugurStore, Submission } from "../augur/store";
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -163,6 +163,7 @@ describe("the button's panel", () => {
     await mount(CFG, store);
     await act(async () => { augur.emit("t.done"); await vi.runOnlyPendingTimersAsync(); });
     await act(async () => { buttonByText("Not really").click(); });
+    expect(q('[role="region"]')?.textContent).toContain("✓ Not really");   // the answer stays visible above the follow-up
     const input = q('[role="region"] input') as HTMLInputElement;
     await act(async () => {
       const set = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
@@ -271,6 +272,18 @@ describe("Results after a question is reworded", () => {
     const text = document.body.textContent ?? "";
     expect(text).toContain("No “Not really” answers in this range: 1 answer across 1 question.");
     expect(text).toContain("2 earlier answers not counted");
+  });
+});
+
+describe("Results trigger table", () => {
+  it("lists triggers only; feedback-button submissions have their own section", async () => {
+    const store = new LocalStore();
+    await store.submit({ userId: "u1", category: "broke", body: "x", source: "button" });
+    await act(async () => { root.render(<AugurAdminSection store={store} hostConfig={CFG} />); });
+    await act(async () => { await new Promise((r) => setTimeout(r, 20)); });
+    const rows = [...document.body.querySelectorAll("tbody tr td:first-child code")].map((c) => c.textContent);
+    expect(rows).toEqual(["t.done"]);
+    expect(document.body.textContent).toContain("1 submission from the feedback button");
   });
 });
 

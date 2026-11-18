@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { cleanMessage, maskSecrets, normalizeError, stripUrl } from "./context";
+import { cleanMessage, maskSecrets, normalizeError, stripUrl } from "../augur/context";
 
 describe("diagnostic context limits", () => {
   it("strips query strings and fragments", () => {

@@ -5,6 +5,19 @@ what to run when upgrading.
 
 ## Unreleased
 
+- **The follow-up shows the answer you picked** (✓ Not really) above "Anything you'd
+  change?", so the question's context isn't lost.
+- **Results lists triggers only.** Feedback-button submissions no longer appear as a
+  cryptic `button ·button` row in the trigger table; they already have their own
+  section.
+- **Default "sent" text:** "Thanks, that's logged." (was an em dash). Override it with
+  `strings.sent` as before.
+- **No test files in the folder.** The module's tests moved from `augur/` to `test/`,
+  so copying the folder brings only the module. If you copied an older version, the
+  `augur/*.test.ts(x)` files are safe to delete.
+- **Docs:** when to emit for work that finishes in the background; check sidebars
+  before placing the Feedback button; how to change strings, the byline and the
+  button's corner, near the top of the README.
 - **Admin changes apply at once.** Saving settings in admin (Testing mode included)
   now reaches an `<Augur>` already mounted in the same page immediately, and other
   tabs pick it up when they come back into view. Before, Testing mode only took

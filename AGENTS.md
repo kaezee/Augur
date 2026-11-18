@@ -60,6 +60,12 @@ Each job ends somewhere in the code. Look for the success path of a mutation:
 
 Never a page load, a click handler before the work resolves, or an error branch.
 
+**Work that finishes in the background** (an upload accepted at once but processed
+minutes later, an import, a long export): emit when the person sees it's done, usually
+when the "ready" state appears on screen while they're still there. If it finishes
+after they've moved on, don't ask: the question would arrive out of context. Asking
+about the part they did see ("Was it easy to upload that file?") is fine.
+
 ### 2c. Pick 1–3 moments
 
 Score each candidate on three things and take the top one to three:
@@ -108,7 +114,8 @@ include user data.
 ### 2g. Where the Feedback button goes
 
 Check what's already in the corners at phone and desktop widths: bottom tab bars,
-a primary floating action button, chat widgets, toasts, cookie banners.
+a primary floating action button, chat widgets, toasts, cookie banners, and the
+foot of a sidebar (account menus and sign-out links often sit at bottom-left).
 
 - **Desktop or web layout, clear corner:** keep the built-in button (`bottom-right`,
   or `bottom-left` if right is taken).

@@ -42,6 +42,7 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
   const cats = panel?.categories ?? [];
   const isText = isPanel || spec.responseType === "text";
   const [step, setStep] = useState<"q" | "note">("q");
+  const [picked, setPicked] = useState("");                // the answer chosen, shown above the follow-up
   const [cat, setCat] = useState<Category | null>(null);   // panel: chosen category
   const [text, setText] = useState("");
   const closed = useRef(false);
@@ -172,12 +173,14 @@ export function AugurPrompt({ spec, panel, strings, byline = true, onAnswer, onN
           <div style={btnRow}>
             {choices.map((a) => (
               <button key={a.key} style={btn} aria-label={(a as { aria?: string }).aria || a.label}
-                onClick={() => { onAnswer(a.key); setStep("note"); }}>{a.label}</button>
+                onClick={() => { onAnswer(a.key); setPicked(a.label); setStep("note"); }}>{a.label}</button>
             ))}
           </div>
         </>
       ) : (
         <>
+          {picked && <p style={{ margin: "0 0 2px", fontSize: 12.5, color: "var(--k-text-tertiary, #98917E)" }}>
+            <span aria-hidden="true">✓ </span>{picked}</p>}
           <p style={qStyle}>{spec.followup}</p>
           {error}
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>

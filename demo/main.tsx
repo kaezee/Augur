@@ -407,7 +407,7 @@ function App() {
             </div>
             <div className="panel" role="tabpanel" id="panel-admin" aria-labelledby="tab-admin" hidden={tab !== "admin"}>
               <div className="frame-head"><h3>Augur admin</h3><span>Acme Tasks · what your team sees</span></div>
-              <p className="demo-note">This demo raises the caps so you can try it more than once. In your app the defaults apply: one prompt per session, then 21 days of quiet.</p>
+              <p className="demo-note">Everything here is saved in this browser only. In your app it goes to your own database (Supabase, or your own API). This demo also raises the caps so you can try it more than once; in your app the defaults apply: one prompt per session, then 21 days of quiet.</p>
               {tab === "admin" && <div className="admin-wrap"><AugurAdminSection key={adminKey} store={store} hostConfig={DEMO_AUGUR} /></div>}
             </div>
             {toast && <div className="toast" aria-hidden="true"><span className="tic"><Icon n="check" /></span>{toast}</div>}
